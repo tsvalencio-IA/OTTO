@@ -10,10 +10,10 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=2" />
+  <link rel="stylesheet" href="./style.css?v=3" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <script defer src="./app.js?v=2"></script>
+  <script defer src="./app.js?v=3"></script>
 </head>
 <body>
   <div id="app" class="app" data-theme="dark" data-stage="fire" data-mode="normal">
@@ -54,7 +54,7 @@
 
           <model-viewer
             id="athosViewer"
-            src="./athos.glb?v=2"
+            src="./athos.glb?v=3"
             alt="Athos, personagem preto blocado com olhos vermelhos e fogo pixelado nos braços e pernas"
             camera-controls
             touch-action="pan-y"
@@ -97,6 +97,22 @@
               <div id="progressBar"></div>
             </div>
           </model-viewer>
+
+          <div id="arControlsOverlay" class="arControlsOverlay" aria-label="Controles rápidos do Athos no modo câmera">
+            <div class="arHandle">Controles do Athos</div>
+            <div class="arControlsGrid">
+              <button class="arCtrlBtn" type="button" data-action="jump">🦘<span>Pular</span></button>
+              <button class="arCtrlBtn" type="button" data-action="crouch">⬇️<span>Abaixar</span></button>
+              <button class="arCtrlBtn" type="button" data-action="spin">🔄<span>Girar</span></button>
+              <button class="arCtrlBtn" type="button" data-action="hello">👋<span>Falar</span></button>
+              <button class="arCtrlBtn" type="button" data-action="left">⬅️<span>Esq.</span></button>
+              <button class="arCtrlBtn" type="button" data-action="right">➡️<span>Dir.</span></button>
+              <button class="arCtrlBtn" type="button" data-action="mini">🤏<span>Mini</span></button>
+              <button class="arCtrlBtn" type="button" data-action="giant">🦾<span>Gigante</span></button>
+              <button class="arCtrlBtn" type="button" data-action="center">🎯<span>Centro</span></button>
+              <button class="arCtrlBtn danger" type="button" data-action="stop">⏸️<span>Parar</span></button>
+            </div>
+          </div>
         </div>
 
         <div class="bigActions">
@@ -115,7 +131,7 @@
         <section class="card">
           <div class="cardTitle">
             <h2>Controles do Otto</h2>
-            <p>Todos estes botões funcionam no modo 3D e no modo câmera.</p>
+            <p>Use no modo 3D normal. No modo câmera, estes controles aparecem fixos no rodapé da tela.</p>
           </div>
 
           <div class="controlGrid">
@@ -123,7 +139,7 @@
             <button class="playBtn" type="button" data-action="normal">🧍 Normal</button>
             <button class="playBtn" type="button" data-action="giant">🦾 Gigante</button>
             <button class="playBtn" type="button" data-action="spin">🔄 Girar</button>
-            <button class="playBtn" type="button" data-action="dance">🔥 Dançar</button>
+            <button class="playBtn" type="button" data-action="crouch">⬇️ Abaixar</button>
             <button class="playBtn" type="button" data-action="jump">🦘 Pular</button>
             <button class="playBtn" type="button" data-action="left">⬅️ Esquerda</button>
             <button class="playBtn" type="button" data-action="right">➡️ Direita</button>
@@ -145,7 +161,7 @@
         <section class="card infoCard">
           <h2>Importante</h2>
           <p><b>AR real</b> abre o visualizador do celular. Nesse modo, o navegador pode sair da página e os botões deixam de controlar o boneco.</p>
-          <p><b>Brincar com câmera</b> fica dentro da página, por isso dançar, girar, pular e mudar tamanho funcionam.</p>
+          <p><b>Brincar com câmera</b> fica dentro da página e agora abre em tela cheia com os botões fixos no rodapé.</p>
         </section>
 
         <section class="card">
@@ -166,7 +182,7 @@
             <h2>Missão do dia</h2>
             <p>Uma brincadeira simples para o Otto.</p>
           </div>
-          <div id="missionBox" class="missionBox">Coloque o Athos perto de um brinquedo e faça ele dançar.</div>
+          <div id="missionBox" class="missionBox">Coloque o Athos perto de um brinquedo e faça ele girar.</div>
           <div class="missionActions">
             <button id="newMissionBtn" class="secondaryBtn" type="button">🎲 Nova missão</button>
             <button id="doneMissionBtn" class="secondaryBtn" type="button">✅ Concluí</button>

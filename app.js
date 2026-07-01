@@ -27,7 +27,7 @@
   const doneMissionBtn = $('#doneMissionBtn');
 
   const missions = [
-    'Coloque o Athos perto de um brinquedo e faça ele dançar.',
+    'Coloque o Athos perto de um brinquedo e faça ele girar.',
     'Coloque o Athos em cima da mesa e dê uma volta nele.',
     'Faça o Athos mini aparecer ao lado de um carrinho.',
     'Coloque o Athos gigante no chão e tire um print.',
@@ -109,7 +109,7 @@
   function clearMotion() {
     if (motionRaf) cancelAnimationFrame(motionRaf);
     motionRaf = null;
-    viewer.classList.remove('is-dancing', 'is-jumping');
+    viewer.classList.remove('is-jumping', 'is-crouching');
     viewer.autoRotate = false;
   }
 
@@ -138,31 +138,18 @@
     say('Agora o Athos está girando.');
   }
 
-  function startDance() {
-    clearMotion();
-    const animations = viewer.availableAnimations || [];
-    if (animations.length) {
-      viewer.animationName = animations[0];
-      if (typeof viewer.play === 'function') viewer.play();
-      say('Achei animação dentro do arquivo GLB e coloquei para tocar.');
-      return;
-    }
-    viewer.classList.add('is-dancing');
-    const start = performance.now();
-    const step = (now) => {
-      const t = (now - start) / 1000;
-      applyOrientation(Math.sin(t * 5) * 20, Math.sin(t * 9) * 7);
-      motionRaf = requestAnimationFrame(step);
-    };
-    motionRaf = requestAnimationFrame(step);
-    say('Dançando! Este GLB não tem animação interna, então eu simulei a dança com movimento na tela.');
-  }
-
   function jump() {
     clearMotion();
     viewer.classList.add('is-jumping');
     window.setTimeout(() => viewer.classList.remove('is-jumping'), 540);
     say('Athos pulou!');
+  }
+
+  function crouch() {
+    clearMotion();
+    viewer.classList.add('is-crouching');
+    window.setTimeout(() => viewer.classList.remove('is-crouching'), 620);
+    say('Athos abaixou!');
   }
 
   function stopAll() {
@@ -195,8 +182,11 @@
       case 'spin':
         startSpin();
         break;
-      case 'dance':
-        startDance();
+      case 'crouch':
+        crouch();
+        break;
+      case 'center':
+        centerAthos();
         break;
       case 'jump':
         jump();
@@ -241,7 +231,7 @@
       app.dataset.mode = 'camera';
       modeBadge.textContent = 'CÂMERA';
       setStatus('Modo câmera ativo', 'ok');
-      setHelp('Modo câmera ligado. Agora os botões de dançar, girar, pular e tamanho funcionam por cima da câmera. Toque na imagem para posicionar o Athos.');
+      setHelp('Modo câmera ligado em tela cheia. Os botões ficam fixos no rodapé: pular, abaixar, girar, falar, mini, gigante e mover. Toque na câmera para posicionar o Athos.');
       setOffset(offsetX, offsetY);
       setScale(currentScale);
     } catch (err) {
@@ -340,6 +330,7 @@
   }
 
   $$('.playBtn[data-action]').forEach((btn) => btn.addEventListener('click', () => action(btn.dataset.action, btn)));
+  $$('.arCtrlBtn[data-action]').forEach((btn) => btn.addEventListener('click', () => action(btn.dataset.action, btn)));
   $$('#stageButtons .chip').forEach((btn) => btn.addEventListener('click', () => applyStage(btn.dataset.stage, btn)));
 
   scaleRange.addEventListener('input', () => setScale(Number(scaleRange.value) / 100));
@@ -360,7 +351,7 @@
     const x = event.clientX - rect.left - rect.width / 2;
     const y = event.clientY - rect.top - rect.height / 2;
     setOffset(x, y);
-    setHelp('Athos colocado aqui. Agora use Dançar, Girar, Pular, Mini ou Gigante.');
+    setHelp('Athos colocado aqui. Agora use os botões fixos no rodapé.');
   });
 
   themeBtn.addEventListener('click', () => {
@@ -405,9 +396,9 @@
     const animations = viewer.availableAnimations || [];
     setStatus('Athos carregado', 'ok');
     if (animations.length) {
-      setHelp(`Athos carregado com ${animations.length} animação(ões). Use Dançar para tocar a animação.`);
+      setHelp(`Athos carregado com ${animations.length} animação(ões) internas. Nesta versão, o botão Dançar foi removido e os comandos principais ficam no rodapé do modo câmera.`);
     } else {
-      setHelp('Athos carregado. Este arquivo GLB não tem animação interna, então Dançar/Girar/Pular são simulados pelo sistema.');
+      setHelp('Athos carregado. Como este GLB não tem dança real, removi Dançar. Pular, abaixar, girar, falar e tamanho funcionam pelo sistema.');
     }
   });
 

@@ -76,9 +76,7 @@ model-viewer{width:100%;height:min(69vh,730px);min-height:455px;display:block;ba
 [data-mode="camera"] model-viewer{position:absolute;inset:0;z-index:3;width:100%;height:100%;min-height:0;background:transparent!important;--poster-color:transparent;pointer-events:none;transform:translate(var(--athos-x), var(--athos-y));transition:transform .15s ease}
 [data-mode="camera"] .placementLayer{display:block}
 [data-mode="camera"] .arButton{display:none!important}
-model-viewer.is-dancing{animation:danceViewer .65s ease-in-out infinite}
 model-viewer.is-jumping{animation:jumpViewer .48s ease-in-out 1}
-@keyframes danceViewer{0%,100%{filter:drop-shadow(0 0 0 rgba(255,210,30,0));}25%{filter:drop-shadow(0 0 14px rgba(255,210,30,.55));}50%{filter:drop-shadow(0 0 22px rgba(255,106,26,.6));}75%{filter:drop-shadow(0 0 14px rgba(255,30,30,.5));}}
 @keyframes jumpViewer{0%,100%{transform:translate(var(--athos-x),var(--athos-y)) translateY(0)}45%{transform:translate(var(--athos-x),var(--athos-y)) translateY(-46px)}}
 .arButton{position:absolute;left:50%;bottom:17px;transform:translateX(-50%);border:0;border-radius:999px;padding:14px 19px;min-width:min(88%,270px);background:linear-gradient(135deg,var(--accent),#e11d48);color:white;font-weight:1000;box-shadow:0 16px 34px rgba(225,29,72,.38);z-index:9}
 .poster{height:100%;display:grid;place-items:center;align-content:center;gap:14px;color:white;font-weight:950;text-align:center;background:linear-gradient(145deg,#0b1220,#111827)}
@@ -91,3 +89,41 @@ model-viewer.is-jumping{animation:jumpViewer .48s ease-in-out 1}
 .chipGrid{display:flex;gap:8px;flex-wrap:wrap}.chip{padding:10px 12px;font-weight:950;background:linear-gradient(180deg,var(--panel2),var(--panel))}.chip.active{background:linear-gradient(135deg,var(--accent2),var(--accent));color:#171717;border-color:transparent}.missionBox{border-radius:18px;border:1px solid rgba(255,106,26,.36);background:rgba(255,106,26,.08);padding:14px;line-height:1.35;font-weight:850;min-height:74px}.missionBox.done{border-color:rgba(34,197,94,.55);background:rgba(34,197,94,.10)}.missionActions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.missionActions .secondaryBtn{padding:11px 10px;border-radius:16px}.linkGrid{display:grid;gap:8px}.fileLink{display:block;padding:12px 13px;font-weight:900;background:linear-gradient(180deg,var(--panel2),var(--panel))}.smallCard{padding-bottom:13px}.uploadLabel{font-weight:950;display:block;margin-bottom:8px}.smallCard input{width:100%;color:var(--muted)}.smallText{margin:9px 0 0;color:var(--muted);font-size:13px;line-height:1.35;font-weight:700}.footer{text-align:center;color:var(--muted);font-weight:850;font-size:12px;padding-top:17px}
 @media (max-width:900px){.app{padding-inline:10px}.layout{grid-template-columns:1fr;gap:12px}.viewerPanel{padding:9px}model-viewer,.viewerWrap{height:58vh;min-height:390px}.card{padding:14px}.brand h1{font-size:39px}.brand p:last-child{font-size:13px}.athosIcon{width:52px;height:52px;border-radius:16px}.athosIcon .eye{top:18px}.athosIcon .flame{width:21px;height:21px}}
 @media (max-width:470px){.topbar{align-items:flex-start}.topActions{flex-direction:column;gap:6px}.roundBtn{height:40px;min-width:42px;border-radius:14px}.roundBtn.wide{font-size:13px;padding:0 11px}.brand{gap:9px}.brand h1{font-size:33px}.viewerTop{align-items:flex-start}.bigActions{grid-template-columns:1fr}.controlGrid{gap:8px}.playBtn{min-height:54px;font-size:14px;padding:10px}model-viewer,.viewerWrap{height:56vh;min-height:350px}.arButton{bottom:12px;min-width:230px;padding:12px 15px;font-size:14px}.missionActions{grid-template-columns:1fr}.badge{min-width:64px}.infoCard p{font-size:14px}}
+
+
+/* V3 — modo câmera em tela cheia com controles no rodapé */
+.arControlsOverlay{display:none}
+[data-mode="camera"]{overflow:hidden}
+[data-mode="camera"] .app{width:100%;max-width:none;min-height:100dvh;padding:0}
+[data-mode="camera"] .topbar,
+[data-mode="camera"] .sidePanel,
+[data-mode="camera"] .footer{display:none!important}
+[data-mode="camera"] .layout{display:block;width:100%;height:100dvh}
+[data-mode="camera"] .viewerPanel{position:fixed;inset:0;z-index:99999;border:0;border-radius:0;padding:0;background:#000;box-shadow:none;overflow:hidden}
+[data-mode="camera"] .viewerTop{position:absolute;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top));z-index:45;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(0,0,0,.48);backdrop-filter:blur(12px);color:#fff}
+[data-mode="camera"] .viewerTop span{color:rgba(255,255,255,.78)}
+[data-mode="camera"] .viewerWrap{height:100dvh;min-height:100dvh;border:0;border-radius:0;background:#000}
+[data-mode="camera"] .bigActions{position:absolute;left:8px;right:8px;top:calc(73px + env(safe-area-inset-top));z-index:42;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+[data-mode="camera"] #cameraModeBtn,
+[data-mode="camera"] #openArBtn{display:none!important}
+[data-mode="camera"] .bigActions .secondaryBtn{min-height:42px;padding:9px 10px;border-radius:16px;background:rgba(0,0,0,.48);color:#fff;border-color:rgba(255,255,255,.18);box-shadow:none;backdrop-filter:blur(10px)}
+[data-mode="camera"] .helpBox{display:none!important}
+[data-mode="camera"] .arControlsOverlay{display:block;position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:55;padding:8px;border:1px solid rgba(255,255,255,.18);border-radius:22px;background:rgba(0,0,0,.58);backdrop-filter:blur(14px);box-shadow:0 -12px 38px rgba(0,0,0,.32)}
+.arHandle{color:#fff;text-align:center;font-weight:1000;font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin:0 0 7px;opacity:.82}
+.arControlsGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.arCtrlBtn{min-height:54px;border:1px solid rgba(255,255,255,.18);border-radius:17px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));color:#fff;font-weight:1000;box-shadow:0 8px 18px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 3px;text-align:center;line-height:1.05}
+.arCtrlBtn span{font-size:11px}
+.arCtrlBtn.danger{background:linear-gradient(180deg,rgba(239,68,68,.45),rgba(127,29,29,.48));border-color:rgba(248,113,113,.55)}
+model-viewer.is-crouching{animation:crouchViewer .58s ease-in-out 1}
+@keyframes crouchViewer{0%,100%{transform:translate(var(--athos-x),var(--athos-y)) scaleY(1)}45%{transform:translate(var(--athos-x),calc(var(--athos-y) + 42px)) scaleY(.70)}}
+@media (max-width:470px){
+  [data-mode="camera"] .viewerTop{left:6px;right:6px;top:calc(6px + env(safe-area-inset-top));padding:7px 9px;border-radius:16px}
+  [data-mode="camera"] .viewerTop strong{font-size:15px}
+  [data-mode="camera"] .viewerTop span{font-size:12px}
+  [data-mode="camera"] .bigActions{left:6px;right:6px;top:calc(66px + env(safe-area-inset-top));gap:7px}
+  [data-mode="camera"] .bigActions .secondaryBtn{font-size:13px;min-height:38px;padding:7px 8px}
+  [data-mode="camera"] .arControlsOverlay{left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom));padding:7px;border-radius:20px}
+  .arControlsGrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .arCtrlBtn{min-height:50px;border-radius:15px;font-size:17px}
+  .arCtrlBtn span{font-size:10px}
+}
