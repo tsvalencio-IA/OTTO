@@ -1,33 +1,56 @@
-# Athos AR do Otto
+# Athos AR do Otto — GitHub Pages
 
-Sistema simples para brincar com o personagem Athos em 3D e realidade aumentada no celular, pronto para GitHub Pages.
+Sistema pronto para subir no GitHub Pages com o personagem **Athos** em 3D.
 
-## Como subir no GitHub Pages
+## Como subir
 
-1. Extraia este ZIP.
-2. Envie todos os arquivos para um repositório no GitHub.
-3. Mantenha o arquivo `athos.glb` na mesma pasta do `index.html`.
-4. No GitHub, abra **Settings > Pages**.
-5. Em **Build and deployment**, escolha **Deploy from a branch**.
-6. Selecione a branch `main` e a pasta `/root`.
-7. Abra o link HTTPS gerado pelo GitHub Pages no celular.
+1. Extraia o ZIP.
+2. Envie todos os arquivos para um repositório do GitHub.
+3. Vá em **Settings > Pages**.
+4. Em **Build and deployment**, escolha **Deploy from a branch**.
+5. Selecione **main** e **/root**.
+6. Abra o link HTTPS gerado pelo GitHub Pages no celular.
 
-## Arquivos principais
+## Arquivo 3D
 
-- `index.html` — tela principal do Athos AR.
-- `style.css` — visual do sistema.
-- `app.js` — botões, fala, missões, tamanho, AR e controles.
-- `athos.glb` — modelo 3D do Athos.
-- `manifest.webmanifest` — instalação como app/PWA.
-- `sw.js` — cache básico do app.
-- `moldes/` — imagens dos moldes para imprimir.
+O arquivo já está incluído como:
 
-## Observações importantes
+```txt
+athos.glb
+```
 
-- No Android, o AR funciona melhor pelo Chrome atualizado, com suporte a ARCore/Google Play Services for AR.
-- No iPhone, para AR nativo via Quick Look, normalmente é necessário também gerar e colocar um arquivo `athos.usdz` na pasta do projeto. Sem isso, o iPhone pode abrir só o 3D normal.
-- Se trocar o modelo 3D no futuro, substitua o arquivo `athos.glb` e mantenha exatamente esse nome.
-- Se o modelo ficar muito grande ou pequeno, use o controle de tamanho dentro do sistema.
+Se quiser trocar o modelo depois, substitua esse arquivo mantendo o mesmo nome.
+
+## Modos do sistema
+
+### Brincar com câmera
+
+Este é o modo mais garantido para criança brincar. Ele abre a câmera dentro da página e coloca o Athos por cima da imagem. Nesse modo, os botões funcionam:
+
+- Mini
+- Normal
+- Gigante
+- Girar
+- Dançar
+- Pular
+- Mover
+- Falar
+
+### AR real
+
+O botão **AR real** tenta abrir o visualizador nativo do celular.
+
+No Android, pode abrir pelo visualizador do Google/Scene Viewer. Quando isso acontece, a página pode sair de cena e os botões da página deixam de controlar o boneco. Isso é limitação do visualizador nativo, não erro do projeto.
+
+Para brincar com ações funcionando, use **Brincar com câmera**.
+
+## Observação técnica
+
+O `athos.glb` enviado não possui animações internas no próprio arquivo. Por isso, o sistema simula Dançar, Girar e Pular pela interface.
+
+## Cache
+
+Esta versão remove o Service Worker antigo para evitar que o GitHub Pages fique mostrando versão velha em cache.
 
 ## Rodapé
 

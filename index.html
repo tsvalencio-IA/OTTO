@@ -4,29 +4,31 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#080b12" />
-  <meta name="description" content="Athos em 3D e realidade aumentada para o Otto brincar no celular." />
+  <meta name="description" content="Athos 3D e câmera AR para o Otto brincar no celular." />
   <title>Athos AR do Otto</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./style.css?v=2" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script defer src="./app.js?v=2"></script>
 </head>
 <body>
-  <div id="app" class="app" data-theme="dark" data-stage="fire">
+  <div id="app" class="app" data-theme="dark" data-stage="fire" data-mode="normal">
     <header class="topbar">
       <div class="brand">
         <div class="athosIcon" aria-hidden="true">
           <span class="eye left"></span>
           <span class="eye right"></span>
-          <span class="flame"></span>
+          <span class="flame f1"></span>
+          <span class="flame f2"></span>
         </div>
         <div class="brandText">
-          <p class="eyebrow">Realidade aumentada</p>
+          <p class="eyebrow">Brinquedo 3D + câmera</p>
           <h1>Athos AR</h1>
-          <p>Um brinquedo 3D para o Otto explorar no celular.</p>
+          <p>Feito para o Otto brincar com o Athos no celular.</p>
         </div>
       </div>
 
@@ -37,26 +39,29 @@
     </header>
 
     <main class="layout">
-      <section class="viewerPanel" aria-label="Visualizador do Athos em 3D">
+      <section class="viewerPanel" aria-label="Visualizador do Athos em 3D e câmera">
         <div class="viewerTop">
           <div>
             <strong>Personagem Athos</strong>
-            <span id="statusText">Carregando athos.glb...</span>
+            <span id="statusText">Preparando...</span>
           </div>
-          <span id="arBadge" class="badge">3D</span>
+          <span id="modeBadge" class="badge">3D</span>
         </div>
 
-        <div class="viewerWrap">
+        <div id="viewerWrap" class="viewerWrap">
+          <video id="cameraFeed" class="cameraFeed" autoplay playsinline muted></video>
+          <button id="placementLayer" class="placementLayer" type="button" aria-label="Tocar para posicionar o Athos"></button>
+
           <model-viewer
             id="athosViewer"
-            src="./athos.glb"
-            alt="Athos, personagem preto em estilo blocado com olhos vermelhos e fogo pixelado nos braços e pernas"
+            src="./athos.glb?v=2"
+            alt="Athos, personagem preto blocado com olhos vermelhos e fogo pixelado nos braços e pernas"
             camera-controls
             touch-action="pan-y"
             auto-rotate
             rotation-per-second="28deg"
             ar
-            ar-modes="webxr scene-viewer quick-look"
+            ar-modes="scene-viewer webxr quick-look"
             ar-placement="floor"
             ar-scale="auto"
             shadow-intensity="1"
@@ -72,8 +77,8 @@
             max-camera-orbit="auto auto 8m"
             field-of-view="30deg">
 
-            <button id="nativeArBtn" class="arButton" slot="ar-button" type="button">
-              📱 Colocar o Athos no mundo real
+            <button id="insideArBtn" class="arButton" slot="ar-button" type="button">
+              📱 AR real do celular
             </button>
 
             <div class="poster" slot="poster">
@@ -85,7 +90,7 @@
                 <div class="leg l"></div>
                 <div class="leg r"></div>
               </div>
-              <p>Preparando o Athos...</p>
+              <p>Carregando o Athos...</p>
             </div>
 
             <div class="progress" slot="progress-bar">
@@ -95,12 +100,14 @@
         </div>
 
         <div class="bigActions">
-          <button id="openArBtn" class="primaryBtn" type="button">📱 Abrir em AR</button>
+          <button id="cameraModeBtn" class="primaryBtn hot" type="button">🎥 Brincar com câmera</button>
+          <button id="openArBtn" class="primaryBtn" type="button">📱 AR real</button>
+          <button id="normalModeBtn" class="secondaryBtn" type="button">🧊 Voltar 3D</button>
           <button id="centerBtn" class="secondaryBtn" type="button">🎯 Centralizar</button>
         </div>
 
         <div id="helpBox" class="helpBox">
-          Toque, arraste e use dois dedos para aproximar. No botão AR, a câmera abre para colocar o Athos no chão ou na mesa.
+          Use “Brincar com câmera” para o Athos aparecer por cima da câmera e os botões funcionarem. Use “AR real” quando o celular aceitar realidade aumentada nativa.
         </div>
       </section>
 
@@ -108,7 +115,7 @@
         <section class="card">
           <div class="cardTitle">
             <h2>Controles do Otto</h2>
-            <p>Grandes, simples e rápidos.</p>
+            <p>Todos estes botões funcionam no modo 3D e no modo câmera.</p>
           </div>
 
           <div class="controlGrid">
@@ -117,9 +124,13 @@
             <button class="playBtn" type="button" data-action="giant">🦾 Gigante</button>
             <button class="playBtn" type="button" data-action="spin">🔄 Girar</button>
             <button class="playBtn" type="button" data-action="dance">🔥 Dançar</button>
-            <button class="playBtn" type="button" data-action="stop">⏸️ Parar</button>
+            <button class="playBtn" type="button" data-action="jump">🦘 Pular</button>
+            <button class="playBtn" type="button" data-action="left">⬅️ Esquerda</button>
+            <button class="playBtn" type="button" data-action="right">➡️ Direita</button>
+            <button class="playBtn" type="button" data-action="up">⬆️ Subir</button>
+            <button class="playBtn" type="button" data-action="down">⬇️ Descer</button>
             <button class="playBtn" type="button" data-action="hello">👋 Falar</button>
-            <button class="playBtn" type="button" data-action="photoTip">📸 Foto</button>
+            <button class="playBtn" type="button" data-action="stop">⏸️ Parar</button>
           </div>
 
           <div class="rangeBox">
@@ -127,14 +138,20 @@
               <label for="scaleRange">Tamanho</label>
               <strong id="scaleValue">70%</strong>
             </div>
-            <input id="scaleRange" type="range" min="35" max="150" value="70" />
+            <input id="scaleRange" type="range" min="35" max="170" value="70" />
           </div>
+        </section>
+
+        <section class="card infoCard">
+          <h2>Importante</h2>
+          <p><b>AR real</b> abre o visualizador do celular. Nesse modo, o navegador pode sair da página e os botões deixam de controlar o boneco.</p>
+          <p><b>Brincar com câmera</b> fica dentro da página, por isso dançar, girar, pular e mudar tamanho funcionam.</p>
         </section>
 
         <section class="card">
           <div class="cardTitle compact">
-            <h2>Palco</h2>
-            <p>Escolha o fundo da brincadeira.</p>
+            <h2>Palco 3D</h2>
+            <p>Muda o fundo quando estiver no modo 3D normal.</p>
           </div>
           <div class="chipGrid" id="stageButtons">
             <button class="chip active" type="button" data-stage="fire">🔥 Fogo</button>
@@ -147,11 +164,9 @@
         <section class="card missionCard">
           <div class="cardTitle compact">
             <h2>Missão do dia</h2>
-            <p>Uma ideia para brincar em AR.</p>
+            <p>Uma brincadeira simples para o Otto.</p>
           </div>
-          <div id="missionBox" class="missionBox">
-            Coloque o Athos em cima da mesa e dê uma volta nele.
-          </div>
+          <div id="missionBox" class="missionBox">Coloque o Athos perto de um brinquedo e faça ele dançar.</div>
           <div class="missionActions">
             <button id="newMissionBtn" class="secondaryBtn" type="button">🎲 Nova missão</button>
             <button id="doneMissionBtn" class="secondaryBtn" type="button">✅ Concluí</button>
@@ -172,7 +187,7 @@
         <section class="card smallCard">
           <label class="uploadLabel" for="modelFile">Testar outro arquivo .glb</label>
           <input id="modelFile" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" />
-          <p class="smallText">Isso só testa no celular atual. Para publicar, substitua o arquivo <b>athos.glb</b> no GitHub.</p>
+          <p class="smallText">Para publicar, substitua o arquivo <b>athos.glb</b> no GitHub.</p>
         </section>
       </aside>
     </main>
@@ -181,7 +196,5 @@
       <span>Powered by thIAguinho Soluções Digitais</span>
     </footer>
   </div>
-
-  <script src="./app.js"></script>
 </body>
 </html>
