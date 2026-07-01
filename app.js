@@ -25,27 +25,43 @@
   const missionBox = $('#missionBox');
   const newMissionBtn = $('#newMissionBtn');
   const doneMissionBtn = $('#doneMissionBtn');
+  const cameraMissionHud = $('#cameraMissionHud');
+  const cameraMissionText = $('#cameraMissionText');
+  const cameraNewMissionBtn = $('#cameraNewMissionBtn');
+  const cameraDoneMissionBtn = $('#cameraDoneMissionBtn');
 
   const missions = [
     'Coloque o Athos perto de um brinquedo e faça ele girar.',
-    'Coloque o Athos em cima da mesa e dê uma volta nele.',
-    'Faça o Athos mini aparecer ao lado de um carrinho.',
-    'Coloque o Athos gigante no chão e tire um print.',
-    'Faça o Athos pular 3 vezes.',
-    'Coloque o Athos no quarto e invente uma história.',
-    'Leve o Athos para proteger uma base secreta.',
-    'Deixe o Athos parado como uma estátua por 5 segundos.'
+    'Faça o Athos ficar gigante perto da porta.',
+    'Faça o Athos ficar mini em cima de uma mesa.',
+    'Leve o Athos para a esquerda e depois para a direita.',
+    'Coloque o Athos no mundo fogo e faça ele pular.',
+    'Coloque o Athos no espaço e faça ele falar com o Otto.',
+    'Coloque o Athos na floresta e deixe ele gigante.',
+    'Coloque o Athos no castelo e faça ele abaixar.',
+    'Use o fundo real e coloque o Athos perto de um desenho.',
+    'Centralize o Athos e invente uma fala para ele.'
   ];
+
+  const backgrounds = {
+    real: 'Fundo real',
+    fire: 'Mundo fogo',
+    space: 'Espaço',
+    forest: 'Floresta',
+    castle: 'Castelo',
+    city: 'Cidade'
+  };
 
   let objectUrl = null;
   let motionRaf = null;
   let cameraStream = null;
-  let currentScale = Number(localStorage.getItem('athos-scale') || 0.70);
-  let currentRotation = 0;
-  let currentTilt = 0;
+  let loaded = false;
+  let currentScale = Number(localStorage.getItem('athos-scale') || 0.80);
   let offsetX = Number(localStorage.getItem('athos-x') || 0);
   let offsetY = Number(localStorage.getItem('athos-y') || 0);
-  let loaded = false;
+  let currentRotation = Number(localStorage.getItem('athos-rot') || 0);
+  let currentTilt = 0;
+  let currentBg = localStorage.getItem('athos-bg') || 'real';
 
   function clickPulse(btn) {
     if (!btn) return;
@@ -59,7 +75,8 @@
     modeBadge.classList.remove('ok', 'warn');
     if (kind === 'ok') modeBadge.classList.add('ok');
     if (kind === 'warn') modeBadge.classList.add('warn');
-    if (app.dataset.mode === 'camera') modeBadge.textContent = 'CÂMERA';
+
+    if (app.dataset.mode === 'camera') modeBadge.textContent = currentBg === 'real' ? 'FUNDO REAL' : 'CENÁRIO';
     else if (kind === 'ok') modeBadge.textContent = 'OK';
     else if (kind === 'warn') modeBadge.textContent = 'AVISO';
     else modeBadge.textContent = '3D';
@@ -74,7 +91,7 @@
     if (!('speechSynthesis' in window)) return;
     try {
       window.speechSynthesis.cancel();
-      const msg = new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g, ''));
+      const msg = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, ''));
       msg.lang = 'pt-BR';
       msg.rate = 0.95;
       msg.pitch = 1.08;
@@ -82,175 +99,281 @@
     } catch (_) {}
   }
 
-  function setScale(value) {
-    currentScale = Math.max(0.25, Math.min(1.9, Number(value) || 0.70));
+  function clamp(n, min, max) {
+    return Math.max(min, Math.min(max, Number(n) || 0));
+  }
+
+  function applyVisualState() {
+    currentScale = clamp(currentScale, 0.25, 2.20);
+    offsetX = clamp(offsetX, -260, 260);
+    offsetY = clamp(offsetY, -230, 230);
+
     const s = currentScale.toFixed(2);
+    const rot = Math.round(currentRotation % 360);
+
+    app.style.setProperty('--athos-x', `${Math.round(offsetX)}px`);
+    app.style.setProperty('--athos-y', `${Math.round(offsetY)}px`);
+    app.style.setProperty('--athos-scale', s);
+    app.style.setProperty('--athos-screen-rot', `${rot}deg`);
+
     viewer.setAttribute('scale', `${s} ${s} ${s}`);
+    viewer.setAttribute('orientation', `${Math.round(currentTilt)}deg ${rot}deg 0deg`);
+
     scaleRange.value = String(Math.round(currentScale * 100));
     scaleValue.textContent = `${scaleRange.value}%`;
+
     localStorage.setItem('athos-scale', String(currentScale));
+    localStorage.setItem('athos-x', String(Math.round(offsetX)));
+    localStorage.setItem('athos-y', String(Math.round(offsetY)));
+    localStorage.setItem('athos-rot', String(Math.round(rot)));
+  }
+
+  function clearMotion(keepPose = true) {
+    if (motionRaf) cancelAnimationFrame(motionRaf);
+    motionRaf = null;
+    viewer.classList.remove('is-jumping', 'is-crouching', 'is-talking');
+    viewer.autoRotate = false;
+    if (keepPose) applyVisualState();
+  }
+
+  function setScale(value, speakText = '') {
+    currentScale = clamp(value, 0.25, 2.20);
+    applyVisualState();
+
+    if (app.dataset.mode !== 'camera') {
+      const distance = currentScale >= 1.30 ? 2.55 : currentScale <= 0.55 ? 5.15 : 3.60;
+      viewer.cameraOrbit = `25deg 68deg ${distance}m`;
+      if (typeof viewer.jumpCameraToGoal === 'function') viewer.jumpCameraToGoal();
+    }
+
+    if (speakText) say(speakText);
   }
 
   function setOffset(x, y) {
-    offsetX = Math.max(-220, Math.min(220, Math.round(x)));
-    offsetY = Math.max(-180, Math.min(180, Math.round(y)));
-    app.style.setProperty('--athos-x', `${offsetX}px`);
-    app.style.setProperty('--athos-y', `${offsetY}px`);
-    localStorage.setItem('athos-x', String(offsetX));
-    localStorage.setItem('athos-y', String(offsetY));
+    offsetX = clamp(x, -260, 260);
+    offsetY = clamp(y, -230, 230);
+    applyVisualState();
   }
 
-  function applyOrientation(rot = currentRotation, tilt = currentTilt) {
-    currentRotation = rot;
-    currentTilt = tilt;
-    viewer.setAttribute('orientation', `0deg ${Math.round(currentRotation)}deg ${Math.round(currentTilt)}deg`);
+  function setRotation(value) {
+    currentRotation = Number(value) || 0;
+    applyVisualState();
   }
 
-  function clearMotion() {
-    if (motionRaf) cancelAnimationFrame(motionRaf);
-    motionRaf = null;
-    viewer.classList.remove('is-jumping', 'is-crouching');
-    viewer.autoRotate = false;
-  }
-
-  function centerAthos() {
-    clearMotion();
-    setOffset(0, 0);
+  function centerAthos(btn) {
+    clickPulse(btn);
+    clearMotion(false);
+    offsetX = 0;
+    offsetY = 0;
     currentRotation = 0;
     currentTilt = 0;
-    viewer.removeAttribute('orientation');
+    applyVisualState();
     viewer.cameraOrbit = '25deg 68deg 3.6m';
     viewer.fieldOfView = '30deg';
     if (typeof viewer.jumpCameraToGoal === 'function') viewer.jumpCameraToGoal();
-    say('Athos centralizado. No modo câmera, toque na tela para colocar ele onde quiser.');
+    say('Athos centralizado. Agora ele está no meio da tela.');
   }
 
-  function startSpin() {
-    clearMotion();
+  function startSpin(btn) {
+    clickPulse(btn);
+    clearMotion(false);
     const start = performance.now();
     const base = currentRotation;
+    const speed = app.dataset.mode === 'camera' ? 210 : 140;
+
     const step = (now) => {
       const t = (now - start) / 1000;
-      applyOrientation(base + (t * 110), 0);
+      currentRotation = base + (t * speed);
+      applyVisualState();
       motionRaf = requestAnimationFrame(step);
     };
+
     motionRaf = requestAnimationFrame(step);
-    say('Agora o Athos está girando.');
+    say('Athos girando. Toque em Parar quando quiser.');
   }
 
-  function jump() {
-    clearMotion();
+  function jump(btn) {
+    clickPulse(btn);
+    clearMotion(false);
+    viewer.classList.remove('is-jumping');
+    void viewer.offsetWidth;
     viewer.classList.add('is-jumping');
-    window.setTimeout(() => viewer.classList.remove('is-jumping'), 540);
+    window.setTimeout(() => viewer.classList.remove('is-jumping'), 620);
     say('Athos pulou!');
   }
 
-  function crouch() {
-    clearMotion();
+  function crouch(btn) {
+    clickPulse(btn);
+    clearMotion(false);
+    viewer.classList.remove('is-crouching');
+    void viewer.offsetWidth;
     viewer.classList.add('is-crouching');
-    window.setTimeout(() => viewer.classList.remove('is-crouching'), 620);
+    window.setTimeout(() => viewer.classList.remove('is-crouching'), 720);
     say('Athos abaixou!');
   }
 
-  function stopAll() {
-    clearMotion();
+  function talk(btn) {
+    clickPulse(btn);
+    clearMotion(false);
+    viewer.classList.remove('is-talking');
+    void viewer.offsetWidth;
+    viewer.classList.add('is-talking');
+    window.setTimeout(() => viewer.classList.remove('is-talking'), 850);
+    say('Oi Otto! Eu sou o Athos. Escolha um fundo e vamos brincar!');
+  }
+
+  function stopAll(btn) {
+    clickPulse(btn);
+    clearMotion(true);
     if (typeof viewer.pause === 'function') viewer.pause();
-    applyOrientation(currentRotation, 0);
     say('Parei.');
   }
 
-  function nudge(dx, dy) {
+  function nudge(dx, dy, btn) {
+    clickPulse(btn);
     setOffset(offsetX + dx, offsetY + dy);
-    say('Posição ajustada.');
+    setHelp('Athos movido. Você também pode tocar na tela para colocar ele em outro lugar.');
   }
 
   function action(name, btn) {
-    clickPulse(btn);
     switch (name) {
       case 'mini':
-        setScale(0.45);
-        say('Athos mini ativado.');
+        clickPulse(btn);
+        clearMotion(false);
+        setScale(0.45, 'Athos mini ativado.');
         break;
       case 'normal':
-        setScale(0.70);
-        say('Athos voltou ao tamanho normal.');
+        clickPulse(btn);
+        clearMotion(false);
+        setScale(0.80, 'Athos voltou ao tamanho normal.');
         break;
       case 'giant':
-        setScale(1.20);
-        say('Athos gigante ativado.');
+        clickPulse(btn);
+        clearMotion(false);
+        setScale(1.55, 'Athos gigante ativado.');
         break;
       case 'spin':
-        startSpin();
-        break;
-      case 'crouch':
-        crouch();
-        break;
-      case 'center':
-        centerAthos();
+        startSpin(btn);
         break;
       case 'jump':
-        jump();
+        jump(btn);
+        break;
+      case 'crouch':
+        crouch(btn);
         break;
       case 'left':
-        nudge(-28, 0);
+        nudge(-38, 0, btn);
         break;
       case 'right':
-        nudge(28, 0);
+        nudge(38, 0, btn);
         break;
       case 'up':
-        nudge(0, -24);
+        nudge(0, -34, btn);
         break;
       case 'down':
-        nudge(0, 24);
+        nudge(0, 34, btn);
+        break;
+      case 'center':
+        centerAthos(btn);
         break;
       case 'hello':
-        say('Oi Otto! Eu sou o Athos. Vamos brincar em 3D e câmera!');
+        talk(btn);
         break;
       case 'stop':
-        stopAll();
+        stopAll(btn);
         break;
     }
   }
 
-  async function startCameraMode(btn) {
-    clickPulse(btn);
+  async function startCameraStream() {
+    if (cameraStream) return true;
     if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-      setStatus('Câmera bloqueada', 'warn');
-      setHelp('A câmera só abre em link HTTPS. Suba no GitHub Pages e abra pelo link https://...');
-      return;
+      throw new Error('A câmera precisa de HTTPS.');
     }
-    try {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('getUserMedia indisponível');
-      }
-      cameraStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false
-      });
-      cameraFeed.srcObject = cameraStream;
-      app.dataset.mode = 'camera';
-      modeBadge.textContent = 'CÂMERA';
-      setStatus('Modo câmera ativo', 'ok');
-      setHelp('Modo câmera ligado em tela cheia. Os botões ficam fixos no rodapé: pular, abaixar, girar, falar, mini, gigante e mover. Toque na câmera para posicionar o Athos.');
-      setOffset(offsetX, offsetY);
-      setScale(currentScale);
-    } catch (err) {
-      app.dataset.mode = 'normal';
-      setStatus('Câmera não abriu', 'warn');
-      setHelp('Não consegui abrir a câmera. Confira permissão do navegador. Precisa abrir pelo link HTTPS do GitHub Pages, não pelo arquivo solto do celular.');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('Câmera indisponível neste navegador.');
     }
+
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      },
+      audio: false
+    });
+    cameraFeed.srcObject = cameraStream;
+    await cameraFeed.play().catch(() => {});
+    return true;
   }
 
-  function stopCameraMode(btn) {
-    clickPulse(btn);
+  function stopCameraStream() {
     if (cameraStream) {
       cameraStream.getTracks().forEach((track) => track.stop());
       cameraStream = null;
     }
     cameraFeed.srcObject = null;
+  }
+
+  function updateBgButtons() {
+    $$('.bgChip[data-bg]').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.bg === currentBg);
+    });
+  }
+
+  async function setPlayBackground(bg, btn = null, fromUser = false) {
+    clickPulse(btn);
+    currentBg = backgrounds[bg] ? bg : 'real';
+    app.dataset.bg = currentBg;
+    localStorage.setItem('athos-bg', currentBg);
+    updateBgButtons();
+
+    if (app.dataset.mode !== 'camera') {
+      setHelp(`Fundo escolhido: ${backgrounds[currentBg]}. Toque em “Brincar com celular” para usar.`);
+      return;
+    }
+
+    if (currentBg === 'real') {
+      try {
+        await startCameraStream();
+        setStatus('Fundo real ativo', 'ok');
+        setHelp('Fundo real ligado. Toque na tela para posicionar o Athos e use os botões do rodapé.');
+      } catch (err) {
+        currentBg = 'fire';
+        app.dataset.bg = 'fire';
+        localStorage.setItem('athos-bg', 'fire');
+        updateBgButtons();
+        stopCameraStream();
+        setStatus('Câmera bloqueada', 'warn');
+        setHelp('A câmera não abriu. Troquei para o cenário do Athos. Para usar fundo real, abra pelo link HTTPS do GitHub Pages e permita a câmera.');
+      }
+    } else {
+      stopCameraStream();
+      setStatus(`Cenário: ${backgrounds[currentBg]}`, 'ok');
+      if (fromUser) say(`Cenário ${backgrounds[currentBg]} ativado.`);
+      else setHelp(`Cenário ${backgrounds[currentBg]} ativado. Os botões continuam funcionando.`);
+    }
+  }
+
+  async function startPlayMode(btn) {
+    clickPulse(btn);
+    clearMotion(false);
+    app.dataset.mode = 'camera';
+    modeBadge.textContent = 'BRINCAR';
+    setOffset(offsetX, offsetY);
+    setScale(currentScale);
+    syncCameraMission();
+    await setPlayBackground(currentBg, null, false);
+    setStatus(currentBg === 'real' ? 'Brincar com fundo real' : `Brincar: ${backgrounds[currentBg]}`, 'ok');
+  }
+
+  function stopPlayMode(btn) {
+    clickPulse(btn);
+    clearMotion(true);
+    stopCameraStream();
     app.dataset.mode = 'normal';
     setStatus(loaded ? 'Athos carregado' : 'Modo 3D', loaded ? 'ok' : 'info');
-    setHelp('Modo 3D normal. Aqui você pode girar com o dedo e usar os controles.');
+    setHelp('Modo 3D normal. Para brincar com missões e botões fixos, toque em “Brincar com celular”.');
   }
 
   function openNativeAR(btn) {
@@ -262,12 +385,12 @@
     }
     if (!loaded) {
       setStatus('Aguardando modelo', 'warn');
-      setHelp('Espere o Athos carregar primeiro. Depois toque em AR real novamente.');
+      setHelp('Espere o Athos carregar primeiro. Depois toque em “Athos em AR real” novamente.');
       return;
     }
     if (typeof viewer.activateAR !== 'function') {
       setStatus('AR indisponível', 'warn');
-      setHelp('O componente AR ainda não carregou no navegador. Use o botão “Brincar com câmera”, que funciona dentro da página.');
+      setHelp('O componente AR ainda não carregou no navegador. Use “Brincar com celular”, que funciona dentro da página.');
       return;
     }
     try {
@@ -275,13 +398,13 @@
       if (ret && typeof ret.catch === 'function') {
         ret.catch(() => {
           setStatus('AR não abriu', 'warn');
-          setHelp('O AR real não abriu neste navegador. Use “Brincar com câmera” para o Otto conseguir brincar com os botões funcionando.');
+          setHelp('O AR real não abriu neste navegador. Use “Brincar com celular” para brincar com botões funcionando.');
         });
       }
-      setHelp('Se o celular aceitar AR real, ele vai abrir o visualizador nativo. Nesse modo os botões da página podem não aparecer.');
+      setHelp('Abrindo o AR real do celular. Esse modo depende do visualizador nativo do aparelho.');
     } catch (err) {
       setStatus('AR não abriu', 'warn');
-      setHelp('O AR real não abriu neste aparelho. Use “Brincar com câmera”, que mantém os controles funcionando.');
+      setHelp('O AR real não abriu neste aparelho. Use “Brincar com celular”, com fundo real ou cenários.');
     }
   }
 
@@ -298,12 +421,25 @@
     $$('#stageButtons .chip').forEach((el) => el.classList.toggle('active', el.dataset.stage === stage));
   }
 
+  function syncCameraMission() {
+    if (cameraMissionText && missionBox) cameraMissionText.textContent = missionBox.textContent;
+    if (cameraMissionHud && missionBox) cameraMissionHud.classList.toggle('done', missionBox.classList.contains('done'));
+  }
+
   function newMission(btn) {
     clickPulse(btn);
     const mission = missions[Math.floor(Math.random() * missions.length)];
     missionBox.textContent = mission;
     missionBox.classList.remove('done');
+    syncCameraMission();
     say('Nova missão: ' + mission);
+  }
+
+  function toggleMissionDone(btn) {
+    clickPulse(btn);
+    missionBox.classList.toggle('done');
+    syncCameraMission();
+    say(missionBox.classList.contains('done') ? 'Missão concluída!' : 'Missão reaberta!');
   }
 
   function clearOldServiceWorkerCache() {
@@ -332,18 +468,17 @@
   $$('.playBtn[data-action]').forEach((btn) => btn.addEventListener('click', () => action(btn.dataset.action, btn)));
   $$('.arCtrlBtn[data-action]').forEach((btn) => btn.addEventListener('click', () => action(btn.dataset.action, btn)));
   $$('#stageButtons .chip').forEach((btn) => btn.addEventListener('click', () => applyStage(btn.dataset.stage, btn)));
+  $$('.bgChip[data-bg]').forEach((btn) => btn.addEventListener('click', () => setPlayBackground(btn.dataset.bg, btn, true)));
 
   scaleRange.addEventListener('input', () => setScale(Number(scaleRange.value) / 100));
-  centerBtn.addEventListener('click', () => { clickPulse(centerBtn); centerAthos(); });
+  centerBtn.addEventListener('click', () => centerAthos(centerBtn));
   openArBtn.addEventListener('click', () => openNativeAR(openArBtn));
-  cameraModeBtn.addEventListener('click', () => startCameraMode(cameraModeBtn));
-  normalModeBtn.addEventListener('click', () => stopCameraMode(normalModeBtn));
+  cameraModeBtn.addEventListener('click', () => startPlayMode(cameraModeBtn));
+  normalModeBtn.addEventListener('click', () => stopPlayMode(normalModeBtn));
   newMissionBtn.addEventListener('click', () => newMission(newMissionBtn));
-  doneMissionBtn.addEventListener('click', () => {
-    clickPulse(doneMissionBtn);
-    missionBox.classList.toggle('done');
-    say(missionBox.classList.contains('done') ? 'Missão concluída!' : 'Missão reaberta!');
-  });
+  doneMissionBtn.addEventListener('click', () => toggleMissionDone(doneMissionBtn));
+  if (cameraNewMissionBtn) cameraNewMissionBtn.addEventListener('click', () => newMission(cameraNewMissionBtn));
+  if (cameraDoneMissionBtn) cameraDoneMissionBtn.addEventListener('click', () => toggleMissionDone(cameraDoneMissionBtn));
 
   placementLayer.addEventListener('click', (event) => {
     if (app.dataset.mode !== 'camera') return;
@@ -361,7 +496,7 @@
 
   shareBtn.addEventListener('click', async () => {
     clickPulse(shareBtn);
-    const data = { title: 'Athos AR', text: 'Brincar com o Athos em 3D e câmera', url: location.href };
+    const data = { title: 'Athos AR', text: 'Brincar com o Athos em 3D, AR e missões', url: location.href };
     try {
       if (navigator.share) await navigator.share(data);
       else {
@@ -391,14 +526,13 @@
   viewer.addEventListener('load', () => {
     loaded = true;
     progressBar.style.width = '100%';
-    setScale(currentScale);
-    setOffset(offsetX, offsetY);
+    applyVisualState();
     const animations = viewer.availableAnimations || [];
     setStatus('Athos carregado', 'ok');
     if (animations.length) {
-      setHelp(`Athos carregado com ${animations.length} animação(ões) internas. Nesta versão, o botão Dançar foi removido e os comandos principais ficam no rodapé do modo câmera.`);
+      setHelp(`Athos carregado com ${animations.length} animação(ões) internas. Os comandos principais funcionam pelo sistema; o botão Dançar continua removido.`);
     } else {
-      setHelp('Athos carregado. Como este GLB não tem dança real, removi Dançar. Pular, abaixar, girar, falar e tamanho funcionam pelo sistema.');
+      setHelp('Athos carregado. Como este GLB não tem dança real, removi Dançar. Agora mini, normal, gigante, girar, pular, abaixar e falar usam comandos visuais do sistema.');
     }
   });
 
@@ -417,13 +551,13 @@
       say('Athos colocado no mundo real!');
     } else if (status === 'failed') {
       setStatus('AR real falhou', 'warn');
-      setHelp('O AR real falhou neste aparelho/navegador. Toque em “Brincar com câmera”, que mantém os botões funcionando.');
+      setHelp('O AR real falhou neste aparelho/navegador. Toque em “Brincar com celular”, que tem fundo real ou cenários e mantém os botões funcionando.');
     }
   });
 
   window.addEventListener('beforeunload', () => {
     if (objectUrl) URL.revokeObjectURL(objectUrl);
-    if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+    stopCameraStream();
   });
 
   clearOldServiceWorkerCache();
@@ -431,7 +565,9 @@
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
   applyStage(localStorage.getItem('athos-stage') || 'fire');
-  setScale(currentScale);
-  setOffset(offsetX, offsetY);
+  app.dataset.bg = currentBg;
+  updateBgButtons();
+  applyVisualState();
+  syncCameraMission();
   bootWarnings();
 })();

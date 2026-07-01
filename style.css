@@ -127,3 +127,109 @@ model-viewer.is-crouching{animation:crouchViewer .58s ease-in-out 1}
   .arCtrlBtn{min-height:50px;border-radius:15px;font-size:17px}
   .arCtrlBtn span{font-size:10px}
 }
+
+/* V4 — brincar com celular: fundo real + cenários + comandos visuais garantidos */
+:root{
+  --athos-scale:.80;
+  --athos-screen-rot:0deg;
+}
+
+.scenarioBackdrop,
+.cameraMissionHud{display:none}
+
+.app[data-mode="camera"]{
+  width:100%;
+  max-width:none;
+  min-height:100dvh;
+  padding:0;
+  overflow:hidden;
+}
+
+body:has(.app[data-mode="camera"]){overflow:hidden;background:#000}
+
+.app[data-mode="camera"] .layout{display:block;width:100%;height:100dvh}
+.app[data-mode="camera"] .viewerPanel{position:fixed;inset:0;z-index:99999;border:0;border-radius:0;padding:0;background:#000;box-shadow:none;overflow:hidden}
+.app[data-mode="camera"] .viewerWrap{height:100dvh;min-height:100dvh;border:0;border-radius:0;background:#000}
+
+.app[data-mode="camera"] .viewerTop{position:absolute;left:8px;right:8px;top:calc(8px + env(safe-area-inset-top));z-index:45;padding:8px 10px;border:1px solid rgba(255,255,255,.18);border-radius:18px;background:rgba(0,0,0,.48);backdrop-filter:blur(12px);color:#fff}
+.app[data-mode="camera"] .viewerTop span{color:rgba(255,255,255,.78)}
+.app[data-mode="camera"] .bigActions{position:absolute;left:8px;right:8px;top:calc(73px + env(safe-area-inset-top));z-index:42;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0}
+.app[data-mode="camera"] #cameraModeBtn,
+.app[data-mode="camera"] #openArBtn{display:none!important}
+.app[data-mode="camera"] .bigActions .secondaryBtn{min-height:42px;padding:9px 10px;border-radius:16px;background:rgba(0,0,0,.48);color:#fff;border-color:rgba(255,255,255,.18);box-shadow:none;backdrop-filter:blur(10px)}
+.app[data-mode="camera"] .helpBox{display:none!important}
+
+.app[data-mode="camera"] .cameraMissionHud{display:flex;align-items:center;gap:8px;position:absolute;left:8px;right:8px;top:calc(126px + env(safe-area-inset-top));z-index:50;padding:9px;border:1px solid rgba(255,255,255,.18);border-radius:20px;background:rgba(0,0,0,.50);backdrop-filter:blur(14px);color:#fff;box-shadow:0 10px 30px rgba(0,0,0,.24)}
+.cameraMissionHud div{min-width:0;flex:1}.cameraMissionHud small{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:1000;color:#ffd21e;margin-bottom:2px}.cameraMissionHud strong{display:block;font-size:13px;line-height:1.16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cameraMissionHud button{flex:0 0 auto;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.14);color:#fff;font-weight:1000;padding:8px 9px}.cameraMissionHud.done{border-color:rgba(34,197,94,.52);background:rgba(20,83,45,.62)}
+
+.scenarioBackdrop{position:absolute;inset:0;z-index:0;overflow:hidden;background:#000}.scenarioGlow,.scenarioGround,.scenarioDecor{position:absolute;pointer-events:none}.scenarioGlow{left:50%;top:28%;width:62vmax;height:62vmax;border-radius:50%;transform:translate(-50%,-50%);filter:blur(4px);opacity:.72}.scenarioGround{left:-8%;right:-8%;bottom:-9%;height:34%;border-radius:50% 50% 0 0}.scenarioDecor{opacity:.88}.scenarioDecor.one{left:9%;bottom:20%;width:86px;height:86px}.scenarioDecor.two{right:8%;bottom:24%;width:116px;height:116px}.scenarioDecor.three{left:46%;top:16%;width:70px;height:70px}
+
+.app[data-mode="camera"][data-bg="real"] .cameraFeed{display:block!important}
+.app[data-mode="camera"][data-bg="real"] .scenarioBackdrop{display:none!important}
+.app[data-mode="camera"]:not([data-bg="real"]) .cameraFeed{display:none!important}
+.app[data-mode="camera"]:not([data-bg="real"]) .scenarioBackdrop{display:block!important}
+
+.app[data-bg="fire"] .scenarioBackdrop{background:radial-gradient(circle at 50% 75%,rgba(255,106,26,.42),transparent 30%),linear-gradient(180deg,#1b0b0b 0%,#301010 52%,#08040a 100%)}
+.app[data-bg="fire"] .scenarioGlow{background:radial-gradient(circle,#ffd21e 0 8%,#ff6a1a 8% 27%,rgba(225,29,72,.38) 27% 54%,transparent 55%)}
+.app[data-bg="fire"] .scenarioGround{background:linear-gradient(180deg,rgba(255,106,26,.28),rgba(88,28,28,.84))}
+.app[data-bg="fire"] .scenarioDecor.one,.app[data-bg="fire"] .scenarioDecor.two{background:linear-gradient(180deg,#ffe45c,#ff8a00 55%,#dc2626);clip-path:polygon(50% 0,63% 31%,88% 17%,75% 58%,100% 100%,0 100%,24% 58%,10% 24%,35% 38%)}
+.app[data-bg="fire"] .scenarioDecor.three{background:rgba(255,210,30,.8);box-shadow:0 0 30px rgba(255,210,30,.72);border-radius:50%}
+
+.app[data-bg="space"] .scenarioBackdrop{background:radial-gradient(circle at 20% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 72% 28%,#fff 0 1px,transparent 2px),radial-gradient(circle at 35% 70%,rgba(99,102,241,.55),transparent 30%),linear-gradient(180deg,#020617,#111827 65%,#030712)}
+.app[data-bg="space"] .scenarioGlow{background:radial-gradient(circle,rgba(129,140,248,.82),rgba(37,99,235,.25) 42%,transparent 60%)}
+.app[data-bg="space"] .scenarioGround{background:linear-gradient(180deg,rgba(148,163,184,.26),rgba(30,41,59,.88))}
+.app[data-bg="space"] .scenarioDecor.one{border-radius:50%;background:#94a3b8;box-shadow:inset -20px -18px 0 rgba(15,23,42,.26)}
+.app[data-bg="space"] .scenarioDecor.two{border-radius:50%;background:#facc15;box-shadow:0 0 42px rgba(250,204,21,.7)}
+.app[data-bg="space"] .scenarioDecor.three{background:#e0e7ff;clip-path:polygon(50% 0,62% 35%,100% 50%,62% 65%,50% 100%,38% 65%,0 50%,38% 35%)}
+
+.app[data-bg="forest"] .scenarioBackdrop{background:linear-gradient(180deg,#14532d 0%,#166534 48%,#052e16 100%)}
+.app[data-bg="forest"] .scenarioGlow{background:radial-gradient(circle,rgba(187,247,208,.48),rgba(34,197,94,.18) 44%,transparent 62%)}
+.app[data-bg="forest"] .scenarioGround{background:linear-gradient(180deg,rgba(132,204,22,.36),rgba(63,98,18,.9))}
+.app[data-bg="forest"] .scenarioDecor.one,.app[data-bg="forest"] .scenarioDecor.two{background:#22c55e;clip-path:polygon(50% 0,100% 72%,72% 72%,90% 100%,10% 100%,28% 72%,0 72%)}
+.app[data-bg="forest"] .scenarioDecor.three{background:#facc15;border-radius:50%;box-shadow:0 0 30px rgba(250,204,21,.55)}
+
+.app[data-bg="castle"] .scenarioBackdrop{background:linear-gradient(180deg,#312e81 0%,#6d28d9 48%,#1e1b4b 100%)}
+.app[data-bg="castle"] .scenarioGlow{background:radial-gradient(circle,rgba(216,180,254,.55),rgba(126,34,206,.22) 42%,transparent 64%)}
+.app[data-bg="castle"] .scenarioGround{background:linear-gradient(180deg,rgba(167,139,250,.34),rgba(49,46,129,.95))}
+.app[data-bg="castle"] .scenarioDecor.one,.app[data-bg="castle"] .scenarioDecor.two{background:#a78bfa;clip-path:polygon(0 25%,22% 25%,22% 0,40% 0,40% 25%,60% 25%,60% 0,78% 0,78% 25%,100% 25%,100% 100%,0 100%)}
+.app[data-bg="castle"] .scenarioDecor.three{background:#fef3c7;clip-path:polygon(50% 0,61% 36%,98% 36%,68% 56%,79% 92%,50% 70%,21% 92%,32% 56%,2% 36%,39% 36%)}
+
+.app[data-bg="city"] .scenarioBackdrop{background:linear-gradient(180deg,#0f172a 0%,#334155 55%,#111827 100%)}
+.app[data-bg="city"] .scenarioGlow{background:radial-gradient(circle,rgba(56,189,248,.52),rgba(14,165,233,.14) 44%,transparent 60%)}
+.app[data-bg="city"] .scenarioGround{background:linear-gradient(180deg,rgba(148,163,184,.32),rgba(15,23,42,.95))}
+.app[data-bg="city"] .scenarioDecor.one,.app[data-bg="city"] .scenarioDecor.two{background:repeating-linear-gradient(90deg,#64748b 0 18px,#94a3b8 18px 24px);clip-path:polygon(0 28%,20% 28%,20% 12%,45% 12%,45% 0,75% 0,75% 20%,100% 20%,100% 100%,0 100%)}
+.app[data-bg="city"] .scenarioDecor.three{background:#facc15;border-radius:50%;box-shadow:0 0 38px rgba(250,204,21,.68)}
+
+.app[data-mode="camera"] model-viewer{position:absolute;inset:0;z-index:3;width:100%;height:100%;min-height:0;background:transparent!important;--poster-color:transparent;pointer-events:none;transform-origin:center center;transform:translate3d(var(--athos-x),var(--athos-y),0) scale(var(--athos-scale)) rotate(var(--athos-screen-rot));transition:transform .14s ease;will-change:transform}
+.app[data-mode="camera"] .placementLayer{display:block;z-index:4}
+.app[data-mode="camera"] .arButton{display:none!important}
+
+.app[data-mode="camera"] model-viewer.is-jumping{animation:athosJumpV4 .58s cubic-bezier(.2,.9,.25,1.05) 1}
+.app[data-mode="camera"] model-viewer.is-crouching{animation:athosCrouchV4 .68s ease-in-out 1}
+.app[data-mode="camera"] model-viewer.is-talking{animation:athosTalkV4 .78s ease-in-out 1}
+@keyframes athosJumpV4{0%,100%{transform:translate3d(var(--athos-x),var(--athos-y),0) scale(var(--athos-scale)) rotate(var(--athos-screen-rot))}45%{transform:translate3d(var(--athos-x),calc(var(--athos-y) - 82px),0) scale(var(--athos-scale)) rotate(var(--athos-screen-rot))}}
+@keyframes athosCrouchV4{0%,100%{transform:translate3d(var(--athos-x),var(--athos-y),0) scale(var(--athos-scale)) rotate(var(--athos-screen-rot))}45%{transform:translate3d(var(--athos-x),calc(var(--athos-y) + 52px),0) scaleX(var(--athos-scale)) scaleY(calc(var(--athos-scale) * .72)) rotate(var(--athos-screen-rot))}}
+@keyframes athosTalkV4{0%,100%{transform:translate3d(var(--athos-x),var(--athos-y),0) scale(var(--athos-scale)) rotate(var(--athos-screen-rot))}20%{transform:translate3d(calc(var(--athos-x) - 10px),var(--athos-y),0) scale(var(--athos-scale)) rotate(calc(var(--athos-screen-rot) - 4deg))}45%{transform:translate3d(calc(var(--athos-x) + 10px),var(--athos-y),0) scale(var(--athos-scale)) rotate(calc(var(--athos-screen-rot) + 4deg))}70%{transform:translate3d(calc(var(--athos-x) - 6px),var(--athos-y),0) scale(var(--athos-scale)) rotate(calc(var(--athos-screen-rot) - 2deg))}}
+
+.app[data-mode="camera"] .arControlsOverlay{display:block;position:absolute;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:55;padding:8px;border:1px solid rgba(255,255,255,.18);border-radius:22px;background:rgba(0,0,0,.62);backdrop-filter:blur(14px);box-shadow:0 -12px 38px rgba(0,0,0,.32)}
+.arBackgroundBar{display:flex;align-items:center;gap:6px;margin:0 0 8px;overflow-x:auto;scrollbar-width:none;padding-bottom:1px}.arBackgroundBar::-webkit-scrollbar{display:none}.arBackgroundBar span{color:#fff;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:1000;opacity:.82;flex:0 0 auto}.bgChip{border:1px solid rgba(255,255,255,.18);border-radius:999px;background:rgba(255,255,255,.10);color:#fff;font-weight:1000;padding:8px 10px;white-space:nowrap;flex:0 0 auto}.bgChip.active{background:linear-gradient(135deg,#ffd21e,#ff6a1a);color:#171717;border-color:transparent}.bgButtonsPanel .bgChip{color:var(--text);background:linear-gradient(180deg,var(--panel2),var(--panel))}.bgButtonsPanel .bgChip.active{color:#171717;background:linear-gradient(135deg,var(--accent2),var(--accent))}
+.app[data-mode="camera"] .arControlsGrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.app[data-mode="camera"] .arCtrlBtn{min-height:54px;border:1px solid rgba(255,255,255,.18);border-radius:17px;background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.08));color:#fff;font-weight:1000;box-shadow:0 8px 18px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 3px;text-align:center;line-height:1.05}.app[data-mode="camera"] .arCtrlBtn span{font-size:11px}.app[data-mode="camera"] .arCtrlBtn.danger{background:linear-gradient(180deg,rgba(239,68,68,.45),rgba(127,29,29,.48));border-color:rgba(248,113,113,.55)}
+
+@media (max-width:470px){
+  .app[data-mode="camera"] .viewerTop{left:6px;right:6px;top:calc(6px + env(safe-area-inset-top));padding:7px 9px;border-radius:16px}
+  .app[data-mode="camera"] .viewerTop strong{font-size:15px}
+  .app[data-mode="camera"] .viewerTop span{font-size:12px}
+  .app[data-mode="camera"] .bigActions{left:6px;right:6px;top:calc(66px + env(safe-area-inset-top));gap:7px}
+  .app[data-mode="camera"] .bigActions .secondaryBtn{font-size:13px;min-height:38px;padding:7px 8px}
+  .app[data-mode="camera"] .cameraMissionHud{left:6px;right:6px;top:calc(111px + env(safe-area-inset-top));padding:7px;border-radius:17px}
+  .cameraMissionHud strong{font-size:12px}.cameraMissionHud button{padding:7px 8px;font-size:12px}
+  .app[data-mode="camera"] .arControlsOverlay{left:6px;right:6px;bottom:calc(6px + env(safe-area-inset-bottom));padding:7px;border-radius:20px}
+  .app[data-mode="camera"] .arControlsGrid{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .app[data-mode="camera"] .arCtrlBtn{min-height:50px;border-radius:15px;font-size:17px}
+  .app[data-mode="camera"] .arCtrlBtn span{font-size:10px}
+  .bgChip{padding:7px 9px;font-size:12px}
+}
+
+@supports not selector(:has(*)){
+  body{overflow:auto}
+}

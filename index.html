@@ -10,13 +10,13 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=3" />
+  <link rel="stylesheet" href="./style.css?v=4" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <script defer src="./app.js?v=3"></script>
+  <script defer src="./app.js?v=4"></script>
 </head>
 <body>
-  <div id="app" class="app" data-theme="dark" data-stage="fire" data-mode="normal">
+  <div id="app" class="app" data-theme="dark" data-stage="fire" data-mode="normal" data-bg="real">
     <header class="topbar">
       <div class="brand">
         <div class="athosIcon" aria-hidden="true">
@@ -26,7 +26,7 @@
           <span class="flame f2"></span>
         </div>
         <div class="brandText">
-          <p class="eyebrow">Brinquedo 3D + câmera</p>
+          <p class="eyebrow">Brinquedo 3D + AR + missões</p>
           <h1>Athos AR</h1>
           <p>Feito para o Otto brincar com o Athos no celular.</p>
         </div>
@@ -49,12 +49,19 @@
         </div>
 
         <div id="viewerWrap" class="viewerWrap">
+          <div id="scenarioBackdrop" class="scenarioBackdrop" aria-hidden="true">
+            <div class="scenarioGlow"></div>
+            <div class="scenarioGround"></div>
+            <div class="scenarioDecor one"></div>
+            <div class="scenarioDecor two"></div>
+            <div class="scenarioDecor three"></div>
+          </div>
           <video id="cameraFeed" class="cameraFeed" autoplay playsinline muted></video>
           <button id="placementLayer" class="placementLayer" type="button" aria-label="Tocar para posicionar o Athos"></button>
 
           <model-viewer
             id="athosViewer"
-            src="./athos.glb?v=3"
+            src="./athos.glb?v=4"
             alt="Athos, personagem preto blocado com olhos vermelhos e fogo pixelado nos braços e pernas"
             camera-controls
             touch-action="pan-y"
@@ -78,7 +85,7 @@
             field-of-view="30deg">
 
             <button id="insideArBtn" class="arButton" slot="ar-button" type="button">
-              📱 AR real do celular
+              📱 Athos em AR real do celular
             </button>
 
             <div class="poster" slot="poster">
@@ -98,32 +105,50 @@
             </div>
           </model-viewer>
 
-          <div id="arControlsOverlay" class="arControlsOverlay" aria-label="Controles rápidos do Athos no modo câmera">
-            <div class="arHandle">Controles do Athos</div>
+          <div id="cameraMissionHud" class="cameraMissionHud" aria-label="Missão atual do Otto">
+            <div>
+              <small>Missão do Otto</small>
+              <strong id="cameraMissionText">Coloque o Athos perto de um brinquedo e faça ele girar.</strong>
+            </div>
+            <button id="cameraNewMissionBtn" type="button">🎲 Nova</button>
+            <button id="cameraDoneMissionBtn" type="button">✅ OK</button>
+          </div>
+
+          <div id="arControlsOverlay" class="arControlsOverlay" aria-label="Controles rápidos do Athos no modo brincar">
+            <div class="arHandle">Brincar com o Athos</div>
+            <div class="arBackgroundBar" aria-label="Escolher fundo da brincadeira">
+              <span>Fundo:</span>
+              <button class="bgChip active" type="button" data-bg="real">📷 Real</button>
+              <button class="bgChip" type="button" data-bg="fire">🔥 Fogo</button>
+              <button class="bgChip" type="button" data-bg="space">🚀 Espaço</button>
+              <button class="bgChip" type="button" data-bg="forest">🌳 Floresta</button>
+              <button class="bgChip" type="button" data-bg="castle">🏰 Castelo</button>
+              <button class="bgChip" type="button" data-bg="city">🏙️ Cidade</button>
+            </div>
             <div class="arControlsGrid">
               <button class="arCtrlBtn" type="button" data-action="jump">🦘<span>Pular</span></button>
               <button class="arCtrlBtn" type="button" data-action="crouch">⬇️<span>Abaixar</span></button>
               <button class="arCtrlBtn" type="button" data-action="spin">🔄<span>Girar</span></button>
               <button class="arCtrlBtn" type="button" data-action="hello">👋<span>Falar</span></button>
+              <button class="arCtrlBtn" type="button" data-action="mini">🤏<span>Mini</span></button>
+              <button class="arCtrlBtn" type="button" data-action="normal">🧍<span>Normal</span></button>
+              <button class="arCtrlBtn" type="button" data-action="giant">🦾<span>Gigante</span></button>
               <button class="arCtrlBtn" type="button" data-action="left">⬅️<span>Esq.</span></button>
               <button class="arCtrlBtn" type="button" data-action="right">➡️<span>Dir.</span></button>
-              <button class="arCtrlBtn" type="button" data-action="mini">🤏<span>Mini</span></button>
-              <button class="arCtrlBtn" type="button" data-action="giant">🦾<span>Gigante</span></button>
-              <button class="arCtrlBtn" type="button" data-action="center">🎯<span>Centro</span></button>
               <button class="arCtrlBtn danger" type="button" data-action="stop">⏸️<span>Parar</span></button>
             </div>
           </div>
         </div>
 
         <div class="bigActions">
-          <button id="cameraModeBtn" class="primaryBtn hot" type="button">🎥 Brincar com câmera</button>
-          <button id="openArBtn" class="primaryBtn" type="button">📱 AR real</button>
+          <button id="cameraModeBtn" class="primaryBtn hot" type="button">🎮 Brincar com celular</button>
+          <button id="openArBtn" class="primaryBtn" type="button">📱 Athos em AR real</button>
           <button id="normalModeBtn" class="secondaryBtn" type="button">🧊 Voltar 3D</button>
           <button id="centerBtn" class="secondaryBtn" type="button">🎯 Centralizar</button>
         </div>
 
         <div id="helpBox" class="helpBox">
-          Use “Brincar com câmera” para o Athos aparecer por cima da câmera e os botões funcionarem. Use “AR real” quando o celular aceitar realidade aumentada nativa.
+          Use “Brincar com celular” para jogar com botões funcionando, com fundo real da câmera ou cenários do Athos. Use “Athos em AR real” para abrir o visualizador de realidade aumentada do celular.
         </div>
       </section>
 
@@ -131,7 +156,7 @@
         <section class="card">
           <div class="cardTitle">
             <h2>Controles do Otto</h2>
-            <p>Use no modo 3D normal. No modo câmera, estes controles aparecem fixos no rodapé da tela.</p>
+            <p>Use no modo 3D normal. No modo brincar, os controles ficam fixos no rodapé da tela.</p>
           </div>
 
           <div class="controlGrid">
@@ -152,16 +177,16 @@
           <div class="rangeBox">
             <div class="rangeLabel">
               <label for="scaleRange">Tamanho</label>
-              <strong id="scaleValue">70%</strong>
+              <strong id="scaleValue">80%</strong>
             </div>
-            <input id="scaleRange" type="range" min="35" max="170" value="70" />
+            <input id="scaleRange" type="range" min="35" max="170" value="80" />
           </div>
         </section>
 
         <section class="card infoCard">
-          <h2>Importante</h2>
-          <p><b>AR real</b> abre o visualizador do celular. Nesse modo, o navegador pode sair da página e os botões deixam de controlar o boneco.</p>
-          <p><b>Brincar com câmera</b> fica dentro da página e agora abre em tela cheia com os botões fixos no rodapé.</p>
+          <h2>Modos de brincadeira</h2>
+          <p><b>Brincar com celular</b> abre uma tela cheia controlada pelo sistema, com fundo real da câmera ou cenários do Athos. É aqui que pular, girar, mini e gigante funcionam.</p>
+          <p><b>Athos em AR real</b> abre o visualizador nativo do celular. Esse modo depende do aparelho e do navegador.</p>
         </section>
 
         <section class="card">
@@ -174,6 +199,21 @@
             <button class="chip" type="button" data-stage="space">🚀 Espaço</button>
             <button class="chip" type="button" data-stage="ice">❄️ Gelo</button>
             <button class="chip" type="button" data-stage="room">🏠 Quarto</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="cardTitle compact">
+            <h2>Fundo da brincadeira</h2>
+            <p>Escolha antes de tocar em “Brincar com celular”. Também aparece no rodapé da tela cheia.</p>
+          </div>
+          <div class="chipGrid bgButtonsPanel">
+            <button class="chip bgChip active" type="button" data-bg="real">📷 Fundo real</button>
+            <button class="chip bgChip" type="button" data-bg="fire">🔥 Mundo fogo</button>
+            <button class="chip bgChip" type="button" data-bg="space">🚀 Espaço</button>
+            <button class="chip bgChip" type="button" data-bg="forest">🌳 Floresta</button>
+            <button class="chip bgChip" type="button" data-bg="castle">🏰 Castelo</button>
+            <button class="chip bgChip" type="button" data-bg="city">🏙️ Cidade</button>
           </div>
         </section>
 
