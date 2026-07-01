@@ -3,20 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#080b12" />
-  <meta name="description" content="Athos 3D e câmera AR para o Otto brincar no celular." />
-  <title>Athos AR do Otto</title>
+  <meta name="theme-color" content="#070914" />
+  <meta name="description" content="Athos: Guardião dos Portais — jogo 3D/AR por câmera para o Otto." />
+  <title>Athos: Guardião dos Portais</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=5" />
+  <link rel="stylesheet" href="./style.css?v=6" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <script defer src="./app.js?v=5"></script>
+  <script defer src="./app.js?v=6"></script>
 </head>
 <body>
-  <div id="app" class="app" data-theme="dark" data-stage="fire" data-mode="normal" data-bg="real">
+  <div id="app" class="app" data-theme="dark" data-bg="real" data-play="home" data-size="normal">
     <header class="topbar">
       <div class="brand">
         <div class="athosIcon" aria-hidden="true">
@@ -25,314 +25,232 @@
           <span class="flame f1"></span>
           <span class="flame f2"></span>
         </div>
-        <div class="brandText">
-          <p class="eyebrow">Brinquedo 3D + AR + missões</p>
-          <h1>Athos AR</h1>
-          <p>Feito para o Otto brincar com o Athos no celular.</p>
+        <div>
+          <p class="eyebrow">Jogo 3D + câmera + AR</p>
+          <h1>Athos: Guardião dos Portais</h1>
+          <p>Missões, quiz, perguntas e cenários para o Otto brincar.</p>
         </div>
       </div>
 
       <div class="topActions">
-        <button id="themeBtn" class="roundBtn" type="button" aria-label="Alternar tema">🌙</button>
+        <button id="themeBtn" class="roundBtn" type="button" aria-label="Alternar modo claro e escuro">🌙</button>
         <button id="shareBtn" class="roundBtn wide" type="button">🔗 Link</button>
       </div>
     </header>
 
     <main class="layout">
-      <section class="viewerPanel" aria-label="Visualizador do Athos em 3D e câmera">
+      <section class="viewerPanel" aria-label="Jogo do Athos">
         <div class="viewerTop">
           <div>
-            <strong>Personagem Athos</strong>
-            <span id="statusText">Preparando...</span>
+            <strong id="screenTitle">Athos 3D</strong>
+            <span id="statusText">Pronto para brincar.</span>
           </div>
           <span id="modeBadge" class="badge">3D</span>
         </div>
 
         <div id="viewerWrap" class="viewerWrap">
           <div id="scenarioBackdrop" class="scenarioBackdrop" aria-hidden="true">
-            <div class="scenarioGlow"></div>
-            <div class="scenarioGround"></div>
-            <div class="scenarioDecor one"></div>
-            <div class="scenarioDecor two"></div>
-            <div class="scenarioDecor three"></div>
+            <div class="skyOrb one"></div>
+            <div class="skyOrb two"></div>
+            <div class="sceneShape a"></div>
+            <div class="sceneShape b"></div>
+            <div class="sceneShape c"></div>
+            <div class="ground"></div>
           </div>
+
           <video id="cameraFeed" class="cameraFeed" autoplay playsinline muted></video>
           <button id="placementLayer" class="placementLayer" type="button" aria-label="Tocar para posicionar o Athos"></button>
 
-          <model-viewer
-            id="athosViewer"
-            src="./athos.glb?v=5"
-            alt="Athos, personagem preto blocado com olhos vermelhos e fogo pixelado nos braços e pernas"
-            camera-controls
-            touch-action="pan-y"
-            auto-rotate
-            rotation-per-second="28deg"
-            ar
-            ar-modes="scene-viewer webxr quick-look"
-            ar-placement="floor"
-            ar-scale="auto"
-            shadow-intensity="1"
-            shadow-softness="0.8"
-            exposure="1"
-            environment-image="neutral"
-            interaction-prompt="auto"
-            loading="eager"
-            reveal="auto"
-            scale="0.70 0.70 0.70"
-            camera-orbit="25deg 68deg 3.6m"
-            min-camera-orbit="auto auto 1.2m"
-            max-camera-orbit="auto auto 8m"
-            field-of-view="30deg">
+          <div id="athosLayer" class="athosLayer">
+            <model-viewer
+              id="athosViewer"
+              src="./athos.glb?v=6"
+              alt="Athos, personagem 3D preto em blocos com olhos vermelhos e fogo pixelado"
+              camera-controls
+              touch-action="pan-y"
+              auto-rotate
+              rotation-per-second="24deg"
+              ar
+              ar-modes="webxr scene-viewer quick-look"
+              ar-placement="floor"
+              ar-scale="auto"
+              shadow-intensity="1"
+              shadow-softness="0.85"
+              exposure="1"
+              environment-image="neutral"
+              interaction-prompt="auto"
+              loading="eager"
+              reveal="auto"
+              scale="0.80 0.80 0.80"
+              camera-orbit="25deg 68deg 3.6m"
+              min-camera-orbit="auto auto 1.2m"
+              max-camera-orbit="auto auto 8m"
+              field-of-view="30deg">
 
-            <button id="insideArBtn" class="arButton" slot="ar-button" type="button">
-              📱 Athos em AR real do celular
-            </button>
+              <button id="insideArBtn" class="arButton" slot="ar-button" type="button">📱 Ver Athos em AR real</button>
 
-            <div class="poster" slot="poster">
-              <div class="miniAthos" aria-hidden="true">
-                <div class="head"><i></i><b></b></div>
-                <div class="body"></div>
-                <div class="arm l"></div>
-                <div class="arm r"></div>
-                <div class="leg l"></div>
-                <div class="leg r"></div>
+              <div class="poster" slot="poster">
+                <div class="miniAthos" aria-hidden="true">
+                  <div class="head"><i></i><b></b></div>
+                  <div class="body"></div>
+                  <div class="arm l"></div>
+                  <div class="arm r"></div>
+                  <div class="leg l"></div>
+                  <div class="leg r"></div>
+                </div>
+                <p>Carregando Athos...</p>
               </div>
-              <p>Carregando o Athos...</p>
-            </div>
 
-            <div class="progress" slot="progress-bar">
-              <div id="progressBar"></div>
-            </div>
-          </model-viewer>
-
-          <div id="cameraMissionHud" class="cameraMissionHud" aria-label="Missão atual do Otto">
-            <div>
-              <small>Missão do Otto</small>
-              <strong id="cameraMissionText">Coloque o Athos perto de um brinquedo e faça ele girar.</strong>
-            </div>
-            <button id="cameraNewMissionBtn" type="button">🎲 Nova</button>
-            <button id="cameraDoneMissionBtn" type="button">✅ OK</button>
+              <div class="progress" slot="progress-bar"><div id="progressBar"></div></div>
+            </model-viewer>
           </div>
 
-          <div id="gameScoreHud" class="gameScoreHud" aria-label="Pontuação do Otto">
-            <span>⭐ <b id="pointsValue">0</b> pontos</span>
-            <span>🧠 Quiz <b id="quizRightValue">0</b>/<b id="quizAnsweredValue">0</b></span>
+          <div id="toast" class="toast" role="status" aria-live="polite">Vamos jogar?</div>
+
+          <div id="gameHud" class="gameHud" aria-label="Informações da missão">
+            <div class="hudLine top">
+              <span>⭐ <b id="pointsValue">0</b></span>
+              <span>❤️ <b id="heartsValue">3</b></span>
+              <span>🏅 <b id="medalsValue">0</b></span>
+              <span>⏱️ <b id="timerValue">--</b></span>
+            </div>
+            <div class="hudMission">
+              <small id="worldLabel">Treinamento</small>
+              <strong id="missionText">Escolha Jogar Missões para começar.</strong>
+              <div id="missionSteps" class="missionSteps"></div>
+            </div>
           </div>
 
-          <div id="arControlsOverlay" class="arControlsOverlay" aria-label="Controles rápidos do Athos no modo brincar">
-            <div class="arHandle">Brincar com o Athos</div>
-            <div class="arBackgroundBar" aria-label="Escolher fundo da brincadeira">
-              <span>Fundo:</span>
-              <button class="bgChip active" type="button" data-bg="real">📷 Real</button>
-              <button class="bgChip" type="button" data-bg="fire">🔥 Fogo</button>
-              <button class="bgChip" type="button" data-bg="space">🚀 Espaço</button>
-              <button class="bgChip" type="button" data-bg="forest">🌳 Floresta</button>
-              <button class="bgChip" type="button" data-bg="castle">🏰 Castelo</button>
-              <button class="bgChip" type="button" data-bg="city">🏙️ Cidade</button>
+          <div id="quizPanel" class="floatingPanel quizPanel" hidden>
+            <div class="panelHead">
+              <div>
+                <small>Desafio de sabedoria</small>
+                <h2>Quiz do Athos</h2>
+              </div>
+              <button id="closeQuizBtn" class="iconBtn" type="button" aria-label="Fechar quiz">✕</button>
             </div>
-            <div class="arControlsGrid">
-              <button class="arCtrlBtn" type="button" data-action="jump">🦘<span>Pular</span></button>
-              <button class="arCtrlBtn" type="button" data-action="crouch">⬇️<span>Abaixar</span></button>
-              <button class="arCtrlBtn" type="button" data-action="spin">🔄<span>Girar</span></button>
-              <button class="arCtrlBtn" type="button" data-action="hello">👋<span>Falar</span></button>
-              <button class="arCtrlBtn smart" type="button" data-smart-open="ask">💬<span>Perguntar</span></button>
-              <button class="arCtrlBtn smart" type="button" data-smart-open="quiz">🧠<span>Quiz</span></button>
-              <button class="arCtrlBtn" type="button" data-action="mini">🤏<span>Mini</span></button>
-              <button class="arCtrlBtn" type="button" data-action="normal">🧍<span>Normal</span></button>
-              <button class="arCtrlBtn" type="button" data-action="giant">🦾<span>Gigante</span></button>
-              <button class="arCtrlBtn" type="button" data-action="left">⬅️<span>Esq.</span></button>
-              <button class="arCtrlBtn" type="button" data-action="right">➡️<span>Dir.</span></button>
-              <button class="arCtrlBtn danger" type="button" data-action="stop">⏸️<span>Parar</span></button>
+            <p id="quizQuestion" class="quizQuestion">Pergunta do Athos...</p>
+            <div id="quizOptions" class="quizOptions"></div>
+            <p id="quizFeedback" class="quizFeedback"></p>
+          </div>
+
+          <div id="askPanel" class="floatingPanel askPanel" hidden>
+            <div class="panelHead">
+              <div>
+                <small>Converse com o personagem</small>
+                <h2>Perguntar ao Athos</h2>
+              </div>
+              <button id="closeAskBtn" class="iconBtn" type="button" aria-label="Fechar perguntas">✕</button>
+            </div>
+            <label for="askInput">O que o Otto quer perguntar?</label>
+            <div class="askRow">
+              <input id="askInput" type="text" inputmode="text" autocomplete="off" placeholder="Ex: Athos, qual é seu poder?" />
+              <button id="askSendBtn" type="button">Enviar</button>
+              <button id="micBtn" type="button" aria-label="Perguntar por voz">🎙️</button>
+            </div>
+            <p id="askAnswer" class="askAnswer">Pergunte sobre poder, fogo, portais, missão, castelo, espaço ou sobre o Otto.</p>
+          </div>
+
+          <div id="collectionPanel" class="floatingPanel collectionPanel" hidden>
+            <div class="panelHead">
+              <div>
+                <small>Progresso salvo no celular</small>
+                <h2>Coleção do Otto</h2>
+              </div>
+              <button id="closeCollectionBtn" class="iconBtn" type="button" aria-label="Fechar coleção">✕</button>
+            </div>
+            <div id="collectionGrid" class="collectionGrid"></div>
+          </div>
+
+          <div id="gameControlsOverlay" class="gameControlsOverlay" aria-label="Controles do jogo">
+            <div class="gameHandle">
+              <strong>Ações do Athos</strong>
+              <button id="exitGameBtn" type="button">Sair</button>
+            </div>
+
+            <div class="sceneBar" aria-label="Escolher mundo">
+              <button class="sceneChip active" type="button" data-bg="real">📷 Real</button>
+              <button class="sceneChip" type="button" data-bg="fire">🔥 Fogo</button>
+              <button class="sceneChip" type="button" data-bg="space">🚀 Espaço</button>
+              <button class="sceneChip" type="button" data-bg="forest">🌳 Floresta</button>
+              <button class="sceneChip" type="button" data-bg="castle">🏰 Castelo</button>
+              <button class="sceneChip" type="button" data-bg="city">🏙️ Cidade</button>
+            </div>
+
+            <div class="actionsGrid">
+              <button class="actionBtn primary" type="button" data-action="jump">🦘<span>Pular</span></button>
+              <button class="actionBtn primary" type="button" data-action="crouch">⬇️<span>Abaixar</span></button>
+              <button class="actionBtn primary" type="button" data-action="spin">🔄<span>Girar</span></button>
+              <button class="actionBtn primary" type="button" data-action="speak">👋<span>Falar</span></button>
+              <button class="actionBtn" type="button" data-action="mini">🤏<span>Mini</span></button>
+              <button class="actionBtn" type="button" data-action="normal">🧍<span>Normal</span></button>
+              <button class="actionBtn" type="button" data-action="giant">🦾<span>Gigante</span></button>
+              <button class="actionBtn" type="button" data-action="left">⬅️<span>Esq.</span></button>
+              <button class="actionBtn" type="button" data-action="right">➡️<span>Dir.</span></button>
+              <button class="actionBtn smart" type="button" data-open="quiz">🧠<span>Quiz</span></button>
+              <button class="actionBtn smart" type="button" data-open="ask">💬<span>Perguntar</span></button>
+              <button class="actionBtn danger" type="button" data-action="stop">⏸️<span>Parar</span></button>
             </div>
           </div>
         </div>
 
         <div class="bigActions">
-          <button id="cameraModeBtn" class="primaryBtn hot" type="button">🎮 Brincar com celular</button>
-          <button id="openArBtn" class="primaryBtn" type="button">📱 Athos em AR real</button>
-          <button id="normalModeBtn" class="secondaryBtn" type="button">🧊 Voltar 3D</button>
-          <button id="centerBtn" class="secondaryBtn" type="button">🎯 Centralizar</button>
-        </div>
-
-        <div id="helpBox" class="helpBox">
-          Use “Brincar com celular” para jogar com botões funcionando, com fundo real da câmera ou cenários do Athos. Use “Athos em AR real” para abrir o visualizador de realidade aumentada do celular.
+          <button id="startMissionsBtn" class="primaryBtn hot" type="button">🎮 Jogar Missões</button>
+          <button id="freePlayBtn" class="primaryBtn" type="button">📷 Brincar Livre</button>
+          <button id="openArBtn" class="secondaryBtn" type="button">📱 AR Real</button>
+          <button id="quizHomeBtn" class="secondaryBtn" type="button">🧠 Quiz</button>
+          <button id="collectionBtn" class="secondaryBtn" type="button">🏅 Coleção</button>
         </div>
       </section>
 
-      <aside class="sidePanel" aria-label="Controles do Athos">
+      <aside class="sidePanel" aria-label="Painel do jogo">
+        <section class="card heroCard">
+          <h2>Como o jogo funciona</h2>
+          <p><b>Jogar Missões</b> transforma o celular em uma brincadeira com fundo real da câmera ou cenários do Athos.</p>
+          <p>O Otto precisa apertar as ações certas: pular, abaixar, girar, falar, mini, gigante, esquerda e direita.</p>
+        </section>
+
         <section class="card">
           <div class="cardTitle">
-            <h2>Controles do Otto</h2>
-            <p>Use no modo 3D normal. No modo brincar, os controles ficam fixos no rodapé da tela.</p>
+            <h2>Dificuldade</h2>
+            <p>Quanto maior a dificuldade, menor o tempo e maior a sequência.</p>
           </div>
-
-          <div class="controlGrid">
-            <button class="playBtn" type="button" data-action="mini">🤏 Mini</button>
-            <button class="playBtn" type="button" data-action="normal">🧍 Normal</button>
-            <button class="playBtn" type="button" data-action="giant">🦾 Gigante</button>
-            <button class="playBtn" type="button" data-action="spin">🔄 Girar</button>
-            <button class="playBtn" type="button" data-action="crouch">⬇️ Abaixar</button>
-            <button class="playBtn" type="button" data-action="jump">🦘 Pular</button>
-            <button class="playBtn" type="button" data-action="left">⬅️ Esquerda</button>
-            <button class="playBtn" type="button" data-action="right">➡️ Direita</button>
-            <button class="playBtn" type="button" data-action="up">⬆️ Subir</button>
-            <button class="playBtn" type="button" data-action="down">⬇️ Descer</button>
-            <button class="playBtn" type="button" data-action="hello">👋 Falar</button>
-            <button class="playBtn" type="button" data-action="stop">⏸️ Parar</button>
-          </div>
-
-          <div class="rangeBox">
-            <div class="rangeLabel">
-              <label for="scaleRange">Tamanho</label>
-              <strong id="scaleValue">80%</strong>
-            </div>
-            <input id="scaleRange" type="range" min="35" max="170" value="80" />
+          <div class="difficultyGrid" role="group" aria-label="Escolher dificuldade">
+            <button class="difficultyBtn active" type="button" data-difficulty="easy">🟢 Fácil</button>
+            <button class="difficultyBtn" type="button" data-difficulty="medium">🟡 Médio</button>
+            <button class="difficultyBtn" type="button" data-difficulty="hard">🔴 Difícil</button>
           </div>
         </section>
 
-        <section class="card infoCard">
-          <h2>Modos de brincadeira</h2>
-          <p><b>Brincar com celular</b> abre uma tela cheia controlada pelo sistema, com fundo real da câmera ou cenários do Athos. É aqui que pular, girar, mini e gigante funcionam.</p>
-          <p><b>Athos em AR real</b> abre o visualizador nativo do celular. Esse modo depende do aparelho e do navegador.</p>
+        <section class="card progressCard">
+          <h2>Progresso do Otto</h2>
+          <div class="statsGrid">
+            <div><span>⭐ Pontos</span><strong id="sidePointsValue">0</strong></div>
+            <div><span>❤️ Corações</span><strong id="sideHeartsValue">3</strong></div>
+            <div><span>🏅 Medalhas</span><strong id="sideMedalsValue">0</strong></div>
+            <div><span>🔥 Sequência</span><strong id="sideStreakValue">0</strong></div>
+          </div>
+          <button id="resetProgressBtn" class="textBtn" type="button">Reiniciar pontos</button>
         </section>
 
-        <section class="card smartCard">
-          <div class="cardTitle compact">
-            <h2>Athos interativo</h2>
-            <p>O Otto pode conversar, jogar quiz e conhecer o mundo do Athos.</p>
+        <section class="card worldCard">
+          <div class="cardTitle">
+            <h2>Mundos do Athos</h2>
+            <p>Toque em um mundo para trocar o cenário da brincadeira.</p>
           </div>
-          <div class="smartQuickGrid">
-            <button class="secondaryBtn" type="button" data-smart-open="ask">💬 Perguntar</button>
-            <button class="secondaryBtn" type="button" data-smart-open="quiz">🧠 Quiz</button>
-            <button class="secondaryBtn" type="button" data-smart-open="world">🌍 Mundo</button>
+          <div class="worldList">
+            <button type="button" data-bg="real"><b>📷 Mundo Real</b><span>Câmera do celular.</span></button>
+            <button type="button" data-bg="fire"><b>🔥 Vulcão Pixel</b><span>Energia de fogo.</span></button>
+            <button type="button" data-bg="space"><b>🚀 Espaço Cubo</b><span>Estrelas e portais.</span></button>
+            <button type="button" data-bg="forest"><b>🌳 Floresta dos Blocos</b><span>Árvores e segredos.</span></button>
+            <button type="button" data-bg="castle"><b>🏰 Castelo Vermelho</b><span>Portões e desafios.</span></button>
+            <button type="button" data-bg="city"><b>🏙️ Cidade Cubo</b><span>Pistas e prédios.</span></button>
           </div>
-          <div class="scoreMini">⭐ <b id="pointsValueSide">0</b> pontos do Otto</div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle compact">
-            <h2>Palco 3D</h2>
-            <p>Muda o fundo quando estiver no modo 3D normal.</p>
-          </div>
-          <div class="chipGrid" id="stageButtons">
-            <button class="chip active" type="button" data-stage="fire">🔥 Fogo</button>
-            <button class="chip" type="button" data-stage="space">🚀 Espaço</button>
-            <button class="chip" type="button" data-stage="ice">❄️ Gelo</button>
-            <button class="chip" type="button" data-stage="room">🏠 Quarto</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle compact">
-            <h2>Fundo da brincadeira</h2>
-            <p>Escolha antes de tocar em “Brincar com celular”. Também aparece no rodapé da tela cheia.</p>
-          </div>
-          <div class="chipGrid bgButtonsPanel">
-            <button class="chip bgChip active" type="button" data-bg="real">📷 Fundo real</button>
-            <button class="chip bgChip" type="button" data-bg="fire">🔥 Mundo fogo</button>
-            <button class="chip bgChip" type="button" data-bg="space">🚀 Espaço</button>
-            <button class="chip bgChip" type="button" data-bg="forest">🌳 Floresta</button>
-            <button class="chip bgChip" type="button" data-bg="castle">🏰 Castelo</button>
-            <button class="chip bgChip" type="button" data-bg="city">🏙️ Cidade</button>
-          </div>
-        </section>
-
-        <section class="card missionCard">
-          <div class="cardTitle compact">
-            <h2>Missão do dia</h2>
-            <p>Uma brincadeira simples para o Otto.</p>
-          </div>
-          <div id="missionBox" class="missionBox">Coloque o Athos perto de um brinquedo e faça ele girar.</div>
-          <div class="missionActions">
-            <button id="newMissionBtn" class="secondaryBtn" type="button">🎲 Nova missão</button>
-            <button id="doneMissionBtn" class="secondaryBtn" type="button">✅ Concluí</button>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="cardTitle compact">
-            <h2>Moldes</h2>
-            <p>Imagens para imprimir e copiar com caneta 3D.</p>
-          </div>
-          <div class="linkGrid">
-            <a class="fileLink" href="./moldes/modelo_referencia.png" target="_blank" rel="noopener">🖼️ Modelo de referência</a>
-            <a class="fileLink" href="./moldes/athos_moldes_caneta_3d.png" target="_blank" rel="noopener">📄 Moldes da caneta 3D</a>
-          </div>
-        </section>
-
-        <section class="card smallCard">
-          <label class="uploadLabel" for="modelFile">Testar outro arquivo .glb</label>
-          <input id="modelFile" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" />
-          <p class="smallText">Para publicar, substitua o arquivo <b>athos.glb</b> no GitHub.</p>
         </section>
       </aside>
     </main>
 
-    <div id="smartPanel" class="smartPanel" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="smartTitle">
-      <div class="smartPanelCard">
-        <div class="smartTop">
-          <div>
-            <small>Athos inteligente</small>
-            <strong id="smartTitle">Perguntar ao Athos</strong>
-          </div>
-          <button id="smartCloseBtn" class="smartCloseBtn" type="button" aria-label="Fechar">✕</button>
-        </div>
-
-        <div class="smartTabs" role="tablist" aria-label="Modo interativo">
-          <button class="smartTab active" type="button" data-smart-tab="ask">💬 Perguntas</button>
-          <button class="smartTab" type="button" data-smart-tab="quiz">🧠 Quiz</button>
-          <button class="smartTab" type="button" data-smart-tab="world">🌍 Mundo</button>
-        </div>
-
-        <section id="askPane" class="smartPane active">
-          <p class="smartHint">Digite ou toque em uma pergunta rápida. O Athos responde com texto e voz.</p>
-          <div class="quickQuestions">
-            <button type="button" data-question="Quem é o Athos?">Quem é?</button>
-            <button type="button" data-question="Qual é o poder do Athos?">Poder</button>
-            <button type="button" data-question="Qual missão eu faço agora?">Missão</button>
-            <button type="button" data-question="Me conte uma história do Athos.">História</button>
-          </div>
-          <div class="askRow">
-            <input id="askInput" type="text" inputmode="text" maxlength="120" placeholder="Pergunte algo sobre o Athos..." />
-            <button id="askSendBtn" type="button">Enviar</button>
-            <button id="askVoiceBtn" type="button" aria-label="Perguntar por voz">🎙️</button>
-          </div>
-          <div id="askAnswer" class="answerBox">Oi Otto! Eu sou o Athos. Pode perguntar sobre meus mundos, poderes e missões.</div>
-        </section>
-
-        <section id="quizPane" class="smartPane">
-          <div class="quizTopLine">
-            <span>⭐ Pontos: <b id="quizPointsValue">0</b></span>
-            <span>Acertos: <b id="quizRightPanelValue">0</b>/<b id="quizAnsweredPanelValue">0</b></span>
-          </div>
-          <div id="quizQuestion" class="quizQuestion">Toque em começar para jogar o Quiz do Athos.</div>
-          <div id="quizOptions" class="quizOptions"></div>
-          <div id="quizFeedback" class="quizFeedback">Responda e ganhe pontos para o Otto.</div>
-          <div class="quizActions">
-            <button id="quizStartBtn" class="secondaryBtn" type="button">▶️ Começar</button>
-            <button id="quizNextBtn" class="secondaryBtn" type="button">➡️ Próxima</button>
-            <button id="quizResetBtn" class="secondaryBtn" type="button">🔄 Zerar</button>
-          </div>
-        </section>
-
-        <section id="worldPane" class="smartPane">
-          <p class="smartHint">Escolha um mundo. O cenário muda e o Athos conta uma pequena história.</p>
-          <div class="worldGrid">
-            <button type="button" data-world="fire">🔥 Vulcão Pixel</button>
-            <button type="button" data-world="space">🚀 Estação Estelar</button>
-            <button type="button" data-world="forest">🌳 Floresta dos Blocos</button>
-            <button type="button" data-world="castle">🏰 Castelo Vermelho</button>
-            <button type="button" data-world="city">🏙️ Cidade Cubo</button>
-            <button type="button" data-world="real">📷 Mundo Real</button>
-          </div>
-          <div id="worldStory" class="answerBox">No mundo do Athos, cada cenário vira uma missão diferente para o Otto brincar.</div>
-        </section>
-      </div>
-    </div>
-
-    <footer class="footer">
-      <span>Powered by thIAguinho Soluções Digitais</span>
-    </footer>
+    <footer class="footer">Powered by thIAguinho Soluções Digitais</footer>
   </div>
 </body>
 </html>
