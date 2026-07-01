@@ -10,10 +10,10 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=4" />
+  <link rel="stylesheet" href="./style.css?v=5" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <script defer src="./app.js?v=4"></script>
+  <script defer src="./app.js?v=5"></script>
 </head>
 <body>
   <div id="app" class="app" data-theme="dark" data-stage="fire" data-mode="normal" data-bg="real">
@@ -61,7 +61,7 @@
 
           <model-viewer
             id="athosViewer"
-            src="./athos.glb?v=4"
+            src="./athos.glb?v=5"
             alt="Athos, personagem preto blocado com olhos vermelhos e fogo pixelado nos braços e pernas"
             camera-controls
             touch-action="pan-y"
@@ -114,6 +114,11 @@
             <button id="cameraDoneMissionBtn" type="button">✅ OK</button>
           </div>
 
+          <div id="gameScoreHud" class="gameScoreHud" aria-label="Pontuação do Otto">
+            <span>⭐ <b id="pointsValue">0</b> pontos</span>
+            <span>🧠 Quiz <b id="quizRightValue">0</b>/<b id="quizAnsweredValue">0</b></span>
+          </div>
+
           <div id="arControlsOverlay" class="arControlsOverlay" aria-label="Controles rápidos do Athos no modo brincar">
             <div class="arHandle">Brincar com o Athos</div>
             <div class="arBackgroundBar" aria-label="Escolher fundo da brincadeira">
@@ -130,6 +135,8 @@
               <button class="arCtrlBtn" type="button" data-action="crouch">⬇️<span>Abaixar</span></button>
               <button class="arCtrlBtn" type="button" data-action="spin">🔄<span>Girar</span></button>
               <button class="arCtrlBtn" type="button" data-action="hello">👋<span>Falar</span></button>
+              <button class="arCtrlBtn smart" type="button" data-smart-open="ask">💬<span>Perguntar</span></button>
+              <button class="arCtrlBtn smart" type="button" data-smart-open="quiz">🧠<span>Quiz</span></button>
               <button class="arCtrlBtn" type="button" data-action="mini">🤏<span>Mini</span></button>
               <button class="arCtrlBtn" type="button" data-action="normal">🧍<span>Normal</span></button>
               <button class="arCtrlBtn" type="button" data-action="giant">🦾<span>Gigante</span></button>
@@ -187,6 +194,19 @@
           <h2>Modos de brincadeira</h2>
           <p><b>Brincar com celular</b> abre uma tela cheia controlada pelo sistema, com fundo real da câmera ou cenários do Athos. É aqui que pular, girar, mini e gigante funcionam.</p>
           <p><b>Athos em AR real</b> abre o visualizador nativo do celular. Esse modo depende do aparelho e do navegador.</p>
+        </section>
+
+        <section class="card smartCard">
+          <div class="cardTitle compact">
+            <h2>Athos interativo</h2>
+            <p>O Otto pode conversar, jogar quiz e conhecer o mundo do Athos.</p>
+          </div>
+          <div class="smartQuickGrid">
+            <button class="secondaryBtn" type="button" data-smart-open="ask">💬 Perguntar</button>
+            <button class="secondaryBtn" type="button" data-smart-open="quiz">🧠 Quiz</button>
+            <button class="secondaryBtn" type="button" data-smart-open="world">🌍 Mundo</button>
+          </div>
+          <div class="scoreMini">⭐ <b id="pointsValueSide">0</b> pontos do Otto</div>
         </section>
 
         <section class="card">
@@ -247,6 +267,68 @@
         </section>
       </aside>
     </main>
+
+    <div id="smartPanel" class="smartPanel" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="smartTitle">
+      <div class="smartPanelCard">
+        <div class="smartTop">
+          <div>
+            <small>Athos inteligente</small>
+            <strong id="smartTitle">Perguntar ao Athos</strong>
+          </div>
+          <button id="smartCloseBtn" class="smartCloseBtn" type="button" aria-label="Fechar">✕</button>
+        </div>
+
+        <div class="smartTabs" role="tablist" aria-label="Modo interativo">
+          <button class="smartTab active" type="button" data-smart-tab="ask">💬 Perguntas</button>
+          <button class="smartTab" type="button" data-smart-tab="quiz">🧠 Quiz</button>
+          <button class="smartTab" type="button" data-smart-tab="world">🌍 Mundo</button>
+        </div>
+
+        <section id="askPane" class="smartPane active">
+          <p class="smartHint">Digite ou toque em uma pergunta rápida. O Athos responde com texto e voz.</p>
+          <div class="quickQuestions">
+            <button type="button" data-question="Quem é o Athos?">Quem é?</button>
+            <button type="button" data-question="Qual é o poder do Athos?">Poder</button>
+            <button type="button" data-question="Qual missão eu faço agora?">Missão</button>
+            <button type="button" data-question="Me conte uma história do Athos.">História</button>
+          </div>
+          <div class="askRow">
+            <input id="askInput" type="text" inputmode="text" maxlength="120" placeholder="Pergunte algo sobre o Athos..." />
+            <button id="askSendBtn" type="button">Enviar</button>
+            <button id="askVoiceBtn" type="button" aria-label="Perguntar por voz">🎙️</button>
+          </div>
+          <div id="askAnswer" class="answerBox">Oi Otto! Eu sou o Athos. Pode perguntar sobre meus mundos, poderes e missões.</div>
+        </section>
+
+        <section id="quizPane" class="smartPane">
+          <div class="quizTopLine">
+            <span>⭐ Pontos: <b id="quizPointsValue">0</b></span>
+            <span>Acertos: <b id="quizRightPanelValue">0</b>/<b id="quizAnsweredPanelValue">0</b></span>
+          </div>
+          <div id="quizQuestion" class="quizQuestion">Toque em começar para jogar o Quiz do Athos.</div>
+          <div id="quizOptions" class="quizOptions"></div>
+          <div id="quizFeedback" class="quizFeedback">Responda e ganhe pontos para o Otto.</div>
+          <div class="quizActions">
+            <button id="quizStartBtn" class="secondaryBtn" type="button">▶️ Começar</button>
+            <button id="quizNextBtn" class="secondaryBtn" type="button">➡️ Próxima</button>
+            <button id="quizResetBtn" class="secondaryBtn" type="button">🔄 Zerar</button>
+          </div>
+        </section>
+
+        <section id="worldPane" class="smartPane">
+          <p class="smartHint">Escolha um mundo. O cenário muda e o Athos conta uma pequena história.</p>
+          <div class="worldGrid">
+            <button type="button" data-world="fire">🔥 Vulcão Pixel</button>
+            <button type="button" data-world="space">🚀 Estação Estelar</button>
+            <button type="button" data-world="forest">🌳 Floresta dos Blocos</button>
+            <button type="button" data-world="castle">🏰 Castelo Vermelho</button>
+            <button type="button" data-world="city">🏙️ Cidade Cubo</button>
+            <button type="button" data-world="real">📷 Mundo Real</button>
+          </div>
+          <div id="worldStory" class="answerBox">No mundo do Athos, cada cenário vira uma missão diferente para o Otto brincar.</div>
+        </section>
+      </div>
+    </div>
 
     <footer class="footer">
       <span>Powered by thIAguinho Soluções Digitais</span>
