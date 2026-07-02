@@ -4,971 +4,182 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b0d17" />
-  <meta name="description" content="Athos: Guardião dos Portais — Jogo 3D Voxel e AR." />
-  <title>Athos: Guardião dos Portais</title>
+  <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel com controle guiado para celular." />
+  <title>Athos: Guardião dos Portais — Controle Preciso</title>
 
-  <!-- Fontes -->
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" href="./icons/favicon.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=VT323&display=swap" rel="stylesheet">
 
-  <!-- Bibliotecas Essenciais (CDN) -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <style>
-    /* ==========================================================================
-       UI/UX VOXEL INFANTIL POLIDA
-       ========================================================================== */
-    :root {
-      /* Paleta Blocky/Vibrant */
-      --bg: #0f1322;
-      --bg-panel: rgba(22, 28, 48, 0.95);
-      --text: #ffffff;
-      --text-muted: #8fa0c4;
-      
-      --brand-main: #ff5e00;
-      --brand-light: #ffae00;
-      --success: #20d866;
-      --success-dark: #128a3f;
-      --danger: #ff3355;
-      --danger-dark: #b3122d;
-      --info: #00aaff;
-      
-      --stone: #8b8b8b;
-      --stone-light: #c6c6c6;
-      --stone-dark: #373737;
-
-      --radius-sm: 12px;
-      --radius-md: 20px;
-      --radius-lg: 32px;
-      --shadow-base: 0 8px 25px rgba(0,0,0,0.4);
+    :root{
+      --bg:#0b0d17; --panel:rgba(18,24,42,.96); --panel2:rgba(9,13,25,.96);
+      --text:#fff; --muted:#9fb0d6; --brand:#ff7a00; --brand2:#ffca2f;
+      --ok:#20d866; --danger:#ff3355; --info:#18baff; --purple:#b264ff;
+      --control:#171f35; --control2:#26345c; --line:rgba(255,255,255,.14);
+      --shadow:0 18px 50px rgba(0,0,0,.45); --r:22px;
     }
+    *{box-sizing:border-box;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;margin:0;overflow-x:hidden;background:var(--bg);color:var(--text);font-family:Fredoka,system-ui,sans-serif}
+    body{background-image:linear-gradient(rgba(255,255,255,.035) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.035) 2px,transparent 2px);background-size:38px 38px}
+    button,input{font:inherit} button{border:0;cursor:pointer;color:inherit} .pixel{font-family:VT323,monospace;letter-spacing:1px}
+    .hidden{display:none!important}
+    .btn{border-radius:16px;padding:14px 16px;background:linear-gradient(180deg,#33436f,#1d2746);border:2px solid rgba(255,255,255,.2);box-shadow:0 7px 0 rgba(0,0,0,.45);font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+    .btn:active{transform:translateY(6px);box-shadow:0 1px 0 rgba(0,0,0,.45)} .btn.primary{background:linear-gradient(180deg,var(--brand2),var(--brand));color:#221100}.btn.ok{background:linear-gradient(180deg,#50ff8d,#16a950)}.btn.danger{background:linear-gradient(180deg,#ff6a83,#ce1838)}.btn.info{background:linear-gradient(180deg,#58d7ff,#128ed2)}
 
-    * { box-sizing: border-box; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-    html, body { min-height: 100%; margin: 0; padding: 0; overflow-x: hidden; font-family: 'Fredoka', sans-serif; }
-    
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      /* Background quadriculado sutil estilo voxel */
-      background-image: linear-gradient(rgba(255,255,255,0.03) 2px, transparent 2px), linear-gradient(90deg, rgba(255,255,255,0.03) 2px, transparent 2px);
-      background-size: 40px 40px;
-    }
+    #lobby{max-width:1180px;margin:auto;padding:18px 14px 28px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.brand{display:flex;align-items:center;gap:13px}.face{width:62px;height:62px;border-radius:18px;background:#080808;border:3px solid var(--brand);box-shadow:0 0 24px rgba(255,122,0,.35);position:relative}.face:before,.face:after{content:"";position:absolute;top:20px;width:17px;height:10px;background:#fff;border-radius:2px}.face:before{left:10px;box-shadow:7px 0 0 #f22}.face:after{right:10px;box-shadow:-7px 0 0 #f22}.brand small{display:block;color:var(--brand2);font-weight:700;text-transform:uppercase}.brand h1{margin:0;font-size:clamp(25px,6vw,42px);line-height:.95}.lobbyGrid{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}.viewerCard{height:min(66vh,640px);min-height:430px;overflow:hidden;position:relative}.viewerCard model-viewer{width:100%;height:100%;background:radial-gradient(circle at 50% 42%,#26345c,#090d19)}.arNative{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:min(88%,340px);z-index:4}.side{display:flex;flex-direction:column;gap:14px}.panel{padding:18px}.panel h2{margin:0 0 12px;color:var(--brand2);font-size:23px}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:18px;padding:13px;text-align:center}.stat span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase}.stat b{display:block;font-size:32px;color:#fff}.actions{display:grid;gap:11px}.actions .btn{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;font-size:19px}.difficulty{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.difficulty .btn{padding:10px 6px;font-size:13px}.difficulty .active{outline:3px solid var(--brand2)}
 
-    button, input { font-family: 'Fredoka', sans-serif; outline: none; border: none; }
-    button { cursor: pointer; transition: 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
-    .pixel-text { font-family: 'VT323', monospace; letter-spacing: 1px; }
+    #game{display:none;position:fixed;inset:0;background:#000;z-index:1000;overflow:hidden}#game.active{display:block}.gameCamera{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:none}#game.bg-real .gameCamera{display:block}#threeWrap{position:absolute;inset:0 0 0 0;z-index:1}.bg-real #threeWrap{background:transparent}#threeWrap canvas{display:block;width:100%;height:100%;outline:0}
+    .hud{position:absolute;left:10px;right:10px;top:max(10px,env(safe-area-inset-top));z-index:10;display:grid;gap:8px;pointer-events:none}.hudRow{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.pill{background:rgba(8,12,24,.82);border:1px solid var(--line);backdrop-filter:blur(8px);padding:8px 13px;border-radius:999px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.35)}.pill b{color:var(--brand2);font-size:22px}.mission{max-width:720px;width:100%;margin:auto;background:rgba(8,12,24,.9);border:2px solid var(--info);border-radius:20px;padding:10px 12px;text-align:center;box-shadow:0 8px 30px rgba(24,186,255,.2)}.mission small{display:block;color:var(--info);text-transform:uppercase;font-weight:700;font-size:11px}.mission strong{display:block;font-size:18px;line-height:1.25}.guideNow{margin-top:7px;color:#061018;background:var(--brand2);display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;padding:5px 12px;font-size:14px}.steps{display:flex;justify-content:center;flex-wrap:wrap;gap:6px;margin-top:8px}.step{padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.08);font-size:12px;color:#aab4cc}.step.current{background:var(--brand2);color:#1b1000;transform:scale(1.05)}.step.done{background:var(--ok);color:#061408}.toast{position:absolute;top:39%;left:50%;transform:translate(-50%,-50%) scale(.7);z-index:50;opacity:0;background:rgba(8,12,24,.94);border:4px solid var(--ok);border-radius:28px;padding:16px 28px;text-align:center;font-weight:700;font-size:26px;box-shadow:0 25px 70px rgba(0,0,0,.7);transition:.22s}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}.toast.error{border-color:var(--danger);color:#ff9bad}.toast.guide{border-color:var(--brand2);color:var(--brand2)}
 
-    /* BOTOES GERAIS (Estilo Bloco 3D) */
-    .btn-3d {
-      position: relative;
-      background: var(--stone);
-      color: #fff;
-      font-weight: 700;
-      font-size: 18px;
-      padding: 14px 20px;
-      border-radius: var(--radius-sm);
-      border: 3px solid rgba(255,255,255,0.2);
-      box-shadow: 0 6px 0px rgba(0,0,0,0.5);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .btn-3d:active {
-      transform: translateY(6px);
-      box-shadow: 0 0px 0px rgba(0,0,0,0.5);
-    }
-    .btn-primary { background: linear-gradient(135deg, var(--brand-main), var(--brand-light)); border-color: #ffd666; box-shadow: 0 6px 0px #9e3900; color: #fff; text-shadow: 1px 1px 0 rgba(0,0,0,0.3); }
-    .btn-primary:active { box-shadow: 0 0px 0px #9e3900; }
-    .btn-success { background: var(--success); border-color: #aaffcc; box-shadow: 0 6px 0px var(--success-dark); color: #fff; }
-    .btn-success:active { box-shadow: 0 0px 0px var(--success-dark); }
-    .btn-danger { background: var(--danger); border-color: #ffb3b3; box-shadow: 0 6px 0px var(--danger-dark); color: #fff; }
-    .btn-danger:active { box-shadow: 0 0px 0px var(--danger-dark); }
+    .controller{position:absolute;left:0;right:0;bottom:0;z-index:12;padding:9px 10px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(7,11,22,.70),rgba(7,11,22,.98) 25%);border-top:1px solid rgba(255,255,255,.14)}.worldBar{display:flex;gap:7px;overflow-x:auto;scrollbar-width:none;margin-bottom:8px}.worldBar::-webkit-scrollbar{display:none}.worldBtn{flex:0 0 auto;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid var(--line);font-size:13px;font-weight:700}.worldBtn.active{background:var(--info);color:#06111a;border-color:#fff}.controllerMain{display:grid;grid-template-columns:126px minmax(0,1fr) 126px;align-items:center;gap:10px;max-width:850px;margin:0 auto}.dpad{display:grid;grid-template-columns:repeat(3,42px);grid-template-rows:repeat(3,42px);gap:2px;justify-content:center}.pad,.act,.util{background:linear-gradient(180deg,#2d3b66,#151d36);border:1px solid rgba(255,255,255,.18);border-radius:14px;box-shadow:0 5px 0 rgba(0,0,0,.5);font-weight:800}.pad:active,.act:active,.util:active{transform:translateY(5px);box-shadow:0 0 0 rgba(0,0,0,.5)}.pad.empty{visibility:hidden}.pad{font-size:22px}.centerLogo{display:grid;place-items:center;background:#05070f;color:var(--brand2);border-radius:15px;font-size:11px;font-weight:900;text-align:center;line-height:1.05}.actionsPad{display:grid;grid-template-columns:repeat(2,60px);grid-template-rows:repeat(2,60px);gap:8px;justify-content:center}.act{border-radius:50%;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center}.act b{font-size:20px;display:block}.act.a{background:linear-gradient(180deg,#69f291,#14a950)}.act.b{background:linear-gradient(180deg,#ff6a83,#c51635)}.act.x{background:linear-gradient(180deg,#63d9ff,#158fd2)}.act.y{background:linear-gradient(180deg,#d59bff,#7d31c5)}.utility{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;align-content:center}.util{min-height:48px;font-size:11px;text-transform:uppercase;color:#fff}.util b{display:block;font-size:18px}.ctrlTarget{outline:4px solid var(--brand2)!important;box-shadow:0 0 22px rgba(255,202,47,.9),0 5px 0 rgba(0,0,0,.5)!important;animation:pulseTarget .8s infinite alternate}@keyframes pulseTarget{from{filter:brightness(1)}to{filter:brightness(1.45)}}.wrongFlash{animation:shake .35s}@keyframes shake{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(5px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+    @media(max-width:760px){.lobbyGrid{grid-template-columns:1fr}.viewerCard{height:48vh;min-height:330px}.side{gap:10px}.controllerMain{grid-template-columns:116px 1fr 116px;gap:6px}.dpad{grid-template-columns:repeat(3,38px);grid-template-rows:repeat(3,38px)}.actionsPad{grid-template-columns:repeat(2,54px);grid-template-rows:repeat(2,54px);gap:7px}.utility{grid-template-columns:repeat(3,1fr);grid-auto-rows:43px}.mission strong{font-size:16px}.hud{top:6px}.pill{padding:6px 10px;font-size:14px}.pill b{font-size:18px}}
+    @media(max-width:410px){.controllerMain{grid-template-columns:102px 1fr 102px}.dpad{grid-template-columns:repeat(3,33px);grid-template-rows:repeat(3,33px)}.pad{font-size:18px;border-radius:10px}.actionsPad{grid-template-columns:repeat(2,47px);grid-template-rows:repeat(2,47px)}.act{font-size:10px}.act b{font-size:17px}.util{font-size:9px;min-height:39px}.util b{font-size:15px}.controller{padding-left:6px;padding-right:6px}.worldBtn{font-size:11px;padding:7px 9px}.mission{padding:8px}.steps{display:none}}
 
-    /* LOBBY VIEW */
-    #lobby-view { display: block; max-width: 1200px; margin: 0 auto; padding: 20px 15px; }
-    #lobby-view.hidden { display: none !important; }
-
-    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
-    .brand { display: flex; align-items: center; gap: 15px; }
-    .brand-icon { width: 64px; height: 64px; background: #111; border-radius: 16px; border: 3px solid var(--brand-main); position: relative; box-shadow: 0 0 20px rgba(255,94,0,0.4); }
-    .brand-icon::before, .brand-icon::after { content: ''; position: absolute; top: 18px; width: 12px; height: 10px; background: #fff; border-radius: 2px; }
-    .brand-icon::before { left: 14px; box-shadow: 6px 0 0 var(--danger); }
-    .brand-icon::after { right: 14px; box-shadow: 6px 0 0 var(--danger); }
-    .brand h1 { margin: 0; font-size: clamp(24px, 5vw, 36px); font-weight: 700; text-shadow: 2px 2px 0 rgba(0,0,0,0.5); }
-    .brand p { margin: 0; color: var(--brand-light); font-weight: 700; font-size: 14px; text-transform: uppercase; }
-
-    .lobby-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
-    @media (max-width: 900px) { .lobby-grid { grid-template-columns: 1fr; } }
-
-    /* Visualizador Central (Model-Viewer) */
-    .viewer-card {
-      background: var(--bg-panel); border-radius: var(--radius-md); border: 2px solid rgba(255,255,255,0.1);
-      box-shadow: var(--shadow-base); overflow: hidden; position: relative;
-      height: min(65vh, 600px); min-height: 450px;
-    }
-    model-viewer {
-      width: 100%; height: 100%; background: radial-gradient(circle at center, #242f57, #0a0d18);
-      --poster-color: transparent;
-    }
-    .ar-native-btn { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%; font-size: 20px; z-index: 10; }
-
-    /* Painel Lateral */
-    .side-panel { display: flex; flex-direction: column; gap: 15px; }
-    .panel-box { background: var(--bg-panel); border-radius: var(--radius-md); padding: 20px; border: 2px solid rgba(255,255,255,0.1); box-shadow: var(--shadow-base); }
-    .panel-box h2 { margin: 0 0 15px; font-size: 22px; color: var(--brand-light); }
-    
-    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-    .stat-item { background: rgba(0,0,0,0.3); border-radius: var(--radius-sm); padding: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
-    .stat-item span { display: block; font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
-    .stat-item strong { display: block; font-size: 28px; color: #fff; margin-top: 5px; }
-    .stat-item strong.gold { color: var(--brand-light); text-shadow: 0 0 10px rgba(255,174,0,0.5); }
-
-    .menu-actions { display: grid; gap: 12px; }
-    .menu-actions .btn-3d { font-size: 20px; padding: 18px; text-align: left; display: flex; align-items: center; justify-content: space-between; }
-
-    /* ==========================================================================
-       MODO JOGO REAL (THREE.JS ENGINE)
-       ========================================================================== */
-    #game-view { display: none; position: fixed; inset: 0; background: #000; z-index: 1000; flex-direction: column; overflow: hidden; }
-    #game-view.active { display: flex; }
-
-    #three-container { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; background: #000; }
-    #three-container canvas { display: block; width: 100%; height: 100%; outline: none; }
-
-    /* Fundo Câmera AR */
-    #game-camera-feed { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: none; transform: scaleX(-1); }
-    #game-view.bg-real #game-camera-feed { display: block; }
-    #game-view.bg-real #three-container { background: transparent !important; }
-
-    /* HUD SUPERIOR */
-    .game-hud { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px; right: 12px; display: flex; flex-direction: column; gap: 10px; z-index: 10; pointer-events: none; }
-    .hud-top-row { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-    
-    .hud-badge { 
-      background: rgba(15, 20, 35, 0.85); border: 2px solid rgba(255,255,255,0.2); backdrop-filter: blur(8px);
-      padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 18px; color: #fff;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 6px; pointer-events: auto;
-    }
-    .hud-badge b { color: var(--brand-light); font-size: 22px; }
-
-    .mission-banner {
-      background: rgba(15, 20, 35, 0.95); border: 3px solid var(--info); border-radius: var(--radius-md);
-      padding: 12px 20px; text-align: center; box-shadow: 0 10px 30px rgba(0, 170, 255, 0.3);
-      max-width: 600px; margin: 0 auto; pointer-events: auto; width: 100%;
-    }
-    .mission-banner small { display: block; color: var(--info); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; margin-bottom: 4px; }
-    .mission-banner strong { display: block; font-size: 20px; line-height: 1.3; font-weight: 700; color: #fff; }
-
-    .mission-steps { display: flex; justify-content: center; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-    .step-dot { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #888; transition: 0.3s; }
-    .step-dot.current { background: var(--brand-light); border-color: #fff; color: #000; transform: scale(1.1); box-shadow: 0 0 15px rgba(255,174,0,0.5); }
-    .step-dot.done { background: var(--success); border-color: #fff; color: #000; }
-
-    /* TOAST FEEDBACK */
-    .game-toast {
-      position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
-      background: var(--bg-panel); border: 4px solid var(--brand-light); color: #fff;
-      padding: 15px 35px; border-radius: var(--radius-lg); font-size: 26px; font-weight: 700;
-      opacity: 0; pointer-events: none; z-index: 50; transition: 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6); text-transform: uppercase;
-    }
-    .game-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    .game-toast.error { border-color: var(--danger); color: var(--danger); }
-
-    /* HOTBAR INFERIOR (Controles Mobile) */
-    .game-footer {
-      background: linear-gradient(0deg, rgba(10,14,25,1) 40%, rgba(10,14,25,0.8) 100%);
-      border-top: 2px solid rgba(255,255,255,0.1); padding: 12px 10px calc(12px + env(safe-area-inset-bottom));
-      z-index: 10; position: absolute; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; gap: 12px;
-    }
-    
-    .footer-header { display: flex; justify-content: space-between; align-items: center; padding: 0 5px; }
-    .footer-header span { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-
-    .world-scroller { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-    .world-scroller::-webkit-scrollbar { display: none; }
-    .world-chip { flex: 0 0 auto; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); color: #fff; padding: 8px 16px; border-radius: 999px; font-weight: 700; font-size: 14px; }
-    .world-chip.active { background: var(--info); border-color: #fff; color: #000; box-shadow: 0 0 15px rgba(0,170,255,0.4); }
-
-    .controls-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; max-width: 800px; margin: 0 auto; width: 100%; }
-    .ctrl-btn {
-      background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.15); border-radius: 16px;
-      color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 10px 4px; min-height: 72px; font-weight: 700; box-shadow: 0 6px 0px rgba(0,0,0,0.3);
-    }
-    .ctrl-btn:active { transform: translateY(6px); box-shadow: 0 0px 0px rgba(0,0,0,0.3); background: rgba(255,255,255,0.15); }
-    .ctrl-btn span { font-size: 11px; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .ctrl-btn.highlight { background: rgba(255, 174, 0, 0.15); border-color: rgba(255, 174, 0, 0.4); color: var(--brand-light); }
-    .ctrl-btn.special { background: rgba(0, 170, 255, 0.15); border-color: rgba(0, 170, 255, 0.4); color: #aaddff; }
-
-    @media (max-width: 480px) {
-      .controls-grid { grid-template-columns: repeat(4, 1fr); }
-      .ctrl-btn { min-height: 64px; }
-      .ctrl-btn span { font-size: 10px; }
-      .mission-banner strong { font-size: 16px; }
-    }
-
-    /* ==========================================================================
-       MODAIS (Quiz, Chat, Coleção)
-       ========================================================================== */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 15px; }
-    .modal-overlay.active { display: flex; animation: fadeIn 0.2s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .modal-content {
-      width: 100%; max-width: 500px; background: var(--bg-panel); border: 3px solid rgba(255,255,255,0.15);
-      border-radius: var(--radius-lg); padding: 25px; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
-      max-height: 90vh; overflow-y: auto; transform: scale(0.95); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .modal-overlay.active .modal-content { transform: scale(1); }
-    
-    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
-    .modal-header h3 { margin: 0; font-size: 26px; color: var(--brand-light); }
-    .modal-header small { display: block; font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-    .close-btn { background: rgba(255,255,255,0.1); border-radius: 12px; width: 40px; height: 40px; color: #fff; font-size: 20px; display: grid; place-items: center; }
-
-    /* Estilos do Quiz */
-    .quiz-question { font-size: 22px; font-weight: 700; line-height: 1.3; margin-bottom: 20px; text-align: center; }
-    .quiz-options { display: grid; gap: 12px; }
-    .quiz-options button { text-align: left; font-size: 18px; padding: 16px; border-radius: 16px; }
-
-    /* Estilos do Chat */
-    .ask-input { width: 100%; padding: 16px; background: rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; color: #fff; margin-bottom: 12px; font-size: 18px; }
-    .ask-input:focus { border-color: var(--info); }
-    .chat-bubble { background: rgba(255, 174, 0, 0.1); border: 2px dashed var(--brand-light); border-radius: 16px; padding: 20px; font-size: 18px; color: var(--brand-light); min-height: 100px; display: flex; align-items: center; justify-content: center; text-align: center; }
-
-    /* Coleção */
-    .collection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .badge-item { background: rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 15px; text-align: center; }
-    .badge-item.locked { filter: grayscale(1); opacity: 0.5; }
-    .badge-item b { display: block; font-size: 32px; margin-bottom: 8px; }
-    .badge-item strong { display: block; font-size: 14px; color: #fff; }
-    .badge-item span { display: block; font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.2; }
-
-    /* Animação Screen Shake (Erro) */
-    .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes shake { 10%, 90% { transform: translate3d(-4px, 0, 0); } 20%, 80% { transform: translate3d(6px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-8px, 0, 0); } 40%, 60% { transform: translate3d(8px, 0, 0); } }
-
+    .modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:14px}.modal.active{display:flex}.modalBox{width:min(560px,100%);max-height:88vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);padding:21px}.modalTop{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:14px}.modalTop h3{margin:0;color:var(--brand2);font-size:26px}.close{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.1);font-weight:900}.quizOptions{display:grid;gap:10px}.quizOptions .btn{text-align:left}.chatInput{width:100%;padding:14px;border-radius:16px;background:rgba(0,0,0,.35);border:1px solid var(--line);color:#fff;margin-bottom:10px}.bubble{min-height:88px;background:rgba(255,202,47,.08);border:2px dashed var(--brand2);border-radius:18px;padding:17px;text-align:center;color:var(--brand2);display:flex;align-items:center;justify-content:center}.collection{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.badgeItem{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:18px;padding:14px;text-align:center}.badgeItem.locked{opacity:.42;filter:grayscale(1)}.badgeItem .emoji{font-size:34px;display:block}.badgeItem strong{display:block}.badgeItem small{display:block;color:var(--muted)}
   </style>
 </head>
 <body>
-
-  <!-- ==========================================
-       MODO LOBBY (INTERFACE E MODEL-VIEWER)
-       ========================================== -->
-  <div id="lobby-view">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-icon" aria-hidden="true"></div>
-        <div>
-          <p>Jogo 3D Voxel</p>
-          <h1>Athos Guardião</h1>
-        </div>
-      </div>
+  <main id="lobby">
+    <header class="top">
+      <div class="brand"><div class="face" aria-hidden="true"></div><div><small>Controle preciso v10</small><h1>Athos: Guardião dos Portais</h1></div></div>
     </header>
-
-    <div class="lobby-grid">
-      <!-- Visualizador 3D do Lobby (Model-Viewer) -->
-      <div class="viewer-card">
-        <model-viewer
-          id="native-viewer"
-          src="./athos.glb"
-          alt="Athos 3D"
-          camera-controls auto-rotate rotation-per-second="25deg"
-          ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor"
-          shadow-intensity="1.5" shadow-softness="0.5" exposure="1.2" environment-image="neutral"
-          scale="0.85 0.85 0.85" camera-orbit="0deg 75deg 3.5m">
-          
-          <button slot="ar-button" class="btn-3d btn-primary ar-native-btn">
-            📱 Projetar no Mundo Real
-          </button>
+    <section class="lobbyGrid">
+      <div class="card viewerCard">
+        <model-viewer id="nativeViewer" src="./athos.glb" alt="Athos 3D" camera-controls auto-rotate rotation-per-second="24deg" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" shadow-intensity="1.4" shadow-softness="0.5" exposure="1.2" environment-image="neutral" scale="0.85 0.85 0.85" camera-orbit="0deg 74deg 3.7m">
+          <button slot="ar-button" class="btn primary arNative" type="button">📱 Projetar em AR Nativo</button>
         </model-viewer>
       </div>
-
-      <!-- Menu e Status Lateral -->
-      <aside class="side-panel">
-        <div class="panel-box">
-          <h2>Seu Progresso</h2>
-          <div class="stats-grid">
-            <div class="stat-item"><span>Pontos</span><strong id="lobby-points" class="pixel-text gold">0</strong></div>
-            <div class="stat-item"><span>Vidas</span><strong id="lobby-hearts" class="pixel-text">3</strong></div>
-            <div class="stat-item"><span>Medalhas</span><strong id="lobby-medals" class="pixel-text">0</strong></div>
-            <div class="stat-item"><span>Fase</span><strong id="lobby-streak" class="pixel-text">1</strong></div>
-          </div>
-          <button id="btn-collection" class="btn-3d" style="width: 100%; font-size: 14px;">🏅 Ver Coleção</button>
-        </div>
-
-        <div class="panel-box">
-          <h2>Modos de Jogo</h2>
-          <div class="menu-actions">
-            <button id="btn-play-missions" class="btn-3d btn-primary">🎮 Jogar Missões</button>
-            <button id="btn-play-free" class="btn-3d btn-success">🌍 Brincar Livre</button>
-            <div style="display: flex; gap: 10px; margin-top: 5px;">
-              <button id="btn-open-quiz" class="btn-3d" style="flex: 1;" data-open="quiz">🧠 Quiz</button>
-              <button id="btn-open-ask" class="btn-3d" style="flex: 1;" data-open="ask">💬 Chat</button>
-            </div>
-          </div>
-        </div>
+      <aside class="side">
+        <section class="card panel"><h2>Progresso do Otto</h2><div class="stats"><div class="stat"><span>Pontos</span><b id="lobbyPoints" class="pixel">0</b></div><div class="stat"><span>Vidas</span><b id="lobbyHearts" class="pixel">3</b></div><div class="stat"><span>Medalhas</span><b id="lobbyMedals" class="pixel">0</b></div><div class="stat"><span>Fase</span><b id="lobbyLevel" class="pixel">1</b></div></div></section>
+        <section class="card panel"><h2>Dificuldade</h2><div class="difficulty"><button class="btn diffBtn active" data-diff="easy">Fácil</button><button class="btn diffBtn" data-diff="medium">Médio</button><button class="btn diffBtn" data-diff="hard">Difícil</button></div></section>
+        <section class="card panel"><h2>Modos</h2><div class="actions"><button id="playMissions" class="btn primary" type="button">🎮 Jogar missões <span>▶</span></button><button id="playFree" class="btn ok" type="button">🌍 Brincar livre <span>▶</span></button><button id="openQuizLobby" class="btn info" type="button">🧠 Quiz do Athos</button><button id="openAskLobby" class="btn" type="button">💬 Falar com Athos</button><button id="openCollection" class="btn" type="button">🏅 Coleção</button><button id="resetGame" class="btn danger" type="button">🔄 Resetar</button></div></section>
       </aside>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <!-- ==========================================
-       MODO JOGO REAL (THREE.JS ENGINE)
-       ========================================== -->
-  <div id="game-view" class="bg-real">
-    <!-- Camera Feed para Realidade Aumentada fake/WebAR -->
-    <video id="game-camera-feed" autoplay playsinline muted></video>
-    
-    <!-- HUD Superior -->
-    <div id="game-hud" class="game-hud">
-      <div class="hud-top-row">
-        <div class="hud-badge">⭐ <b id="hud-points" class="pixel-text">0</b></div>
-        <div class="hud-badge">❤️ <b id="hud-hearts" class="pixel-text">3</b></div>
-        <div class="hud-badge" id="timer-container" style="display: none;">⏱️ <b id="hud-timer" class="pixel-text">--</b></div>
+  <section id="game" class="bg-real" aria-label="Jogo Athos">
+    <video id="gameCamera" class="gameCamera" autoplay playsinline muted></video>
+    <div id="threeWrap"></div>
+    <div id="gameHud" class="hud"><div class="hudRow"><div class="pill">⭐ <b id="hudPoints" class="pixel">0</b></div><div class="pill">❤️ <b id="hudHearts" class="pixel">3</b></div><div class="pill">🏅 <b id="hudMedals" class="pixel">0</b></div></div><div class="mission"><small id="worldLabel">Mundo Real</small><strong id="missionText">Preparando missão...</strong><div id="guideNow" class="guideNow">🎮 Aperte: <b id="expectedLabel">---</b></div><div id="missionSteps" class="steps"></div></div></div>
+    <div id="toast" class="toast">OK</div>
+    <footer class="controller">
+      <div id="worldBar" class="worldBar"><button class="worldBtn active" data-world="real">📷 Real</button><button class="worldBtn" data-world="field">🟩 Campo</button><button class="worldBtn" data-world="fire">🔥 Vulcão</button><button class="worldBtn" data-world="forest">🌳 Floresta</button><button class="worldBtn" data-world="castle">🏰 Castelo</button><button class="worldBtn" data-world="space">🚀 Espaço</button></div>
+      <div class="controllerMain">
+        <div class="dpad" aria-label="Direcional"><button class="pad empty" tabindex="-1"></button><button class="pad" data-action="jump" data-key="jump">▲</button><button class="pad empty" tabindex="-1"></button><button class="pad" data-action="left" data-key="left">◀</button><div class="centerLogo">ATHOS<br>CTRL</div><button class="pad" data-action="right" data-key="right">▶</button><button class="pad empty" tabindex="-1"></button><button class="pad" data-action="crouch" data-key="crouch">▼</button><button class="pad empty" tabindex="-1"></button></div>
+        <div class="utility"><button class="util" data-action="mini" data-key="mini"><b>🤏</b>Mini</button><button class="util" data-action="normal" data-key="normal"><b>🧍</b>Normal</button><button class="util" data-action="giant" data-key="giant"><b>🦾</b>Gigante</button><button class="util" data-open="ask" data-key="ask"><b>💬</b>Falar</button><button class="util" data-open="quiz" data-key="quiz"><b>🧠</b>Quiz</button><button id="exitGame" class="util" type="button"><b>⏹</b>Sair</button></div>
+        <div class="actionsPad" aria-label="Botões de ação"><button class="act y" data-action="spin" data-key="spin"><b>Y</b>Girar</button><button class="act x" data-action="power" data-key="power"><b>X</b>Poder</button><button class="act b" data-action="crouch" data-key="crouch"><b>B</b>Abaixar</button><button class="act a" data-action="jump" data-key="jump"><b>A</b>Pular</button></div>
       </div>
-      <div class="mission-banner">
-        <small id="world-label">Carregando...</small>
-        <strong id="mission-text">Preparando mundo 3D...</strong>
-        <div id="mission-steps" class="mission-steps"></div>
-      </div>
-    </div>
-
-    <!-- Mensagem de Centro de Tela -->
-    <div id="game-toast" class="game-toast">Sucesso!</div>
-
-    <!-- Canvas do Three.js -->
-    <div id="three-container"></div>
-
-    <!-- Controles Inferiores (Mobile) -->
-    <div class="game-footer">
-      <div class="footer-header">
-        <span>Dimensão Atual</span>
-        <button id="btn-exit-game" class="btn-3d btn-danger" style="padding: 6px 12px; font-size: 14px;">Sair</button>
-      </div>
-      
-      <div class="world-scroller">
-        <button class="world-chip active" data-world="real">📷 Câmera Real</button>
-        <button class="world-chip" data-world="fire">🔥 Vulcão</button>
-        <button class="world-chip" data-world="forest">🌳 Floresta</button>
-        <button class="world-chip" data-world="castle">🏰 Castelo</button>
-        <button class="world-chip" data-world="space">🚀 Espaço</button>
-      </div>
-
-      <div class="controls-grid">
-        <button class="ctrl-btn highlight" data-action="left">⬅️<span>Esq</span></button>
-        <button class="ctrl-btn highlight" data-action="right">➡️<span>Dir</span></button>
-        <button class="ctrl-btn highlight" data-action="jump">🦘<span>Pular</span></button>
-        <button class="ctrl-btn highlight" data-action="crouch">⬇️<span>Abaixar</span></button>
-        <button class="ctrl-btn highlight" data-action="spin">🔄<span>Girar</span></button>
-        <button class="ctrl-btn special" data-action="power">🔥<span>Poder</span></button>
-        <button class="ctrl-btn" data-action="giant">🦾<span>Crescer</span></button>
-        <button class="ctrl-btn" data-action="mini">🤏<span>Mini</span></button>
-        <button class="ctrl-btn" data-action="normal">🧍<span>Normal</span></button>
-        <button class="ctrl-btn special" data-open="ask">💬<span>Falar</span></button>
-        <button class="ctrl-btn special" data-open="quiz">🧠<span>Quiz</span></button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
-       MODAIS INTERATIVOS
-       ========================================== -->
-  <!-- Quiz -->
-  <div id="modal-quiz" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div><small>Desafio Mental</small><h3>Quiz do Athos</h3></div>
-        <button class="close-btn close-modal">X</button>
-      </div>
-      <p id="quiz-question" class="quiz-question">Carregando pergunta...</p>
-      <div id="quiz-options" class="quiz-options"></div>
-      <p id="quiz-feedback" style="text-align: center; font-weight: 700; margin-top: 15px; color: var(--brand-light);"></p>
-    </div>
-  </div>
-
-  <!-- Chat -->
-  <div id="modal-ask" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div><small>Comunicação</small><h3>Falar com Athos</h3></div>
-        <button class="close-btn close-modal">X</button>
-      </div>
-      <input type="text" id="ask-input" class="ask-input" placeholder="Pergunte sobre portais, fogo..." autocomplete="off" />
-      <div style="display:flex; gap:10px; margin-bottom: 20px;">
-        <button id="ask-send" class="btn-3d btn-primary" style="flex:1;">Enviar</button>
-        <button id="ask-voice" class="btn-3d">🎙️</button>
-      </div>
-      <div id="ask-response" class="chat-bubble">Olá Otto! O que vamos explorar hoje?</div>
-    </div>
-  </div>
-
-  <!-- Coleção -->
-  <div id="modal-collection" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <div><small>Suas Conquistas</small><h3>Álbum de Medalhas</h3></div>
-        <button class="close-btn close-modal">X</button>
-      </div>
-      <div id="collection-grid" class="collection-grid"></div>
-    </div>
-  </div>
-
-  <!-- ==========================================
-       LÓGICA PRINCIPAL (ENGINE + GAME LOOP)
-       ========================================== -->
-  <script>
-    (() => {
-      'use strict';
-
-      const $ = (sel) => document.querySelector(sel);
-      const $$ = (sel) => Array.from(document.querySelectorAll(sel));
-
-      // --- ESTADO DO JOGO ---
-      const state = {
-        points: parseInt(localStorage.getItem('athos_points') || '0'),
-        hearts: parseInt(localStorage.getItem('athos_hearts') || '3'),
-        medals: JSON.parse(localStorage.getItem('athos_medals') || '[]'),
-        streak: parseInt(localStorage.getItem('athos_streak') || '1'),
-        mode: 'lobby', // 'lobby', 'missions', 'free'
-        world: 'real',
-        missionIndex: 0
-      };
-
-      const saveState = () => {
-        localStorage.setItem('athos_points', state.points);
-        localStorage.setItem('athos_hearts', state.hearts);
-        localStorage.setItem('athos_medals', JSON.stringify(state.medals));
-        localStorage.setItem('athos_streak', state.streak);
-        updateUIStats();
-      };
-
-      const updateUIStats = () => {
-        $('#lobby-points').textContent = state.points;
-        $('#lobby-hearts').textContent = state.hearts;
-        $('#lobby-medals').textContent = state.medals.length;
-        $('#lobby-streak').textContent = state.streak;
-        
-        $('#hud-points').textContent = state.points;
-        $('#hud-hearts').textContent = state.hearts;
-      };
-
-      // --- DADOS DO JOGO ---
-      const backgrounds = {
-        real: { label: 'Mundo Real', emoji: '📷', bg: null, floor: null, portal: 0xffffff },
-        fire: { label: 'Vulcão Pixel', emoji: '🔥', bg: 0x1a0500, floor: 0x2a0800, portal: 0xff5e00 },
-        forest: { label: 'Floresta dos Blocos', emoji: '🌳', bg: 0x87CEEB, floor: 0x2d4c1e, portal: 0x20d866 },
-        castle: { label: 'Castelo Vermelho', emoji: '🏰', bg: 0x1a1a24, floor: 0x444455, portal: 0x00aaff },
-        space: { label: 'Espaço Cubo', emoji: '🚀', bg: 0x050510, floor: 0x111122, portal: 0xbb00ff }
-      };
-
-      const actionsData = {
-        jump: 'Pular', crouch: 'Abaixar', spin: 'Girar',
-        left: 'Esq.', right: 'Dir.', power: 'Poder',
-        giant: 'Crescer', mini: 'Mini', quiz: 'Quiz', ask: 'Falar'
-      };
-
-      const missionSeeds = [
-        { world: 'fire', text: "O chão é lava! Pule rápido.", seq: ['jump'] },
-        { world: 'forest', text: "Túnel apertado! Abaixe e vá para esquerda.", seq: ['crouch', 'left'] },
-        { world: 'space', text: "Ative o portal girando e use poder!", seq: ['spin', 'power'] },
-        { world: 'castle', text: "Abra o portão de pedra ficando gigante.", seq: ['giant'] },
-        { world: 'forest', text: "Esconda-se do dragão. Fique mini!", seq: ['mini'] },
-        { world: 'real', text: "Mostre sabedoria. Complete o quiz!", seq: ['quiz'] },
-        { world: 'castle', text: "Colete o cristal à direita e pule.", seq: ['right', 'jump'] },
-        { world: 'fire', text: "Apague a pedra. Vá esquerda e use poder.", seq: ['left', 'power'] }
-      ];
-
-      const quizData = [
-        { q: "Qual é a magia principal do Athos?", opts: ["Água", "Fogo Pixelado", "Gelo"], ans: 1, exp: "O fogo pixelado é a marca registrada!" },
-        { q: "Para quem este jogo foi criado?", opts: ["Para o Otto", "Para o Mario", "Para ninguém"], ans: 0, exp: "Exatamente! O Otto é o verdadeiro Guardião." },
-        { q: "Onde encontramos cubos flutuantes?", opts: ["Floresta", "Vulcão", "Espaço Cubo"], ans: 2, exp: "No espaço a gravidade afeta os blocos!" }
-      ];
-
-      const medalsCatalog = [
-        { id: 'first', emoji: '⭐', title: 'Primeiro Passo', desc: 'Completou a 1ª missão.' },
-        { id: 'fire', emoji: '🔥', title: 'Domínio do Fogo', desc: 'Venceu no Vulcão.' },
-        { id: 'space', emoji: '🚀', title: 'Astronauta', desc: 'Venceu no Espaço Cubo.' },
-        { id: 'quiz', emoji: '🧠', title: 'Gênio', desc: 'Acertou perguntas do Quiz.' }
-      ];
-
-      // --- SISTEMAS DE FEEDBACK ---
-      const showToast = (msg, isError = false) => {
-        const toast = $('#game-toast');
-        toast.textContent = msg;
-        toast.className = `game-toast show ${isError ? 'error' : ''}`;
-        clearTimeout(toast._timer);
-        toast._timer = setTimeout(() => toast.classList.remove('show'), 2000);
-      };
-
-      const speak = (txt) => {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance(txt);
-        utter.lang = 'pt-BR'; utter.pitch = 1.2; utter.rate = 1.05;
-        window.speechSynthesis.speak(utter);
-      };
-
-      // --- CÂMERA MUNDO REAL ---
-      let cameraStream = null;
-      const startCamera = async () => {
-        if (cameraStream) return;
-        try {
-          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-          $('#game-camera-feed').srcObject = cameraStream;
-        } catch (e) { console.warn("Câmera bloqueada."); }
-      };
-      const stopCamera = () => {
-        if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
-      };
-
-      // --- MOTOR 3D (THREE.JS) ---
-      let scene, camera, renderer, clock;
-      let playerGrp, athosMesh, portalObj;
-      let worldProps = [];
-      let particles = [];
-      
-      // Controle de Animação e Física
-      let pX = 0, tX = 0;
-      let pY = 0, vY = 0, isJumping = false;
-      let pScl = 1, tScl = 1;
-      let pRot = 0, tRot = 0;
-      let pSqsh = 1, tSqsh = 1;
-
-      const initThreeJS = () => {
-        if (renderer) return; // Inicia só uma vez
-        
-        const container = $('#three-container');
-        scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x000000, 0.03); // Profundidade
-        
-        camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.1, 100);
-        camera.position.set(0, 3, 9);
-        camera.lookAt(0, 1, 0);
-
-        renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.domElement.id = 'three-canvas';
-        renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Sombras suaves e realistas
-        container.appendChild(renderer.domElement);
-
-        clock = new THREE.Clock();
-
-        // Iluminação Avançada
-        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444455, 0.6);
-        scene.add(hemiLight);
-        
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-        dirLight.position.set(5, 12, 6);
-        dirLight.castShadow = true;
-        dirLight.shadow.mapSize.width = 1024;
-        dirLight.shadow.mapSize.height = 1024;
-        dirLight.shadow.camera.near = 0.5;
-        dirLight.shadow.camera.far = 30;
-        scene.add(dirLight);
-
-        // Jogador
-        playerGrp = new THREE.Group();
-        scene.add(playerGrp);
-
-        const loader = new THREE.GLTFLoader();
-        loader.load('./athos.glb', (gltf) => {
-          athosMesh = gltf.scene;
-          athosMesh.scale.set(0.9, 0.9, 0.9);
-          
-          const box = new THREE.Box3().setFromObject(athosMesh);
-          athosMesh.position.y = -box.min.y; // Colar no chão
-          
-          athosMesh.traverse(c => { if(c.isMesh) { c.castShadow = true; c.receiveShadow = true; }});
-          playerGrp.add(athosMesh);
-        }, null, () => {
-          // Fallback (Boneco Voxel Gerado) se falhar o GLB
-          const matBody = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
-          const matFire = new THREE.MeshStandardMaterial({ color: 0xff5e00, emissive: 0xaa2200 });
-          athosMesh = new THREE.Group();
-          const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.5, 0.8), matBody); body.position.y=0.75; body.castShadow=true;
-          const head = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), matBody); head.position.y=2.0; head.castShadow=true;
-          const armL = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), matFire); armL.position.set(-0.8, 0.9, 0); armL.castShadow=true;
-          const armR = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), matFire); armR.position.set(0.8, 0.9, 0); armR.castShadow=true;
-          athosMesh.add(body, head, armL, armR);
-          playerGrp.add(athosMesh);
-        });
-
-        window.addEventListener('resize', () => {
-          if (state.mode === 'lobby') return;
-          camera.aspect = container.clientWidth / container.clientHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(container.clientWidth, container.clientHeight);
-        });
-
-        animate();
-      };
-
-      const createVoxelTree = (x, z) => {
-        const grp = new THREE.Group();
-        const trunk = new THREE.Mesh(new THREE.BoxGeometry(0.8, 2, 0.8), new THREE.MeshStandardMaterial({color: 0x5a3f2d}));
-        trunk.position.y = 1; trunk.castShadow = true; trunk.receiveShadow = true;
-        const leaves = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.5, 2.5), new THREE.MeshStandardMaterial({color: 0x20d866, roughness: 0.9}));
-        leaves.position.y = 3; leaves.castShadow = true; leaves.receiveShadow = true;
-        grp.add(trunk, leaves); grp.position.set(x, 0, z); return grp;
-      };
-
-      const buildWorld = (type) => {
-        worldProps.forEach(obj => scene.remove(obj)); worldProps = [];
-        if(portalObj) { scene.remove(portalObj); portalObj = null; }
-        
-        const conf = backgrounds[type] || backgrounds.real;
-        const gameViewEl = $('#game-view');
-        gameViewEl.classList.remove('bg-real', 'bg-fire', 'bg-forest', 'bg-castle', 'bg-space');
-        if (type === 'real') gameViewEl.classList.add('bg-real');
-        else gameViewEl.classList.add(`bg-${type}`);
-
-        // Ambient e Fundo
-        if (type === 'real') {
-          scene.background = null; scene.fog.density = 0;
-        } else {
-          scene.background = new THREE.Color(conf.bg); scene.fog.color.setHex(conf.bg); scene.fog.density = 0.035;
-        }
-
-        // Chão 3D
-        const floorGeo = new THREE.PlaneGeometry(60, 60);
-        const floorMat = type === 'real' ? new THREE.ShadowMaterial({opacity: 0.4}) : new THREE.MeshStandardMaterial({color: conf.floor, roughness: 0.9});
-        const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
-        scene.add(floor); worldProps.push(floor);
-
-        // Objetos de Cenário
-        if (type === 'fire') {
-          const matRock = new THREE.MeshStandardMaterial({color: 0x111111});
-          const matLava = new THREE.MeshStandardMaterial({color: 0xff3300, emissive: 0xbb0000});
-          const rock = new THREE.Mesh(new THREE.BoxGeometry(2,2.5,2), matRock); rock.position.set(-3, 1.25, -2); rock.castShadow = true;
-          const lava = new THREE.Mesh(new THREE.BoxGeometry(5,0.1,5), matLava); lava.position.set(2, 0.05, -3);
-          scene.add(rock, lava); worldProps.push(rock, lava);
-        } else if (type === 'forest') {
-          worldProps.push(createVoxelTree(-4, -3)); worldProps.push(createVoxelTree(4, -5));
-          scene.add(worldProps[worldProps.length-2], worldProps[worldProps.length-1]);
-        } else if (type === 'castle') {
-          const matStone = new THREE.MeshStandardMaterial({color: 0x666677});
-          const p1 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4, 1.5), matStone); p1.position.set(-3.5, 2, -3); p1.castShadow=true;
-          const p2 = new THREE.Mesh(new THREE.BoxGeometry(1.5, 4, 1.5), matStone); p2.position.set(3.5, 2, -3); p2.castShadow=true;
-          scene.add(p1, p2); worldProps.push(p1, p2);
-        } else if (type === 'space') {
-          const matStar = new THREE.MeshStandardMaterial({color: 0xffffff, emissive: 0x88bbff});
-          for(let i=0; i<12; i++) {
-            const s = new THREE.Mesh(new THREE.BoxGeometry(0.4,0.4,0.4), matStar);
-            s.position.set((Math.random()-0.5)*20, 1+Math.random()*6, -4-Math.random()*8);
-            scene.add(s); worldProps.push(s);
-          }
-        }
-
-        // Criar o Portal Voxel (Objetivo visual no fundo)
-        portalObj = new THREE.Group();
-        const matFrame = new THREE.MeshStandardMaterial({color: 0x222222});
-        const pL = new THREE.Mesh(new THREE.BoxGeometry(0.6, 4.5, 0.6), matFrame); pL.position.set(-1.8, 2.25, 0); pL.castShadow=true;
-        const pR = new THREE.Mesh(new THREE.BoxGeometry(0.6, 4.5, 0.6), matFrame); pR.position.set(1.8, 2.25, 0); pR.castShadow=true;
-        const pT = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.6, 0.6), matFrame); pT.position.set(0, 4.8, 0); pT.castShadow=true;
-        
-        const matGlow = new THREE.MeshBasicMaterial({color: conf.portal, transparent: true, opacity: 0.6, side: THREE.DoubleSide});
-        const glow = new THREE.Mesh(new THREE.PlaneGeometry(3, 4.5), matGlow); glow.position.set(0, 2.25, 0);
-        
-        portalObj.add(pL, pR, pT, glow);
-        portalObj.position.set(0, 0, -7);
-        scene.add(portalObj);
-      };
-
-      const spawnParticles = (type) => {
-        const count = type === 'win' ? 40 : 15;
-        const geo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
-        for (let i = 0; i < count; i++) {
-          let color = type === 'win' ? Math.random() * 0xffffff : 0xff5e00; // Confete ou Fogo
-          const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color}));
-          m.position.set(pX, pY + 1.5, 0);
-          scene.add(m);
-          particles.push({
-            m: m, life: 1 + Math.random()*0.5,
-            vx: (Math.random()-0.5)*0.25, vy: Math.random()*0.3 + 0.1, vz: (Math.random()-0.5)*0.25,
-            rx: Math.random()*0.2, ry: Math.random()*0.2
-          });
-        }
-      };
-
-      const animate = () => {
-        requestAnimationFrame(animate);
-        if (state.mode === 'lobby') return; // Economiza bateria
-
-        const dt = Math.min(clock.getDelta(), 0.1);
-
-        // Física Pulo
-        if (isJumping) {
-          vY -= 30 * dt; // gravidade
-          pY += vY * dt;
-          if (pY <= 0) { pY = 0; isJumping = false; vY = 0; tSqsh = 1; }
-        }
-
-        // Lerp Suave
-        pX += (tX - pX) * 10 * dt;
-        pScl += (tScl - pScl) * 8 * dt;
-        pRot += (tRot - pRot) * 8 * dt;
-        pSqsh += (tSqsh - pSqsh) * 12 * dt;
-
-        if (playerGrp) {
-          playerGrp.position.set(pX, pY, 0);
-          playerGrp.scale.set(pScl, pScl * pSqsh, pScl);
-          playerGrp.rotation.y = pRot;
-        }
-
-        // Anima Portal
-        if (portalObj && portalObj.children[3]) {
-          portalObj.children[3].material.opacity = 0.4 + Math.sin(Date.now() * 0.003) * 0.3;
-        }
-
-        // Anima Partículas (Física)
-        for (let i = particles.length - 1; i >= 0; i--) {
-          let p = particles[i];
-          p.m.position.add(new THREE.Vector3(p.vx, p.vy, p.vz));
-          p.m.rotation.x += p.rx; p.m.rotation.y += p.ry;
-          p.vy -= 0.8 * dt; // gravidade da particula
-          p.life -= dt;
-          if (p.life <= 0) { scene.remove(p.m); particles.splice(i, 1); }
-        }
-
-        renderer.render(scene, camera);
-      };
-
-      // --- GAMEPLAY E AÇÕES ---
-      let currentMission = null;
-      let stepIdx = 0;
-
-      const triggerAction = (act, btn) => {
-        // Feedback visual no botão
-        if (btn) { btn.style.transform = 'scale(0.9)'; setTimeout(()=> btn.style.transform='', 100); }
-
-        // Ações 3D
-        if (act === 'left') tX -= 2.0;
-        if (act === 'right') tX += 2.0;
-        if (act === 'jump' && !isJumping) { isJumping = true; vY = 12; tSqsh = 1.2; }
-        if (act === 'crouch') { tSqsh = 0.5; setTimeout(()=> tSqsh=1, 600); }
-        if (act === 'spin') tRot += Math.PI * 2;
-        if (act === 'giant') tScl = 1.5;
-        if (act === 'mini') tScl = 0.5;
-        if (act === 'normal') { tScl = 1; tSqsh = 1; }
-        if (act === 'power') spawnParticles('power');
-        
-        tX = Math.max(-4.5, Math.min(4.5, tX)); // Limite da tela
-
-        checkMissionLogic(act);
-      };
-
-      const changeWorld = (w) => {
-        state.world = w;
-        $$('.world-chip').forEach(b => b.classList.toggle('active', b.dataset.world === w));
-        const conf = backgrounds[w];
-        $('#world-label').textContent = `${conf.emoji} ${conf.label}`;
-        
-        if (w === 'real') startCamera(); else stopCamera();
-        if (state.mode !== 'lobby') buildWorld(w);
-      };
-
-      const loadNextMission = () => {
-        const pool = missionSeeds;
-        currentMission = pool[Math.floor(Math.random() * pool.length)];
-        stepIdx = 0;
-        
-        changeWorld(currentMission.world || 'real');
-        $('#mission-text').textContent = currentMission.text;
-        
-        const stepsContainer = $('#mission-steps');
-        stepsContainer.innerHTML = '';
-        currentMission.seq.forEach((s, i) => {
-          const span = document.createElement('span');
-          span.className = i === 0 ? 'step-dot current' : 'step-dot';
-          span.textContent = actionsData[s] || s;
-          stepsContainer.appendChild(span);
-        });
-
-        speak(currentMission.text);
-      };
-
-      const checkMissionLogic = (act) => {
-        if (state.mode !== 'missions' || !currentMission) return;
-        
-        const expected = currentMission.seq[stepIdx];
-        if (act === expected) {
-          // Acerto
-          stepIdx++;
-          const steps = $$('#mission-steps span');
-          if (steps[stepIdx-1]) steps[stepIdx-1].className = 'step-dot done';
-          if (steps[stepIdx]) steps[stepIdx].className = 'step-dot current';
-
-          if (stepIdx >= currentMission.seq.length) {
-            // Vitória da Missão
-            showToast("Missão Cumprida!");
-            spawnParticles('win');
-            
-            state.points += 15 + (state.streak * 2);
-            state.streak++;
-            
-            // Medalhas
-            if (!state.medals.includes('first')) unlockMedal('first');
-            if (state.world === 'fire' && !state.medals.includes('fire')) unlockMedal('fire');
-            if (state.world === 'space' && !state.medals.includes('space')) unlockMedal('space');
-
-            saveState();
-            setTimeout(loadNextMission, 2000);
-          }
-        } else if (act !== 'quiz' && act !== 'ask' && act !== 'giant' && act !== 'mini' && act !== 'normal') {
-          // Erro (Screen Shake e perda de vida)
-          showToast("Ação Incorreta!", true);
-          $('#game-hud').classList.add('shake');
-          setTimeout(() => $('#game-hud').classList.remove('shake'), 400);
-          
-          state.streak = 1;
-          state.hearts = Math.max(0, state.hearts - 1);
-          saveState();
-
-          if (state.hearts <= 0) {
-            speak("Oh não! Suas vidas acabaram. Recarregando portal.");
-            setTimeout(() => { state.hearts = 3; saveState(); loadNextMission(); }, 2500);
-          }
-        }
-      };
-
-      // --- NAVEGAÇÃO E MODAIS ---
-      const setMode = (m) => {
-        state.mode = m;
-        if (m === 'lobby') {
-          $('#lobby-view').classList.remove('hidden');
-          $('#game-view').classList.remove('active');
-          stopCamera();
-          updateUIStats();
-        } else {
-          $('#lobby-view').classList.add('hidden');
-          $('#game-view').classList.add('active');
-          initThreeJS();
-          if (m === 'missions') {
-            if (state.hearts <= 0) { state.hearts = 3; saveState(); }
-            loadNextMission();
-          } else {
-            // Free play
-            $('#mission-text').textContent = "Brincadeira Livre! Crie sua aventura.";
-            $('#mission-steps').innerHTML = '';
-            changeWorld('real');
-          }
-        }
-      };
-
-      const openModal = (id) => $(id).classList.add('active');
-      const closeModal = (el) => el.closest('.modal-overlay').classList.remove('active');
-
-      const setupModals = () => {
-        $$('.close-modal').forEach(b => b.onclick = (e) => closeModal(e.target));
-
-        // Quiz
-        $$('[data-open="quiz"]').forEach(b => b.onclick = () => {
-          const q = quizData[Math.floor(Math.random() * quizData.length)];
-          $('#quiz-question').textContent = q.q;
-          const opts = $('#quiz-options'); opts.innerHTML = '';
-          $('#quiz-feedback').textContent = '';
-          
-          q.opts.forEach((opt, i) => {
-            const btn = document.createElement('button');
-            btn.className = 'btn-3d btn-secondary'; btn.textContent = opt;
-            btn.style.width = '100%'; btn.style.background = 'rgba(255,255,255,0.1)';
-            btn.onclick = () => {
-              opts.querySelectorAll('button').forEach(x => x.disabled = true);
-              if (i === q.ans) {
-                btn.style.background = 'var(--success)';
-                $('#quiz-feedback').textContent = q.exp + " (+5 Pts)";
-                state.points += 5; unlockMedal('quiz'); saveState();
-                if (state.mode === 'missions' && currentMission && currentMission.seq[stepIdx] === 'quiz') checkMissionLogic('quiz');
-                setTimeout(() => closeModal(btn), 2000);
-              } else {
-                btn.style.background = 'var(--danger)';
-                $('#quiz-feedback').textContent = "Quase! " + q.exp;
-              }
-            };
-            opts.appendChild(btn);
-          });
-          openModal('#modal-quiz');
-        });
-
-        // Chat / Falar
-        $$('[data-open="ask"]').forEach(b => b.onclick = () => {
-          $('#ask-input').value = ''; $('#ask-response').textContent = 'O que vamos explorar hoje?';
-          openModal('#modal-ask');
-        });
-        
-        const sendChat = () => {
-          const v = $('#ask-input').value.toLowerCase();
-          let res = "Legal! No meu mundo tudo é feito de blocos de aventura.";
-          if(v.includes('fogo') || v.includes('poder')) res = "Meu fogo pixel tem a energia dos vulcões!";
-          if(v.includes('otto')) res = "O Otto é meu melhor amigo e o maior Guardião de Portais!";
-          if(v.includes('portal')) res = "Os portais me ajudam a viajar para a sua casa.";
-          
-          $('#ask-response').textContent = res; speak(res);
-          $('#ask-input').value = '';
-          if (state.mode === 'missions' && currentMission && currentMission.seq[stepIdx] === 'ask') checkMissionLogic('ask');
-        };
-        $('#ask-send').onclick = sendChat;
-        $('#ask-input').onkeydown = (e) => { if (e.key === 'Enter') sendChat(); };
-
-        // Voz Nativa (Simples)
-        $('#ask-voice').onclick = () => {
-          const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-          if (!SpeechRec) return alert("Voz não suportada neste aparelho.");
-          const rec = new SpeechRec(); rec.lang = 'pt-BR';
-          rec.onresult = (e) => { $('#ask-input').value = e.results[0][0].transcript; sendChat(); };
-          rec.start();
-        };
-
-        // Coleção
-        $('#btn-collection').onclick = () => {
-          const grid = $('#collection-grid'); grid.innerHTML = '';
-          medalsCatalog.forEach(m => {
-            const has = state.medals.includes(m.id);
-            grid.innerHTML += `<div class="badge-item ${has ? '' : 'locked'}">
-              <b>${has ? m.emoji : '🔒'}</b>
-              <strong>${m.title}</strong>
-              <span>${m.desc}</span>
-            </div>`;
-          });
-          openModal('#modal-collection');
-        };
-      };
-
-      const unlockMedal = (id) => {
-        if (!state.medals.includes(id)) {
-          state.medals.push(id); saveState(); showToast("Nova Medalha!");
-        }
-      };
-
-      // --- INICIALIZAÇÃO ---
-      window.onload = () => {
-        updateUIStats();
-        setupModals();
-
-        // Botões principais
-        $('#btn-play-missions').onclick = () => setMode('missions');
-        $('#btn-play-free').onclick = () => setMode('free');
-        $('#btn-exit-game').onclick = () => setMode('lobby');
-
-        // Botões Hotbar Jogo
-        $$('.ctrl-btn[data-action]').forEach(b => b.onclick = () => triggerAction(b.dataset.action, b));
-        $$('.world-chip').forEach(b => b.onclick = () => changeWorld(b.dataset.world));
-
-        // AR Nativo Model Viewer
-        const nativeArBtn = $('.ar-native-btn');
-        if (nativeArBtn) {
-          nativeArBtn.onclick = () => {
-            try { $('#native-viewer').activateAR(); } 
-            catch(e) { alert("AR não suportado ou bloqueado no dispositivo. Use o Modo 'Brincar Livre'."); }
-          };
-        }
-      };
-    })();
-  </script>
+    </footer>
+  </section>
+
+  <div id="quizModal" class="modal"><div class="modalBox"><div class="modalTop"><h3>🧠 Quiz do Athos</h3><button class="close" data-close type="button">X</button></div><p id="quizQuestion" style="font-size:22px;font-weight:700;text-align:center">Pergunta</p><div id="quizOptions" class="quizOptions"></div><p id="quizFeedback" style="text-align:center;color:var(--brand2);font-weight:700"></p></div></div>
+  <div id="askModal" class="modal"><div class="modalBox"><div class="modalTop"><h3>💬 Falar com Athos</h3><button class="close" data-close type="button">X</button></div><input id="askInput" class="chatInput" placeholder="Pergunte sobre fogo, portal, Otto..." autocomplete="off" /><div style="display:flex;gap:9px;margin-bottom:12px"><button id="askSend" class="btn primary" type="button" style="flex:1">Enviar</button><button id="askVoice" class="btn info" type="button">🎙️</button></div><div id="askResponse" class="bubble">Olá Otto! Vamos proteger os portais?</div></div></div>
+  <div id="collectionModal" class="modal"><div class="modalBox"><div class="modalTop"><h3>🏅 Coleção do Otto</h3><button class="close" data-close type="button">X</button></div><div id="collectionGrid" class="collection"></div></div></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+  const state = {
+    points: Number(localStorage.getItem('athos_v10_points') || 0),
+    hearts: Number(localStorage.getItem('athos_v10_hearts') || 3),
+    medals: JSON.parse(localStorage.getItem('athos_v10_medals') || '[]'),
+    level: Number(localStorage.getItem('athos_v10_level') || 1),
+    difficulty: localStorage.getItem('athos_v10_difficulty') || 'easy',
+    mode: 'lobby', world: 'real'
+  };
+
+  const labels = {left:'Esquerda', right:'Direita', jump:'Pular', crouch:'Abaixar', spin:'Girar', power:'Poder', giant:'Gigante', mini:'Mini', normal:'Normal', quiz:'Quiz', ask:'Falar'};
+  const worlds = {
+    real:{label:'Mundo Real',emoji:'📷',bg:null,floor:null,portal:0xffffff}, field:{label:'Campo dos Blocos',emoji:'🟩',bg:0x87ceeb,floor:0x3b7f2a,portal:0x20d866},
+    fire:{label:'Vulcão Pixel',emoji:'🔥',bg:0x1b0500,floor:0x2a0800,portal:0xff5e00}, forest:{label:'Floresta Voxel',emoji:'🌳',bg:0x87ceeb,floor:0x245c24,portal:0x20d866},
+    castle:{label:'Castelo de Pedra',emoji:'🏰',bg:0x141622,floor:0x4a4a5c,portal:0x18baff}, space:{label:'Espaço Cubo',emoji:'🚀',bg:0x050510,floor:0x111122,portal:0xb264ff}
+  };
+  const missions = [
+    {world:'field',text:'Treino: use o direcional para ir para a direita.',seq:['right'],target:'crystalRight'},
+    {world:'fire',text:'O chão é lava. Aperte A ou ▲ para pular.',seq:['jump'],target:'lava'},
+    {world:'forest',text:'Túnel baixo. Aperte B ou ▼ para abaixar.',seq:['crouch'],target:'tunnel'},
+    {world:'space',text:'Portal instável. Aperte Y para girar.',seq:['spin'],target:'portal'},
+    {world:'fire',text:'Bloco escuro. Aperte X para usar poder.',seq:['power'],target:'darkBlock'},
+    {world:'castle',text:'Portão pesado. Fique gigante.',seq:['giant'],target:'gate'},
+    {world:'forest',text:'Passagem pequena. Fique mini.',seq:['mini'],target:'smallHole'},
+    {world:'field',text:'Volte ao tamanho normal.',seq:['normal'],target:'portal'},
+    {world:'castle',text:'Sequência do castelo: esquerda, pular e girar.',seq:['left','jump','spin'],target:'castleRun'},
+    {world:'real',text:'Desafio da sabedoria: abra o Quiz e acerte.',seq:['quiz'],target:'portal'},
+    {world:'real',text:'Converse com o Athos: abra Falar e envie uma pergunta.',seq:['ask'],target:'portal'}
+  ];
+  const quizData = [
+    {q:'Qual é a magia principal do Athos?',opts:['Água','Fogo pixelado','Gelo'],ans:1,exp:'Isso! O Athos usa fogo pixelado.'},
+    {q:'Quem é o parceiro do Athos?',opts:['Otto','Um zumbi','Um foguete'],ans:0,exp:'Certo! O Otto é o parceiro do Athos.'},
+    {q:'Qual botão faz o Athos pular?',opts:['A / ▲','X / Poder','Mini'],ans:0,exp:'Perfeito! A ou ▲ faz pular.'},
+    {q:'O que abre portais no jogo?',opts:['Missões completas','Dormir','Fechar o app'],ans:0,exp:'Boa! As missões completas carregam os portais.'}
+  ];
+  const medalCatalog = [
+    {id:'first',emoji:'⭐',title:'Primeira Missão',desc:'Completou a primeira missão.'}, {id:'fire',emoji:'🔥',title:'Guardião do Fogo',desc:'Venceu no vulcão.'},
+    {id:'castle',emoji:'🏰',title:'Herói do Castelo',desc:'Passou pelo castelo.'}, {id:'quiz',emoji:'🧠',title:'Campeão do Quiz',desc:'Acertou o quiz.'},
+    {id:'streak5',emoji:'⚡',title:'Sequência 5',desc:'Chegou na fase 5.'}, {id:'real',emoji:'📷',title:'Mundo Real',desc:'Brincou com a câmera.'}
+  ];
+
+  let scene, camera, renderer, clock, player, athos, portal, targetObj, resizeBound=false, rafStarted=false;
+  let props=[], particles=[], cameraStream=null, currentMission=null, stepIdx=0, missionLocked=false;
+  let p={x:0,tx:0,y:0,vy:0,jump:false,scale:1,tscale:1,rot:0,trot:0,squash:1,tsquash:1};
+
+  function save(){localStorage.setItem('athos_v10_points',state.points);localStorage.setItem('athos_v10_hearts',state.hearts);localStorage.setItem('athos_v10_medals',JSON.stringify(state.medals));localStorage.setItem('athos_v10_level',state.level);localStorage.setItem('athos_v10_difficulty',state.difficulty);updateStats();}
+  function updateStats(){['lobbyPoints','hudPoints'].forEach(id=>{const e=$('#'+id);if(e)e.textContent=state.points});['lobbyHearts','hudHearts'].forEach(id=>{const e=$('#'+id);if(e)e.textContent=state.hearts});['lobbyMedals','hudMedals'].forEach(id=>{const e=$('#'+id);if(e)e.textContent=state.medals.length});const l=$('#lobbyLevel');if(l)l.textContent=state.level;$$('.diffBtn').forEach(b=>b.classList.toggle('active',b.dataset.diff===state.difficulty));}
+  function speak(txt){try{if(!window.speechSynthesis)return;window.speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt);u.lang='pt-BR';u.rate=1.02;u.pitch=1.15;window.speechSynthesis.speak(u)}catch(e){}}
+  function toast(msg,type='ok'){const t=$('#toast');t.textContent=msg;t.className='toast show '+(type==='error'?'error':type==='guide'?'guide':'');clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove('show'),1800)}
+  function medal(id){if(!state.medals.includes(id)){state.medals.push(id);save();toast('Nova medalha!','ok')}}
+
+  async function startCam(){if(cameraStream)return;try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});$('#gameCamera').srcObject=cameraStream;if(state.world==='real')medal('real')}catch(e){toast('Câmera bloqueada. Use cenário 3D.','guide');changeWorld('field')}}
+  function stopCam(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}$('#gameCamera').srcObject=null}
+
+  function init3D(){if(renderer)return;const wrap=$('#threeWrap');scene=new THREE.Scene();scene.fog=new THREE.FogExp2(0x000000,.03);camera=new THREE.PerspectiveCamera(55,wrap.clientWidth/wrap.clientHeight,.1,100);camera.position.set(0,3.2,9);camera.lookAt(0,1,0);renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.domElement.id='three-canvas';renderer.setSize(wrap.clientWidth,wrap.clientHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;wrap.appendChild(renderer.domElement);clock=new THREE.Clock();scene.add(new THREE.HemisphereLight(0xffffff,0x29304a,.7));const d=new THREE.DirectionalLight(0xffffff,1);d.position.set(4,10,6);d.castShadow=true;d.shadow.mapSize.set(1024,1024);scene.add(d);player=new THREE.Group();scene.add(player);loadAthos();if(!resizeBound){resizeBound=true;window.addEventListener('resize',resize3D)}if(!rafStarted){rafStarted=true;animate()}}
+  function resize3D(){if(!renderer)return;const w=$('#threeWrap');camera.aspect=w.clientWidth/w.clientHeight;camera.updateProjectionMatrix();renderer.setSize(w.clientWidth,w.clientHeight)}
+  function loadAthos(){new THREE.GLTFLoader().load('./athos.glb',g=>{athos=g.scene;athos.scale.set(.9,.9,.9);const box=new THREE.Box3().setFromObject(athos);athos.position.y=-box.min.y;athos.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true}});player.add(athos)},undefined,()=>{athos=fallbackAthos();player.add(athos)})}
+  function fallbackAthos(){const g=new THREE.Group(),body=new THREE.MeshStandardMaterial({color:0x111111,roughness:.8}),fire=new THREE.MeshStandardMaterial({color:0xff5e00,emissive:0x771500});[['body',1.2,1.5,.8,0,.75,0,body],['head',1,1,1,0,2,0,body],['armL',.35,1.1,.35,-.85,.9,0,fire],['armR',.35,1.1,.35,.85,.9,0,fire]].forEach(a=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a[1],a[2],a[3]),a[7]);m.position.set(a[4],a[5],a[6]);m.castShadow=true;m.receiveShadow=true;g.add(m)});return g}
+  function mat(c,em=0){return new THREE.MeshStandardMaterial({color:c,emissive:em,roughness:.85})}
+  function addBox(x,y,z,w,h,d,c,em=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(c,em));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);props.push(m);return m}
+  function tree(x,z){const g=new THREE.Group();const tr=new THREE.Mesh(new THREE.BoxGeometry(.7,2,.7),mat(0x5a351e));tr.position.y=1;const lf=new THREE.Mesh(new THREE.BoxGeometry(2.1,2.1,2.1),mat(0x20b956));lf.position.y=3;g.add(tr,lf);g.position.set(x,0,z);g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true}});scene.add(g);props.push(g)}
+  function clearWorld(){props.forEach(o=>scene.remove(o));props=[];if(portal){scene.remove(portal);portal=null}if(targetObj){scene.remove(targetObj);targetObj=null}}
+  function buildWorld(type){clearWorld();const conf=worlds[type]||worlds.real;const game=$('#game');game.classList.remove('bg-real','bg-field','bg-fire','bg-forest','bg-castle','bg-space');game.classList.add('bg-'+type);if(type==='real'){scene.background=null;scene.fog.density=0}else{scene.background=new THREE.Color(conf.bg);scene.fog.color.setHex(conf.bg);scene.fog.density=.032}const floorMat=type==='real'?new THREE.ShadowMaterial({opacity:.35}):mat(conf.floor);const floor=new THREE.Mesh(new THREE.PlaneGeometry(70,70),floorMat);floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);props.push(floor);if(type==='field'){for(let i=-5;i<=5;i+=2)addBox(i,.15,-5,.9,.3,.9,0x61a934)}if(type==='fire'){addBox(-3,1.2,-3,2,2.4,2,0x121212);addBox(2,.08,-3,5,.16,4,0xff3300,0x9b1200);addBox(4,.4,-5,1,.8,1,0xff8a00,0x552200)}if(type==='forest'){tree(-4,-4);tree(4,-5);tree(1,-8)}if(type==='castle'){addBox(-4,2,-4,1.5,4,1.5,0x666677);addBox(4,2,-4,1.5,4,1.5,0x666677);addBox(0,3.3,-4,6,1,1,0x555566)}if(type==='space'){for(let i=0;i<16;i++)addBox(Math.random()*18-9,Math.random()*6+1,-5-Math.random()*10,.35,.35,.35,0xffffff,0x5577aa)}makePortal(conf.portal);makeTarget(currentMission&&currentMission.target)}
+  function makePortal(color){portal=new THREE.Group();const frame=mat(0x191919);[['l',-.15,2.2,0,.55,4.4,.55],['r',.15,2.2,0,.55,4.4,.55],['t',0,4.6,0,4,.55,.55]].forEach((a,i)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(a[4],a[5],a[6]),frame);m.position.set(i===0?-1.75:i===1?1.75:0,a[2],0);m.castShadow=true;portal.add(m)});const glow=new THREE.Mesh(new THREE.PlaneGeometry(3,4),new THREE.MeshBasicMaterial({color,transparent:true,opacity:.55,side:THREE.DoubleSide}));glow.position.y=2.3;portal.add(glow);portal.position.set(0,0,-7);scene.add(portal)}
+  function makeTarget(kind){if(!kind)return;const z=-2.3;if(kind==='lava')targetObj=addBox(0,.12,z,2.4,.24,1.2,0xff3300,0xaa1100);if(kind==='tunnel')targetObj=addBox(0,1.6,z,4,.45,.8,0x8a5b33);if(kind==='crystalRight')targetObj=addBox(3,1,z,.7,1.4,.7,0x1edcff,0x006688);if(kind==='darkBlock')targetObj=addBox(0,1,z,1.2,1.2,1.2,0x050505);if(kind==='gate')targetObj=addBox(0,1.6,z,3,3.2,.6,0x555560);if(kind==='smallHole')targetObj=addBox(0,.8,z,1.3,1.6,.6,0x294725);if(kind==='castleRun')targetObj=addBox(-2.8,1,z,.8,2,.8,0xffca2f,0x332200)}
+  function changeWorld(w){state.world=w;$$('.worldBtn').forEach(b=>b.classList.toggle('active',b.dataset.world===w));const conf=worlds[w]||worlds.real;$('#worldLabel').textContent=conf.emoji+' '+conf.label;if(w==='real')startCam();else stopCam();if(renderer)buildWorld(w)}
+
+  function spawnParticles(kind='power'){if(!scene)return;const count=kind==='win'?50:22;for(let i=0;i<count;i++){const c=kind==='win'?Math.random()*0xffffff:0xff7a00;const mesh=new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.2),new THREE.MeshBasicMaterial({color:c}));mesh.position.set(p.x,p.y+1.4,0);scene.add(mesh);particles.push({m:mesh,life:1+Math.random()*.7,vx:(Math.random()-.5)*.22,vy:Math.random()*.25+.08,vz:(Math.random()-.5)*.22})}}
+  function animate(){requestAnimationFrame(animate);if(!renderer||state.mode==='lobby')return;const dt=Math.min(clock.getDelta(),.08);if(p.jump){p.vy-=28*dt;p.y+=p.vy*dt;if(p.y<=0){p.y=0;p.vy=0;p.jump=false;p.tsquash=1}}p.x+=(p.tx-p.x)*10*dt;p.scale+=(p.tscale-p.scale)*8*dt;p.rot+=(p.trot-p.rot)*8*dt;p.squash+=(p.tsquash-p.squash)*12*dt;if(player){player.position.set(p.x,p.y,0);player.rotation.y=p.rot;player.scale.set(p.scale,p.scale*p.squash,p.scale)}if(portal&&portal.children[3])portal.children[3].material.opacity=.38+Math.sin(Date.now()*.005)*.25;for(let i=particles.length-1;i>=0;i--){const q=particles[i];q.m.position.x+=q.vx;q.m.position.y+=q.vy;q.m.position.z+=q.vz;q.vy-=.7*dt;q.life-=dt;if(q.life<=0){scene.remove(q.m);particles.splice(i,1)}}renderer.render(scene,camera)}
+
+  function setButtonsTarget(){const expected=currentMission?currentMission.seq[stepIdx]:null;$$('[data-key]').forEach(b=>b.classList.toggle('ctrlTarget',b.dataset.key===expected));$('#expectedLabel').textContent=expected?labels[expected]:'Livre';}
+  function renderSteps(){const box=$('#missionSteps');box.innerHTML='';if(!currentMission)return;currentMission.seq.forEach((a,i)=>{const el=document.createElement('span');el.className='step '+(i<stepIdx?'done':i===stepIdx?'current':'');el.textContent=labels[a];box.appendChild(el)});setButtonsTarget()}
+  function loadMission(){missionLocked=false;const idx=(state.level-1)%missions.length;currentMission=missions[idx];stepIdx=0;$('#missionText').textContent=currentMission.text;changeWorld(currentMission.world);renderSteps();speak(currentMission.text+' Agora aperte '+labels[currentMission.seq[0]])}
+  function wrongAction(act){const expected=currentMission&&currentMission.seq[stepIdx];if(!expected)return;toast('Ainda não. Agora é: '+labels[expected],'guide');speak('Agora aperte '+labels[expected]);$('#gameHud').classList.remove('wrongFlash');void $('#gameHud').offsetWidth;$('#gameHud').classList.add('wrongFlash');if(state.difficulty==='hard'){state.hearts=Math.max(0,state.hearts-1);if(state.hearts===0){state.hearts=3;toast('Vidas recarregadas. Vamos tentar de novo.','guide');loadMission()}save()}}
+  function checkMission(act){if(state.mode!=='missions'||!currentMission||missionLocked)return;const expected=currentMission.seq[stepIdx];if(act!==expected){wrongAction(act);return}stepIdx++;renderSteps();toast('Certo!','ok');if(stepIdx>=currentMission.seq.length){missionLocked=true;spawnParticles('win');state.points+=15+(state.difficulty==='hard'?10:state.difficulty==='medium'?5:0);state.level++;if(state.level===2)medal('first');if(currentMission.world==='fire')medal('fire');if(currentMission.world==='castle')medal('castle');if(state.level>=5)medal('streak5');save();speak('Missão completa! Próximo portal.');setTimeout(loadMission,1500)}else{speak('Muito bom. Agora aperte '+labels[currentMission.seq[stepIdx]])}}
+  function action(act,btn){if(btn){btn.style.transform='scale(.92)';setTimeout(()=>btn.style.transform='',90)}if(act==='left')p.tx=Math.max(-4.5,p.tx-1.7);if(act==='right')p.tx=Math.min(4.5,p.tx+1.7);if(act==='jump'&&!p.jump){p.jump=true;p.vy=12;p.tsquash=1.12}if(act==='crouch'){p.tsquash=.52;setTimeout(()=>p.tsquash=1,650)}if(act==='spin')p.trot+=Math.PI*2;if(act==='giant')p.tscale=1.55;if(act==='mini')p.tscale=.52;if(act==='normal'){p.tscale=1;p.tsquash=1}if(act==='power')spawnParticles('power');checkMission(act)}
+
+  function setMode(mode){state.mode=mode;$('#lobby').classList.toggle('hidden',mode!=='lobby');$('#game').classList.toggle('active',mode!=='lobby');if(mode==='lobby'){stopCam();currentMission=null;save();return}init3D();setTimeout(resize3D,60);p={x:0,tx:0,y:0,vy:0,jump:false,scale:1,tscale:1,rot:0,trot:0,squash:1,tsquash:1};if(mode==='missions'){if(state.hearts<=0)state.hearts=3;loadMission()}else{currentMission=null;$('#missionText').textContent='Brincadeira livre: use o controle para guiar o Athos.';$('#missionSteps').innerHTML='';$('#expectedLabel').textContent='Livre';changeWorld('real');setButtonsTarget()}save()}
+  function openModal(id){$(id).classList.add('active')}function closeModal(el){el.closest('.modal').classList.remove('active')}
+  function openQuiz(){const q=quizData[Math.floor(Math.random()*quizData.length)];$('#quizQuestion').textContent=q.q;$('#quizFeedback').textContent='';const opts=$('#quizOptions');opts.innerHTML='';q.opts.forEach((opt,i)=>{const b=document.createElement('button');b.className='btn';b.textContent=opt;b.onclick=()=>{opts.querySelectorAll('button').forEach(x=>x.disabled=true);if(i===q.ans){b.classList.add('ok');$('#quizFeedback').textContent=q.exp+' +5 pontos';state.points+=5;medal('quiz');save();checkMission('quiz');setTimeout(()=>closeModal(b),1200)}else{b.classList.add('danger');$('#quizFeedback').textContent='Quase! Tente outra pergunta depois.'}};opts.appendChild(b)});openModal('#quizModal')}
+  function answerAthos(){const q=($('#askInput').value||'').toLowerCase();let r='Legal! O mundo do Athos é cheio de blocos, portais e aventuras.';if(q.includes('fogo')||q.includes('poder'))r='Meu poder é o fogo pixelado. Ele acende portais e quebra blocos escuros.';else if(q.includes('otto'))r='O Otto é meu parceiro guardião. Juntos nós protegemos os portais.';else if(q.includes('portal'))r='Os portais levam para o campo, vulcão, floresta, castelo, espaço e mundo real.';else if(q.includes('quem'))r='Eu sou o Athos, um personagem 3D blocado feito para brincar com o Otto.';$('#askResponse').textContent=r;$('#askInput').value='';speak(r);checkMission('ask')}
+  function openCollection(){const grid=$('#collectionGrid');grid.innerHTML='';medalCatalog.forEach(m=>{const ok=state.medals.includes(m.id);const div=document.createElement('div');div.className='badgeItem '+(ok?'':'locked');div.innerHTML='<span class="emoji">'+(ok?m.emoji:'🔒')+'</span><strong>'+m.title+'</strong><small>'+m.desc+'</small>';grid.appendChild(div)});openModal('#collectionModal')}
+  function reset(){if(confirm('Zerar pontos, vidas, fase e medalhas?')){state.points=0;state.hearts=3;state.medals=[];state.level=1;save()}}
+
+  $('#playMissions').onclick=()=>setMode('missions');$('#playFree').onclick=()=>setMode('free');$('#exitGame').onclick=()=>setMode('lobby');$('#openQuizLobby').onclick=openQuiz;$('#openAskLobby').onclick=()=>openModal('#askModal');$('#openCollection').onclick=openCollection;$('#resetGame').onclick=reset;
+  $$('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action,b));$$('[data-open="quiz"]').forEach(b=>b.onclick=openQuiz);$$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#askModal'));$$('.worldBtn').forEach(b=>b.onclick=()=>{if(state.mode==='missions'){toast('No modo missão o mundo é escolhido pelo portal.','guide');return}changeWorld(b.dataset.world)});$$('[data-close]').forEach(b=>b.onclick=()=>closeModal(b));$$('.diffBtn').forEach(b=>b.onclick=()=>{state.difficulty=b.dataset.diff;save()});$('#askSend').onclick=answerAthos;$('#askInput').onkeydown=e=>{if(e.key==='Enter')answerAthos()};$('#askVoice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voz não suportada neste navegador.','guide');return}const rec=new SR();rec.lang='pt-BR';rec.onresult=e=>{$('#askInput').value=e.results[0][0].transcript;answerAthos()};rec.start()};
+  document.addEventListener('keydown',e=>{if(state.mode==='lobby')return;const map={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'jump',ArrowDown:'crouch',KeyA:'left',KeyD:'right',Space:'jump',KeyS:'crouch',KeyX:'power',KeyY:'spin',KeyG:'giant',KeyM:'mini',KeyN:'normal'};if(map[e.code]){e.preventDefault();action(map[e.code])}});
+  const native=$('#nativeViewer');native.addEventListener('error',()=>toast('athos.glb não carregou. Verifique o arquivo.','error'));
+  updateStats();
+})();
+</script>
 </body>
 </html>
