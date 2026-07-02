@@ -1,13 +1,13 @@
 {
-  "name": "Athos AR do Otto",
-  "short_name": "Athos AR",
-  "description": "Athos 3D e câmera para brincar no celular.",
+  "name": "Athos: Guardião dos Portais",
+  "short_name": "Athos Portais",
+  "description": "Jogo 3D voxel e AR do Athos, com missões, quiz e mundos para o Otto brincar.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#080b12",
-  "theme_color": "#080b12",
+  "background_color": "#0a0e17",
+  "theme_color": "#0b0f1a",
   "icons": [
     { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

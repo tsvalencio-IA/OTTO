@@ -1,57 +1,61 @@
-# Athos AR do Otto — GitHub Pages
+# Athos: Guardião dos Portais
 
-Sistema pronto para subir no GitHub Pages com o personagem **Athos** em 3D.
+Jogo infantil 3D/AR do Athos para o Otto brincar no celular, com missões reais em
+Three.js, quiz, fala local do Athos e AR nativo via `model-viewer`. Roda 100% estático,
+sem backend, sem npm, sem build — pronto para o GitHub Pages.
 
-## Como subir
+## Como publicar no GitHub Pages
 
-1. Extraia o ZIP.
-2. Envie todos os arquivos para um repositório do GitHub.
-3. Vá em **Settings > Pages**.
-4. Em **Build and deployment**, escolha **Deploy from a branch**.
-5. Selecione **main** e **/root**.
-6. Abra o link HTTPS gerado pelo GitHub Pages no celular.
+1. Suba todos os arquivos deste ZIP na raiz do repositório (ou de uma branch/pasta
+   configurada como fonte do GitHub Pages).
+2. Confirme que `athos.glb` ficou na raiz, junto de `index.html`.
+3. Ative o GitHub Pages nas configurações do repositório, apontando para a branch/pasta.
+4. Abra o link `https://SEU-USUARIO.github.io/SEU-REPOSITORIO/` pelo Chrome do Android
+   (ou Safari do iPhone). A câmera e o AR real só funcionam em HTTPS.
 
-## Arquivo 3D
+## Como testar localmente
 
-O arquivo já está incluído como:
+Como o jogo usa ES Modules (`import`), não pode ser aberto direto como arquivo
+(`file://`). Rode um servidor local simples, por exemplo:
 
-```txt
-athos.glb
+```bash
+cd pasta-do-projeto
+python3 -m http.server 8080
 ```
 
-Se quiser trocar o modelo depois, substitua esse arquivo mantendo o mesmo nome.
+Depois abra `http://localhost:8080` no navegador do computador ou do celular
+(na mesma rede Wi-Fi, trocando `localhost` pelo IP do computador).
 
-## Modos do sistema
+## Estrutura dos arquivos
 
-### Brincar com câmera
+- `index.html` — Lobby, tela do jogo 3D, hotbar e todos os modais (quiz, falar,
+  coleção, dificuldade, pausa).
+- `style.css` — Visual voxel/blockcraft, HUD, hotbar fixa, responsivo mobile-first.
+- `app.js` — Toda a lógica: Three.js, missões, mundos, quiz, fala local,
+  localStorage. Um único arquivo modularizado internamente (veja
+  `RELATORIO_CLAUDE.md` para a explicação de cada módulo).
+- `athos.glb` — Modelo 3D do Athos (não foi alterado).
+- `manifest.webmanifest` — PWA leve (ícone, tela cheia, tema).
+- `icons/`, `moldes/` — Reaproveitados do projeto original.
+- `.nojekyll` — Evita que o GitHub Pages tente processar a pasta com Jekyll.
 
-Este é o modo mais garantido para criança brincar. Ele abre a câmera dentro da página e coloca o Athos por cima da imagem. Nesse modo, os botões funcionam:
+Não há `sw.js` (service worker) nesta entrega: como o projeto já sofreu com cache
+antigo travando versões novas, preferi não adicionar um novo service worker agora.
+O `app.js` já cancela/desregistra qualquer service worker de versões anteriores ao
+carregar, então instalações antigas do PWA vão se autolimpar.
 
-- Mini
-- Normal
-- Gigante
-- Girar
-- Dançar
-- Pular
-- Mover
-- Falar
+## Modos do jogo
 
-### AR real
+- **Jogar Missões**: modo principal, com objetivos reais, corações, pontos, tempo
+  (a partir do nível Médio) e progressão de mundos.
+- **Brincar Livre**: mesma engine 3D, sem corações, sem tempo, com todos os mundos
+  liberados (inclusive o "Mundo Real" com a câmera do celular).
+- **AR Nativo**: abre o visualizador de realidade aumentada do próprio aparelho
+  (depende do navegador/celular).
 
-O botão **AR real** tenta abrir o visualizador nativo do celular.
+## Limitações conhecidas
 
-No Android, pode abrir pelo visualizador do Google/Scene Viewer. Quando isso acontece, a página pode sair de cena e os botões da página deixam de controlar o boneco. Isso é limitação do visualizador nativo, não erro do projeto.
+Veja a seção "Limitações conhecidas" em `RELATORIO_CLAUDE.md`.
 
-Para brincar com ações funcionando, use **Brincar com câmera**.
-
-## Observação técnica
-
-O `athos.glb` enviado não possui animações internas no próprio arquivo. Por isso, o sistema simula Dançar, Girar e Pular pela interface.
-
-## Cache
-
-Esta versão remove o Service Worker antigo para evitar que o GitHub Pages fique mostrando versão velha em cache.
-
-## Rodapé
-
-Powered by thIAguinho Soluções Digitais
+---
+Powered by thIAguinho Soluções Digitais.
