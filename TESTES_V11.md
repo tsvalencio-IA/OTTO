@@ -1,0 +1,21 @@
+# Checklist V11
+
+- [ ] Lobby carrega Athos 3D.
+- [ ] Botão AR nativo aparece.
+- [ ] Jogar fases abre tela cheia.
+- [ ] Botão Sair aparece no topo direito.
+- [ ] Botão Sair inferior funciona.
+- [ ] Direcional esquerda/direita move o Athos.
+- [ ] A/▲ faz pular.
+- [ ] B/▼ faz abaixar.
+- [ ] X usa poder.
+- [ ] Y gira.
+- [ ] Mini, Normal e Gigante funcionam.
+- [ ] Cristais são coletados.
+- [ ] Portal conclui a fase após pegar cristais.
+- [ ] Obstáculos orientam o jogador.
+- [ ] Lava tira vida fora do modo fácil.
+- [ ] Brincar Livre AR abre câmera no HTTPS.
+- [ ] Quiz abre e pontua.
+- [ ] Falar com Athos responde.
+- [ ] Coleção mostra medalhas.
