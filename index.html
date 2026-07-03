@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#090d16" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D/AR voxel para celular." />
-  <title>Athos: Guardião dos Portais V15</title>
+  <title>Athos: Guardião dos Portais V17</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
@@ -25,10 +25,10 @@
       --radius:24px; --shadow:0 18px 55px rgba(0,0,0,.42);
       --safe-bottom:env(safe-area-inset-bottom);
     }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     html,body{margin:0;min-height:100%;overflow-x:hidden;background:var(--bg);color:var(--text);font-family:'Fredoka',system-ui,sans-serif}
     body{background-image:radial-gradient(circle at 15% 10%,rgba(255,106,0,.20),transparent 28%),radial-gradient(circle at 85% 0,rgba(23,183,255,.18),transparent 33%),linear-gradient(rgba(255,255,255,.03) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.03) 2px,transparent 2px);background-size:auto,auto,42px 42px,42px 42px}
-    button,input{font:inherit}button{border:0;cursor:pointer;color:inherit}
+    button,input{font:inherit}button{border:0;cursor:pointer;color:inherit;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
     .hidden{display:none!important}.pixel{font-family:'VT323',monospace;letter-spacing:1px}
     .btn{border-radius:18px;background:linear-gradient(180deg,#485778,#252d44);border:2px solid rgba(255,255,255,.16);box-shadow:0 7px 0 rgba(0,0,0,.5),0 14px 26px rgba(0,0,0,.28);padding:13px 16px;font-weight:800;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s,filter .12s}
     .btn:active,.btn.activePress{transform:translateY(6px) scale(.98);box-shadow:0 1px 0 rgba(0,0,0,.55)}
@@ -51,15 +51,15 @@
     #cameraFeed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:none}#game.realMode #cameraFeed{display:block}#threeContainer{position:absolute;inset:0;z-index:1;background:#000}#game.realMode #threeContainer{background:transparent}#threeContainer canvas{display:block;width:100%;height:100%}
     .hud{position:absolute;z-index:10;left:10px;right:10px;top:max(8px,env(safe-area-inset-top));pointer-events:none}.hudTop{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}.badge{pointer-events:auto;background:rgba(7,12,22,.82);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(9px);border-radius:999px;padding:7px 12px;font-weight:800;box-shadow:0 8px 25px rgba(0,0,0,.28)}.badge b{color:var(--gold);font-size:20px}.missionBox{pointer-events:auto;margin:8px auto 0;max-width:660px;background:rgba(7,12,22,.84);border:2px solid rgba(23,183,255,.55);border-radius:20px;padding:10px 14px;text-align:center;box-shadow:0 14px 35px rgba(0,0,0,.32)}.missionBox.compact{max-width:380px;padding:7px 12px;opacity:.90}.missionBox small{display:block;color:var(--blue);font-size:11px;text-transform:uppercase;font-weight:800;letter-spacing:.8px}.missionBox strong{display:block;font-size:17px;line-height:1.22}.missionBox.compact strong{font-size:13px}.goalLine{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:7px}.goal{font-size:11px;border-radius:999px;background:rgba(255,255,255,.08);padding:5px 9px;border:1px solid rgba(255,255,255,.13)}.goal.done{background:rgba(41,224,112,.22);color:#a8ffc6;border-color:rgba(41,224,112,.5)}
     .exitTop{position:absolute;right:10px;top:max(8px,env(safe-area-inset-top));z-index:18}.toast{position:absolute;z-index:30;left:50%;top:38%;transform:translate(-50%,-50%) scale(.65);opacity:0;background:rgba(7,12,22,.93);border:3px solid var(--gold);border-radius:28px;padding:15px 27px;font-size:24px;font-weight:800;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.65);transition:.22s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}.toast.err{border-color:var(--red);color:#ff9aaa}.toast.good{border-color:var(--green);color:#aeffca}
-    .controller{position:absolute;z-index:12;left:0;right:0;bottom:0;padding:9px 8px calc(9px + var(--safe-bottom));background:linear-gradient(0deg,rgba(5,8,15,.98),rgba(5,8,15,.78));border-top:1px solid rgba(255,255,255,.13)}#game.missionMode .worlds{display:none!important}#game.freeMode #missionBox{display:none!important}#game.freeMode .hud{top:max(6px,env(safe-area-inset-top))}.dangerFlash{animation:dangerPulse .45s ease-in-out 2}@keyframes dangerPulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 18px #ff365c) brightness(1.35)}}.worlds{display:flex;gap:6px;overflow-x:auto;padding:0 2px 6px;scrollbar-width:none}.worlds::-webkit-scrollbar{display:none}.worldChip{flex:0 0 auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:7px 12px;font-weight:800;font-size:12px}.worldChip.active{background:var(--blue);color:#001427;box-shadow:0 0 18px rgba(23,183,255,.42)}.padShell{display:grid;grid-template-columns:132px 1fr 144px;align-items:center;gap:8px;max-width:880px;margin:0 auto}.dpad{position:relative;width:132px;height:132px}.dBtn,.center,.aBtn,.sBtn{position:absolute;border-radius:18px;background:linear-gradient(180deg,#33415f,#171d2e);border:2px solid rgba(255,255,255,.18);box-shadow:0 6px 0 rgba(0,0,0,.55);font-weight:900}.dBtn:active,.aBtn:active,.sBtn:active,.dBtn.hold{transform:translateY(5px);box-shadow:0 1px 0 rgba(0,0,0,.55);filter:brightness(1.25)}.dBtn{width:50px;height:50px;font-size:20px}.dBtn span,.aBtn span,.sBtn span{display:block;font-size:9px;line-height:1;text-transform:uppercase}.up{left:41px;top:0}.left{left:0;top:41px}.right{right:0;top:41px}.down{left:41px;bottom:0}.center{left:41px;top:41px;width:50px;height:50px;display:grid;place-items:center;color:rgba(255,255,255,.35)}.actions{position:relative;width:144px;height:132px}.aBtn{width:58px;height:58px;font-size:18px}.a{right:0;bottom:12px;background:linear-gradient(180deg,#ffbd2a,#ff6500)}.b{left:0;bottom:12px;background:linear-gradient(180deg,#ff6280,#bf173b)}.x{right:28px;top:0;background:linear-gradient(180deg,#29c7ff,#0879b9)}.y{left:28px;top:0;background:linear-gradient(180deg,#35ee83,#0e9442)}.systems{display:grid;grid-template-columns:repeat(3,minmax(48px,1fr));gap:6px;align-self:stretch}.sBtn{position:static;min-height:42px;font-size:15px;border-radius:14px}.sBtn.orange{background:linear-gradient(180deg,#ffb000,#ce5600)}.sBtn.blue{background:linear-gradient(180deg,#22c5ff,#087cbd)}.sBtn.red{background:linear-gradient(180deg,#ff5c7a,#bc1238)}@media(max-width:520px){.padShell{grid-template-columns:110px 1fr 122px;gap:5px}.dpad{width:110px;height:110px}.dBtn{width:43px;height:43px;font-size:17px}.up{left:34px}.left{top:34px}.right{top:34px}.down{left:34px}.center{left:34px;top:34px;width:43px;height:43px}.actions{width:122px;height:110px}.aBtn{width:50px;height:50px}.a{bottom:5px}.b{bottom:5px}.x{right:23px}.y{left:23px}.systems{grid-template-columns:repeat(2,minmax(44px,1fr));gap:4px}.sBtn{font-size:14px;min-height:36px;padding:4px}.hudTop{padding-right:64px}.badge{font-size:13px;padding:6px 9px}.missionBox{margin-top:6px}.controller{padding-left:5px;padding-right:5px}.worldChip{font-size:11px;padding:6px 10px}}
+    .controller{position:absolute;z-index:12;left:0;right:0;bottom:0;padding:9px 8px calc(9px + var(--safe-bottom));background:linear-gradient(0deg,rgba(5,8,15,.98),rgba(5,8,15,.78));border-top:1px solid rgba(255,255,255,.13)}#game.missionMode .worlds{display:none!important}#game.freeMode #missionBox{display:none!important}#game.freeMode .hud{top:max(6px,env(safe-area-inset-top))}.dangerFlash{animation:dangerPulse .45s ease-in-out 2}@keyframes dangerPulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 18px #ff365c) brightness(1.35)}}.worlds{display:flex;gap:6px;overflow-x:auto;padding:0 2px 6px;scrollbar-width:none}.worlds::-webkit-scrollbar{display:none}.worldChip{flex:0 0 auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:7px 12px;font-weight:800;font-size:12px}.worldChip.active{background:var(--blue);color:#001427;box-shadow:0 0 18px rgba(23,183,255,.42)}.padShell{display:grid;grid-template-columns:132px 84px 144px;align-items:center;gap:10px;max-width:540px;margin:0 auto}.dpad{position:relative;width:132px;height:132px}.dBtn,.center,.aBtn,.miniCtrl{position:absolute;border-radius:18px;background:linear-gradient(180deg,#33415f,#171d2e);border:2px solid rgba(255,255,255,.18);box-shadow:0 6px 0 rgba(0,0,0,.55);font-weight:900}.dBtn:active,.aBtn:active,.dBtn.hold,.miniCtrl:active,.miniCtrl.activePress{transform:translateY(5px);box-shadow:0 1px 0 rgba(0,0,0,.55);filter:brightness(1.25)}.dBtn{width:50px;height:50px;font-size:20px}.dBtn span,.aBtn span,.miniCtrl span{display:block;font-size:9px;line-height:1;text-transform:uppercase}.up{left:41px;top:0}.left{left:0;top:41px}.right{right:0;top:41px}.down{left:41px;bottom:0}.center{left:41px;top:41px;width:50px;height:50px;display:grid;place-items:center;color:rgba(255,255,255,.35)}.gameMeta{display:grid;grid-template-rows:1fr 1fr;gap:8px;align-self:stretch}.metaPill,.miniCtrl{display:grid;place-items:center;border-radius:16px;min-height:62px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.12);box-shadow:0 8px 22px rgba(0,0,0,.28);font-weight:900;text-align:center;padding:6px 4px}.metaPill b{display:block;font-size:18px}.metaPill span{display:block;font-size:10px;text-transform:uppercase;color:var(--muted)}.miniCtrl{position:static;background:linear-gradient(180deg,#4a5d85,#1a2236)}.miniCtrl.exit{background:linear-gradient(180deg,#ff5c7a,#bc1238)}.actions{position:relative;width:144px;height:132px}.aBtn{width:58px;height:58px;font-size:18px}.a{right:0;bottom:12px;background:linear-gradient(180deg,#ffbd2a,#ff6500)}.b{left:0;bottom:12px;background:linear-gradient(180deg,#ff6280,#bf173b)}.x{right:28px;top:0;background:linear-gradient(180deg,#29c7ff,#0879b9)}.y{left:28px;top:0;background:linear-gradient(180deg,#35ee83,#0e9442)}@media(max-width:520px){.padShell{grid-template-columns:110px 72px 122px;gap:6px}.dpad{width:110px;height:110px}.dBtn{width:43px;height:43px;font-size:17px}.up{left:34px}.left{top:34px}.right{top:34px}.down{left:34px}.center{left:34px;top:34px;width:43px;height:43px}.gameMeta{gap:6px}.metaPill,.miniCtrl{min-height:50px;font-size:13px}.actions{width:122px;height:110px}.aBtn{width:50px;height:50px}.a{bottom:5px}.b{bottom:5px}.x{right:23px}.y{left:23px}.hudTop{padding-right:64px}.badge{font-size:13px;padding:6px 9px}.missionBox{margin-top:6px}.controller{padding-left:5px;padding-right:5px}.worldChip{font-size:11px;padding:6px 10px}}
 
-    .modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:14px}.modal.active{display:flex}.modalCard{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:2px solid rgba(255,255,255,.14);border-radius:28px;padding:20px;box-shadow:0 35px 80px rgba(0,0,0,.72)}.modalHead{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.11);padding-bottom:12px;margin-bottom:15px}.modalHead h3{margin:0;color:var(--gold);font-size:25px}.modalHead small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800}.close{width:40px;height:40px;border-radius:13px;background:rgba(255,255,255,.1);font-weight:900}.quizOptions{display:grid;gap:10px}.quizOptions .btn{text-align:left;text-transform:none}.askInput{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(0,0,0,.34);padding:14px;color:white;margin-bottom:10px}.bubble{min-height:82px;border:2px dashed rgba(255,196,0,.7);background:rgba(255,196,0,.09);border-radius:17px;padding:15px;text-align:center;color:#ffd86a;line-height:1.35}.collection{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.medal{border-radius:17px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);text-align:center;padding:14px}.medal.locked{opacity:.45;filter:grayscale(1)}.medal b{font-size:32px}.medal strong{display:block;margin-top:4px}.medal span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.2}.shake{animation:shake .36s linear}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+    .modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:14px}.modal.active{display:flex}.modalCard{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:2px solid rgba(255,255,255,.14);border-radius:28px;padding:20px;box-shadow:0 35px 80px rgba(0,0,0,.72)}.modalHead{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.11);padding-bottom:12px;margin-bottom:15px}.modalHead h3{margin:0;color:var(--gold);font-size:25px}.modalHead small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800}.close{width:40px;height:40px;border-radius:13px;background:rgba(255,255,255,.1);font-weight:900}.quizOptions{display:grid;gap:10px}.quizOptions .btn{text-align:left;text-transform:none}.askInput{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(0,0,0,.34);padding:14px;color:white;margin-bottom:10px;-webkit-user-select:text;user-select:text}.bubble{min-height:82px;border:2px dashed rgba(255,196,0,.7);background:rgba(255,196,0,.09);border-radius:17px;padding:15px;text-align:center;color:#ffd86a;line-height:1.35}.collection{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.medal{border-radius:17px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);text-align:center;padding:14px}.medal.locked{opacity:.45;filter:grayscale(1)}.medal b{font-size:32px}.medal strong{display:block;margin-top:4px}.medal span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.2}.shake{animation:shake .36s linear}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
   </style>
 </head>
 <body>
   <main id="lobby">
     <header class="topbar">
-      <div class="brand"><div class="face" aria-hidden="true"></div><div><p>V14 — jogo 3D/AR</p><h1>Athos: Guardião dos Portais</h1></div></div>
+      <div class="brand"><div class="face" aria-hidden="true"></div><div><p>V17 — jogo 3D/AR 10/10</p><h1>Athos: Guardião dos Portais</h1></div></div>
       <button id="btnShare" class="btn small blue" type="button">🔗 Link</button>
     </header>
     <section class="lobbyGrid">
@@ -132,17 +132,13 @@
           <button class="dBtn right" data-hold="right" type="button">▶<span>Dir</span></button>
           <button class="dBtn down" data-hold="down" type="button">▼<span>Voltar</span></button>
         </div>
-        <div class="systems">
-          <button class="sBtn" data-action="mini" type="button">🤏<span>Mini</span></button>
-          <button class="sBtn" data-action="normal" type="button">🧍<span>Normal</span></button>
-          <button class="sBtn orange" data-action="giant" type="button">🦾<span>Gigante</span></button>
-          <button class="sBtn blue" data-action="center" type="button">🎯<span>Centro</span></button>
-          <button class="sBtn blue" data-action="respawn" type="button">🔁<span>Respawn</span></button>
-          <button id="btnExitPad" class="sBtn red" type="button">⏹️<span>Sair</span></button>
+        <div class="gameMeta" aria-label="Controles centrais do jogo">
+          <div class="metaPill"><b class="pixel">ATHOS</b><span>Controle real</span></div>
+          <button id="btnRespawn" class="miniCtrl" type="button">🔁<span>Respawn</span></button>
         </div>
         <div class="actions">
           <button class="aBtn y" data-action="crouch" type="button">Y<span>Abaixar</span></button>
-          <button class="aBtn x" data-action="spin" type="button">X<span>Girar</span></button>
+          <button class="aBtn x" data-action="mode" type="button">X<span>Modo</span></button>
           <button class="aBtn b" data-action="power" type="button">B<span>Poder</span></button>
           <button class="aBtn a" data-action="jump" type="button">A<span>Pular</span></button>
         </div>
@@ -159,7 +155,7 @@
   'use strict';
   const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-  const STORE='athos-v14-state';
+  const STORE='athos-v17-state';
   const defaultState={points:0,hearts:3,level:0,medals:[],difficulty:'facil',best:0};
   const state=Object.assign({},defaultState, JSON.parse(localStorage.getItem(STORE)||'{}'));
   const save=()=>{state.best=Math.max(state.best,state.points);localStorage.setItem(STORE,JSON.stringify(state)); updateStats();};
@@ -175,14 +171,14 @@
   };
 
   const levels=[
-    {name:'Treino de Guardião',world:'field',length:18,objective:'Pegue 2 cristais, pule o buraco pequeno e entre no portal.',crystals:[4,9],holes:[{x:12,w:1.5}],portalX:16,hints:['Use ◀ ▶ para andar.','Pule com A.']},
-    {name:'Ponte de Lava',world:'fire',length:24,objective:'A lava tira pontos. Pule as poças, pegue 3 cristais e alcance o portal.',crystals:[5,11,18],hazards:[{x:7,w:1.8},{x:15,w:1.9}],holes:[{x:20,w:1.6}],portalX:23},
-    {name:'Buracos do Campo',world:'field',length:26,objective:'Cair no buraco mata. Pule os buracos, colete cristais e chegue vivo ao portal.',crystals:[4,13,22],holes:[{x:8,w:1.55},{x:17,w:1.85}],portalX:25},
-    {name:'Túnel da Floresta',world:'forest',length:23,objective:'Abaixe no túnel, pule o buraco e pegue os cristais.',crystals:[4,12,19],tunnels:[{x:9,w:2.4}],holes:[{x:15,w:1.6}],portalX:22},
-    {name:'Portão do Castelo',world:'castle',length:25,objective:'Fique gigante para abrir o portão, pule o buraco e pegue o cristal real.',crystals:[4,18],gates:[{x:10,w:1.2,needs:'giant'}],holes:[{x:14,w:1.7}],portalX:24},
-    {name:'Pedra Sombria',world:'fire',length:26,objective:'Use poder no bloco escuro, desvie da lava, colete cristais e entre no portal.',crystals:[5,16,22],hazards:[{x:8,w:1.5}],darkBlocks:[{x:12,w:1.4}],portalX:25},
-    {name:'Espaço Cubo',world:'space',length:28,objective:'Colete cristais flutuantes, gire para ativar o portal e não caia no vazio.',crystals:[5,10,15,22],floating:true,holes:[{x:18,w:2.0}],requiresSpin:true,portalX:27},
-    {name:'Arena Final',world:'arena',length:32,objective:'Pegue 5 cristais, pule buracos, quebre o bloco e atravesse o portal final.',crystals:[4,8,12,18,27],hazards:[{x:15,w:1.5}],holes:[{x:21,w:1.8},{x:25,w:1.5}],darkBlocks:[{x:23,w:1.4}],requiresSpin:true,portalX:31}
+    {name:'Treino de Guardião',world:'field',length:24,objective:'Pegue 2 cristais, ative o checkpoint, pule o buraco e entre no portal.',crystals:[4,9],checkpoints:[10],holes:[{x:15,w:1.5}],portalX:22,hints:['Use ◀ ▶ para andar.','Pule com A.']},
+    {name:'Ponte de Lava',world:'fire',length:30,objective:'A lava tira pontos. Pule as poças, derrote o inimigo e alcance o portal.',crystals:[5,12,22],hazards:[{x:7,w:1.7},{x:17,w:1.9}],enemies:[{x:14,range:2.2}],checkpoints:[15],holes:[{x:25,w:1.6}],portalX:29},
+    {name:'Plataformas do Campo',world:'field',length:34,objective:'Use a plataforma móvel, pule os buracos, colete cristais e chegue vivo ao portal.',crystals:[4,14,28],platforms:[{x:10,y:1.15,range:3.5,w:3.2,speed:1.1}],enemies:[{x:20,range:2.0}],checkpoints:[18],holes:[{x:8,w:1.55},{x:24,w:1.85}],portalX:33},
+    {name:'Túnel da Floresta',world:'forest',length:32,objective:'Abaixe no túnel, pule o inimigo, ative o checkpoint e pegue os cristais.',crystals:[4,12,25],tunnels:[{x:9,w:2.4}],enemies:[{x:17,range:1.8}],checkpoints:[19],holes:[{x:23,w:1.6}],portalX:31},
+    {name:'Portão do Castelo',world:'castle',length:34,objective:'Fique gigante para abrir o portão, pegue a chave/cristal e pule o buraco.',crystals:[4,18,29],gates:[{x:10,w:1.2,needs:'giant'}],checkpoints:[13],enemies:[{x:23,range:2.4}],holes:[{x:26,w:1.7}],portalX:33},
+    {name:'Pedra Sombria',world:'fire',length:36,objective:'Use B Poder no bloco escuro, desvie da lava, colete cristais e entre no portal.',crystals:[5,16,30],hazards:[{x:8,w:1.5},{x:23,w:1.9}],darkBlocks:[{x:12,w:1.4}],checkpoints:[18],enemies:[{x:26,range:2.0}],portalX:35},
+    {name:'Espaço Cubo',world:'space',length:40,objective:'Use plataformas móveis, não caia no vazio, colete 4 cristais e encontre o portal.',crystals:[5,13,24,35],floating:true,platforms:[{x:11,y:1.4,range:3.8,w:3.4,speed:1.2},{x:27,y:1.6,range:3.0,w:3.0,speed:1.5}],checkpoints:[20],holes:[{x:18,w:2.0},{x:31,w:2.2}],enemies:[{x:33,range:1.7}],portalX:39},
+    {name:'Arena Final',world:'arena',length:46,objective:'Fase final: cristais, lava, inimigos, plataforma, bloco escuro e portal final.',crystals:[4,8,14,22,35],hazards:[{x:15,w:1.5},{x:38,w:1.8}],holes:[{x:21,w:1.8},{x:30,w:1.5}],platforms:[{x:26,y:1.25,range:3.2,w:3.4,speed:1.4}],enemies:[{x:11,range:2.2},{x:34,range:2.0}],darkBlocks:[{x:41,w:1.4}],checkpoints:[24],portalX:45}
   ];
   const medals=[
     {id:'first',emoji:'⭐',title:'Primeira Fase',desc:'Concluiu uma fase.'},
@@ -191,6 +187,9 @@
     {id:'giant',emoji:'🦾',title:'Athos Gigante',desc:'Abriu o portão.'},
     {id:'power',emoji:'💥',title:'Poder Pixel',desc:'Quebrou bloco escuro.'},
     {id:'quiz',emoji:'🧠',title:'Campeão do Quiz',desc:'Acertou desafio.'},
+    {id:'enemy',emoji:'👾',title:'Caçador de Cubos',desc:'Derrotou um inimigo.'},
+    {id:'checkpoint',emoji:'🚩',title:'Checkpoint',desc:'Ativou uma bandeira.'},
+    {id:'platform',emoji:'🧱',title:'Plataforma Móvel',desc:'Usou uma plataforma.'},
     {id:'final',emoji:'🏆',title:'Guardião 10/10',desc:'Venceu a arena final.'}
   ];
 
@@ -201,9 +200,9 @@
     {q:'Para passar por túnel baixo, o Athos deve...',opts:['Abaixar','Ficar parado','Dormir'],a:0,exp:'Perfeito! Use Y para abaixar.'}
   ];
 
-  let scene,camera,renderer,clock,player,athos,portal,ground,worldObjs=[],items=[],particles=[],camStream=null,animStarted=false;
+  let scene,camera,renderer,clock,player,athos,portal,ground,worldObjs=[],items=[],enemies=[],platforms=[],checkpoints=[],particles=[],camStream=null,animStarted=false;
   let mode='lobby', currentLevel=null, currentWorld='field', objective={crystals:0,totalCrystals:0,portal:false,quiz:false,spin:false};
-  let px=0,py=0,pz=0,vx=0,vy=0,vz=0,onGround=true,targetScale=1,scale=1,rot=0,targetRot=0,squash=1,targetSquash=1,crouchTimer=0,invuln=0;
+  let px=0,py=0,pz=0,vx=0,vy=0,vz=0,onGround=true,targetScale=1,scale=1,rot=0,targetRot=0,squash=1,targetSquash=1,crouchTimer=0,invuln=0,checkpointX=0,lastSafeX=0;
   const input={left:false,right:false,up:false,down:false};
 
   function updateStats(){
@@ -242,10 +241,13 @@
     const s=128,cv=document.createElement('canvas'); cv.width=cv.height=s; const ctx=cv.getContext('2d'); ctx.fillStyle='#'+colors[0].toString(16).padStart(6,'0'); ctx.fillRect(0,0,s,s); ctx.fillStyle='#'+colors[1].toString(16).padStart(6,'0'); for(let y=0;y<4;y++)for(let x=0;x<4;x++)if((x+y)%2===0)ctx.fillRect(x*32,y*32,32,32); const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(20,4); tex.magFilter=THREE.NearestFilter; return tex;
   }
   function mat(color,em=0){return new THREE.MeshStandardMaterial({color,emissive:em,roughness:.84,metalness:0});}
-  function clearWorld(){worldObjs.forEach(o=>scene.remove(o)); worldObjs=[]; items=[]; portal=null; ground=null;}
+  function clearWorld(){worldObjs.forEach(o=>scene.remove(o)); worldObjs=[]; items=[]; enemies=[]; platforms=[]; checkpoints=[]; portal=null; ground=null;}
   function add(o){scene.add(o); worldObjs.push(o); return o;}
-  function cube(x,y,z,w,h,d,color,em=0,type='decor'){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,em)); m.position.set(x,y+h/2,z); m.castShadow=true;m.receiveShadow=true;m.userData={type,x,w}; return add(m);}
+  function cube(x,y,z,w,h,d,color,em=0,type='decor'){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,em)); m.position.set(x,y+h/2,z); m.castShadow=true;m.receiveShadow=true;m.userData={type,x,y,z,w,h,d,baseX:x,baseY:y,baseZ:z}; return add(m);}
   function crystal(x,y=1.4,z=0){const geo=new THREE.OctahedronGeometry(.42,0); const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x7af7ff,emissive:0x1aa9ff,roughness:.35,metalness:.15})); m.position.set(x,y,z); m.castShadow=true; m.userData={type:'crystal',collected:false}; add(m); items.push(m); return m;}
+  function checkpoint(x,z=0){const g=new THREE.Group(); const pole=new THREE.Mesh(new THREE.BoxGeometry(.18,2.4,.18),mat(0xf4f4f4)); pole.position.set(0,1.2,0); const flag=new THREE.Mesh(new THREE.BoxGeometry(1.0,.55,.08),mat(0xffc400,0x332000)); flag.position.set(.52,2.05,0); [pole,flag].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(pole,flag); g.position.set(x,0,z); g.userData={type:'checkpoint',x,w:1.1,active:false}; add(g); checkpoints.push(g); return g;}
+  function enemy(x,range=2.0,z=0){const body=new THREE.Mesh(new THREE.BoxGeometry(.9,.9,.9),new THREE.MeshStandardMaterial({color:0x6a0620,emissive:0x230008,roughness:.75})); body.position.set(x,.45,z); body.castShadow=true; body.receiveShadow=true; const eyeMat=new THREE.MeshBasicMaterial({color:0xffee66}); const e1=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.05),eyeMat); e1.position.set(-.18,.12,.48); const e2=e1.clone(); e2.position.x=.18; body.add(e1,e2); body.userData={type:'enemy',x,w:1.0,baseX:x,range,dir:1,speed:.75+Math.random()*.25,alive:true}; add(body); enemies.push(body); return body;}
+  function movingPlatform(x,y=1.2,z=0,w=3.0,range=3.0,speed=1.1){const m=new THREE.Mesh(new THREE.BoxGeometry(w,.32,2.6),new THREE.MeshStandardMaterial({color:0xffc400,emissive:0x3b2600,roughness:.7})); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; m.userData={type:'platform',x,w,h:.32,d:2.6,baseX:x,range,speed,prevX:x,used:false}; add(m); platforms.push(m); return m;}
   function makePortal(x,color){const g=new THREE.Group(); const frame=mat(0x111111); const glow=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.56,side:THREE.DoubleSide}); const l=new THREE.Mesh(new THREE.BoxGeometry(.55,4.3,.55),frame); l.position.set(-1.6,2.15,0); const r=l.clone();r.position.x=1.6; const t=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,.55),frame); t.position.set(0,4.05,0); const p=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.6),glow); p.position.set(0,2.15,0); [l,r,t].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(l,r,t,p); g.position.set(x,0,-2.2); g.userData={glow:p}; return add(g);}
   function tree(x,z=-3){const g=new THREE.Group(); const tr=new THREE.Mesh(new THREE.BoxGeometry(.7,2,.7),mat(0x6b3f21)); tr.position.y=1; const lv=new THREE.Mesh(new THREE.BoxGeometry(2.25,2.25,2.25),mat(0x22a947)); lv.position.y=2.85; [tr,lv].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(tr,lv); g.position.set(x,0,z); return add(g);}
   function buildWorld(worldId,level){
@@ -267,19 +269,22 @@
       (level.gates||[]).forEach(g=>cube(g.x,0,0,g.w,3.0,2.8,0x777a86,0,'gate'));
       (level.darkBlocks||[]).forEach(b=>cube(b.x,0,0,b.w,1.65,2.2,0x080808,0x220000,'dark'));
       (level.holes||[]).forEach(h=>{cube(h.x,.01,0,h.w,.08,3.25,0x000000,0,'pit'); cube(h.x,.04,-1.72,h.w,.18,.18,0x4b4b55,0,'decor'); cube(h.x,.04,1.72,h.w,.18,.18,0x4b4b55,0,'decor');});
+      (level.checkpoints||[]).forEach(x=>checkpoint(x));
+      (level.enemies||[]).forEach(e=>enemy(e.x,e.range||2,e.z||0));
+      (level.platforms||[]).forEach(p=>movingPlatform(p.x,p.y||1.25,p.z||0,p.w||3,p.range||3,p.speed||1));
       portal=makePortal(level.portalX,w.portal);
-    } else { portal=makePortal(18,w.portal); for(let x=5;x<34;x+=6) crystal(x,1.35,0); }
+    } else { portal=makePortal(18,w.portal); for(let x=5;x<34;x+=6) crystal(x,1.35,0); enemy(12,2); movingPlatform(21,1.25,0,3.2,3,1.15); cube(28,0,0,1.4,1.65,2.2,0x080808,0x220000,'dark'); }
     updateWorldUI();
   }
 
   function startCamera(){if(camStream) return; if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Câmera indisponível','err');return;} navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(s=>{camStream=s; $('#cameraFeed').srcObject=s; $('#cameraFeed').play().catch(()=>{});}).catch(()=>toast('Libere a câmera no navegador','err'));}
   function stopCamera(){if(camStream){camStream.getTracks().forEach(t=>t.stop()); camStream=null;} $('#cameraFeed').srcObject=null;}
 
-  function resetPlayer(){px=0;py=0;pz=0;vx=0;vy=0;vz=0;scale=targetScale=1;rot=targetRot=0;squash=targetSquash=1;crouchTimer=0;onGround=true; if(player){player.position.set(0,0,0); player.scale.set(1,1,1); player.rotation.set(0,0,0);}}
-  function startMode(m){mode=m; $('#lobby').classList.add('hidden'); const game=$('#game'); game.classList.add('active'); game.classList.toggle('missionMode',m==='missions'); game.classList.toggle('freeMode',m==='free'); initThree(); resetPlayer(); if(m==='missions'){loadLevel(state.level);} else {currentLevel=null; objective={crystals:0,totalCrystals:0,portal:false,quiz:true,spin:true,powerBroken:true,gateOpen:true,passedTunnel:true}; $('#missionBox').classList.add('compact'); $('#missionText').textContent=''; $('#goalLine').innerHTML=''; buildWorld('real',null); toast('Brincar livre: use somente o controle','good');} updateStats();}
+  function resetPlayer(){px=checkpointX||0;py=0;pz=0;vx=0;vy=0;vz=0;scale=targetScale=1;rot=targetRot=0;squash=targetSquash=1;crouchTimer=0;onGround=true; if(player){player.position.set(0,0,0); player.scale.set(1,1,1); player.rotation.set(0,0,0);}}
+  function startMode(m){mode=m; $('#lobby').classList.add('hidden'); const game=$('#game'); game.classList.add('active'); game.classList.toggle('missionMode',m==='missions'); game.classList.toggle('freeMode',m==='free'); initThree(); checkpointX=0; resetPlayer(); if(m==='missions'){loadLevel(state.level);} else {currentLevel=null; objective={crystals:0,totalCrystals:0,portal:false,quiz:true,spin:true,powerBroken:true,gateOpen:true,passedTunnel:true}; $('#missionBox').classList.add('compact'); $('#missionText').textContent=''; $('#goalLine').innerHTML=''; buildWorld('real',null); toast('Brincar livre: somente controle na tela','good');} updateStats();}
   function exitGame(){mode='lobby'; $('#lobby').classList.remove('hidden'); $('#game').classList.remove('active','missionMode','freeMode','realMode'); stopCamera(); updateStats();}
   function loadLevel(index){
-    currentLevel=levels[index%levels.length]; $('#missionBox').classList.remove('compact'); resetPlayer(); objective={crystals:0,totalCrystals:(currentLevel.crystals||[]).length,portal:false,quiz:!currentLevel.requiresQuiz,spin:!currentLevel.requiresSpin,powerBroken:!(currentLevel.darkBlocks&&currentLevel.darkBlocks.length),gateOpen:!(currentLevel.gates&&currentLevel.gates.length),passedTunnel:!(currentLevel.tunnels&&currentLevel.tunnels.length)};
+    currentLevel=levels[index%levels.length]; checkpointX=0; lastSafeX=0; $('#missionBox').classList.remove('compact'); resetPlayer(); objective={crystals:0,totalCrystals:(currentLevel.crystals||[]).length,portal:false,quiz:!currentLevel.requiresQuiz,spin:!currentLevel.requiresSpin,powerBroken:!(currentLevel.darkBlocks&&currentLevel.darkBlocks.length),gateOpen:!(currentLevel.gates&&currentLevel.gates.length),passedTunnel:!(currentLevel.tunnels&&currentLevel.tunnels.length)};
     buildWorld(currentLevel.world,currentLevel); $('#missionText').textContent=currentLevel.objective; speak('Fase '+((index%levels.length)+1)+': '+currentLevel.objective); updateGoals();
   }
   function updateWorldUI(){const w=worlds[currentWorld]; $('#worldLabel').textContent=(w?w.emoji+' '+w.label:'Mundo'); $$('.worldChip').forEach(b=>b.classList.toggle('active',b.dataset.world===currentWorld));}
@@ -289,15 +294,45 @@
     $('#goalLine').innerHTML=goals.map(g=>`<span class="goal ${g[1]?'done':''}">${g[0]}</span>`).join('');
   }
   function canFinish(){return objective.crystals>=objective.totalCrystals && objective.quiz && objective.spin && objective.powerBroken!==false && objective.gateOpen!==false && objective.passedTunnel!==false;}
-  function completeLevel(){objective.portal=true; updateGoals(); addPoints(50,'Fase completa!'); unlock('first'); if(currentLevel.world==='fire')unlock('lava'); if(currentLevel.tunnels)unlock('tunnel'); if(currentLevel.gates)unlock('giant'); if(currentLevel.darkBlocks)unlock('power'); if(currentLevel.name==='Arena Final')unlock('final'); spawnParticles('win',70); speak('Fase completa! O portal abriu para o próximo mundo.'); state.level=(state.level+1)%levels.length; save(); setTimeout(()=>{if(mode==='missions')loadLevel(state.level);},2400);}
-  function fail(msg){ if(invuln>0||mode!=='missions') return; invuln=1.2; state.hearts-=1; $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),400); if(state.hearts<=0){state.hearts=3; state.points=Math.max(0,state.points-20); save(); toast('Recomeçando fase','err'); speak('Vamos tentar de novo.'); setTimeout(()=>loadLevel(state.level),900);} else {save(); toast(msg||'Cuidado!','err'); speak(msg||'Cuidado!'); px=Math.max(0,px-1.2); vx=0;} }
+  function completeLevel(){if(objective.portal)return; objective.portal=true; updateGoals(); addPoints(50,'Fase completa!'); unlock('first'); if(currentLevel.world==='fire')unlock('lava'); if(currentLevel.tunnels)unlock('tunnel'); if(currentLevel.gates)unlock('giant'); if(currentLevel.darkBlocks)unlock('power'); if(currentLevel.name==='Arena Final')unlock('final'); spawnParticles('win',70); speak('Fase completa! O portal abriu para o próximo mundo.'); state.level=(state.level+1)%levels.length; save(); setTimeout(()=>{if(mode==='missions')loadLevel(state.level);},2400);}
+  function fail(msg){ if(invuln>0||mode!=='missions') return; invuln=1.2; state.hearts-=1; $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),400); if(state.hearts<=0){state.hearts=3; state.points=Math.max(0,state.points-20); save(); toast('Recomeçando fase','err'); speak('Vamos tentar de novo.'); setTimeout(()=>loadLevel(state.level),900);} else {save(); toast(msg||'Cuidado!','err'); speak(msg||'Cuidado!'); px=Math.max(checkpointX,px-1.2); vx=0;} }
   function lavaPenalty(msg){ if(invuln>0||mode!=='missions') return; invuln=.9; state.points=Math.max(0,state.points-8); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),300); toast(msg||'Pisou na lava! -8 pontos','err'); speak('Lava! Perdeu pontos. Pule com A.'); px=Math.max(0,px-1.1); vx=0; }
-  function die(msg){ if(invuln>0||mode!=='missions') return; invuln=2; state.hearts=0; state.points=Math.max(0,state.points-25); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),500); toast(msg||'Caiu no buraco!','err'); speak('Caiu no buraco. Recomeçando a fase.'); py=-.6; vy=-8; setTimeout(()=>{state.hearts=3; save(); loadLevel(state.level);},1100); }
+  function die(msg){ if(invuln>0||mode!=='missions') return; invuln=2; state.hearts-=1; state.points=Math.max(0,state.points-25); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),500); toast(msg||'Caiu no buraco!','err'); speak('Caiu no buraco. Voltando para o checkpoint.'); py=-.6; vy=-8; setTimeout(()=>{if(state.hearts<=0){state.hearts=3; save(); loadLevel(state.level);}else{save(); resetPlayer(); toast('Respawn no checkpoint','good');}},900); }
 
-  function action(act,btn){pulse(btn); if(act==='jump'){if(onGround){vy=11.5; onGround=false; targetSquash=1.18;}} if(act==='crouch'){crouchTimer=.75; targetSquash=.55;} if(act==='spin'){targetRot+=Math.PI*2; if(currentLevel&&currentLevel.requiresSpin){objective.spin=true; addPoints(8,'Portal ativado!'); updateGoals();}} if(act==='giant'){targetScale=1.55;} if(act==='mini'){targetScale=.55;} if(act==='normal'){targetScale=1;} if(act==='center'){pz=0;vz=0;toast('Athos centralizado');} if(act==='respawn'){resetPlayer();toast('Respawn no início');} if(act==='power'){power();} }
+  function action(act,btn){pulse(btn); if(act==='jump'){if(onGround){vy=11.5; onGround=false; targetSquash=1.18;}} if(act==='crouch'){crouchTimer=.75; targetSquash=.55;} if(act==='mode'){ if(scale<0.75){targetScale=1; toast('Modo normal');} else if(scale<1.3){targetScale=1.55; toast('Modo gigante');} else {targetScale=.55; toast('Modo mini');} } if(act==='respawn'){resetPlayer();toast('Respawn no início');} if(act==='power'){power();} }
   function power(){spawnParticles('power',22); let broke=false; worldObjs.forEach(o=>{if(o.userData.type==='dark'&&Math.abs(o.position.x-px)<2.2){scene.remove(o); o.userData.removed=true; broke=true;}}); if(broke){objective.powerBroken=true; addPoints(12,'Bloco quebrado!'); updateGoals();} else toast('Poder lançado!');}
   function spawnParticles(type,count=20){if(!scene) return; const geo=new THREE.BoxGeometry(.18,.18,.18); for(let i=0;i<count;i++){const color=type==='win'?Math.random()*0xffffff:0xff6a00; const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color})); m.position.set(px,py+1.6,pz); scene.add(m); particles.push({m,life:1.1+Math.random()*.6,v:new THREE.Vector3((Math.random()-.5)*.24,Math.random()*.24+.06,(Math.random()-.5)*.18),r:Math.random()*.25});}}
   function pulse(btn){if(!btn)return; btn.classList.add('activePress'); setTimeout(()=>btn.classList.remove('activePress'),130);}
+
+  
+  function updatePlatforms(dt){
+    platforms.forEach(p=>{
+      const u=p.userData; const oldX=p.position.x; p.position.x=u.baseX+Math.sin(performance.now()*.001*u.speed)*u.range; const dxMove=p.position.x-oldX; u.prevX=oldX;
+      const dx=Math.abs(px-p.position.x), dz=Math.abs(pz-p.position.z); const top=p.position.y+(u.h||.32)/2;
+      if(dx<(u.w||3)/2+.45 && dz<(u.d||2.6)/2+.35 && py>=top-.18 && py<=top+.65 && vy<=0){
+        py=top; onGround=true; vy=0; px+=dxMove; if(!u.used){u.used=true; unlock('platform'); addPoints(6,'Plataforma usada!');}
+      }
+    });
+  }
+  function updateEnemies(dt){
+    enemies.forEach(e=>{
+      const u=e.userData; if(!u.alive)return; e.position.x += u.dir*u.speed*dt; if(e.position.x>u.baseX+u.range||e.position.x<u.baseX-u.range){u.dir*=-1;}
+      e.rotation.y += dt*1.8*u.dir;
+      const dx=Math.abs(e.position.x-px), dz=Math.abs(e.position.z-pz);
+      if(dx<.85&&dz<1.05){
+        if(py>.75 && vy<0){u.alive=false; e.visible=false; vy=8; onGround=false; unlock('enemy'); addPoints(18,'Inimigo derrotado!'); spawnParticles('win',18);}
+        else fail('Inimigo acertou o Athos!');
+      }
+    });
+  }
+  function updateCheckpoints(){
+    checkpoints.forEach(c=>{
+      if(c.userData.active)return; if(Math.abs(c.position.x-px)<1.1&&Math.abs(c.position.z-pz)<1.2){
+        c.userData.active=true; checkpointX=c.position.x; lastSafeX=checkpointX; unlock('checkpoint'); addPoints(8,'Checkpoint ativado!');
+        if(c.children[1]) c.children[1].material.color.setHex(0x29e070);
+      }
+    });
+  }
 
   function loop(){requestAnimationFrame(loop); if(!renderer||mode==='lobby')return; const dt=Math.min(clock.getDelta(),.08); invuln=Math.max(0,invuln-dt); updatePlayer(dt); updateCollisions(dt); updateParticles(dt); updateCamera(dt); if(portal&&portal.userData.glow){portal.userData.glow.material.opacity=.42+Math.sin(performance.now()*.004)*.18; portal.rotation.y=Math.sin(performance.now()*.001)*.08;} items.forEach(i=>{if(!i.userData.collected){i.rotation.y+=dt*2.4;i.position.y+=Math.sin(performance.now()*.004+i.position.x)*.002;}}); renderer.render(scene,camera);}
   function updatePlayer(dt){
@@ -335,9 +370,9 @@
   function bindHold(btn,key){const start=e=>{e.preventDefault();input[key]=true;btn.classList.add('hold')}; const end=e=>{input[key]=false;btn.classList.remove('hold')}; btn.addEventListener('pointerdown',start); btn.addEventListener('pointerup',end); btn.addEventListener('pointercancel',end); btn.addEventListener('pointerleave',end);}
   function boot(){
     updateStats(); $$('.diff').forEach(b=>{b.classList.toggle('selected',b.dataset.diff===state.difficulty); b.onclick=()=>{$$('.diff').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); state.difficulty=b.dataset.diff; save();};});
-    $('#btnMissions').onclick=()=>startMode('missions'); $('#btnFree').onclick=()=>startMode('free'); $('#btnExitTop').onclick=exitGame; $('#btnExitPad').onclick=exitGame; $('#btnQuiz').onclick=()=>{loadQuiz();openModal('#modalQuiz')}; $('#btnAsk').onclick=()=>openModal('#modalAsk'); $('#btnCollection').onclick=()=>{renderCollection();openModal('#modalCollection')}; $('#btnReset').onclick=()=>{if(confirm('Zerar pontos, fases e medalhas?')){Object.assign(state,defaultState);save();}};
+    $('#btnMissions').onclick=()=>startMode('missions'); $('#btnFree').onclick=()=>startMode('free'); $('#btnExitTop').onclick=exitGame; $('#btnRespawn').onclick=()=>action('respawn',$('#btnRespawn')); $('#btnQuiz').onclick=()=>{loadQuiz();openModal('#modalQuiz')}; $('#btnAsk').onclick=()=>openModal('#modalAsk'); $('#btnCollection').onclick=()=>{renderCollection();openModal('#modalCollection')}; $('#btnReset').onclick=()=>{if(confirm('Zerar pontos, fases e medalhas?')){Object.assign(state,defaultState);save();}};
     $('#btnShare').onclick=async()=>{try{if(navigator.share)await navigator.share({title:'Athos',url:location.href});else{await navigator.clipboard.writeText(location.href);toast('Link copiado!','good');}}catch(e){}};
-    $$('[data-hold]').forEach(b=>bindHold(b,b.dataset.hold)); $$('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action,b)); $$('[data-open="quiz"]').forEach(b=>b.onclick=()=>{loadQuiz();openModal('#modalQuiz')}); $$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#modalAsk')); $$('.worldChip').forEach(b=>b.onclick=()=>setWorld(b.dataset.world)); $$('[data-close]').forEach(b=>b.onclick=closeModals); $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals();}));
+    $$('[data-hold]').forEach(b=>bindHold(b,b.dataset.hold)); $$('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action,b)); $$('[data-open="quiz"]').forEach(b=>b.onclick=()=>{loadQuiz();openModal('#modalQuiz')}); $$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#modalAsk')); $$('.worldChip').forEach(b=>b.onclick=()=>setWorld(b.dataset.world)); $$('[data-close]').forEach(b=>b.onclick=closeModals); $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals();})); $$('button').forEach(b=>{['contextmenu','selectstart','dragstart'].forEach(ev=>b.addEventListener(ev,e=>e.preventDefault())); ['touchstart','pointerdown','mousedown'].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();},{passive:false}));});
     $('#askSend').onclick=()=>{askAnswer($('#askInput').value);$('#askInput').value=''}; $('#askInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#askSend').click();}); $('#askVoice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voz não suportada','err');return;} const rec=new SR();rec.lang='pt-BR';rec.onresult=e=>{const t=e.results[0][0].transcript;$('#askInput').value=t;askAnswer(t)};rec.start();};
     addEventListener('keydown',e=>{if(e.key==='ArrowLeft')input.left=true;if(e.key==='ArrowRight')input.right=true;if(e.key==='ArrowUp')input.up=true;if(e.key==='ArrowDown')input.down=true;if(e.code==='Space')action('jump');if(e.key==='x')action('spin');if(e.key==='z')action('power');if(e.key==='c')action('crouch');}); addEventListener('keyup',e=>{if(e.key==='ArrowLeft')input.left=false;if(e.key==='ArrowRight')input.right=false;if(e.key==='ArrowUp')input.up=false;if(e.key==='ArrowDown')input.down=false;});
   }

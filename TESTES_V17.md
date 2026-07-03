@@ -1,0 +1,22 @@
+# Testes V17
+
+- [ ] Lobby 3D abre.
+- [ ] Ícone do APK é infantil e seguro.
+- [ ] AR Nativo abre pelo model-viewer.
+- [ ] Jogar Fases abre com Athos 3D.
+- [ ] Controles do gameplay não mostram Quiz/Falar.
+- [ ] Botões não selecionam texto no Android.
+- [ ] D-pad move o Athos.
+- [ ] A pula.
+- [ ] B usa poder.
+- [ ] X alterna modo mini/normal/gigante.
+- [ ] Y abaixa.
+- [ ] Cristais somam pontos e contam objetivo.
+- [ ] Lava tira pontos.
+- [ ] Buraco mata e respawna.
+- [ ] Checkpoint salva posição.
+- [ ] Inimigo causa dano.
+- [ ] Pular em cima do inimigo derrota o inimigo.
+- [ ] Plataforma móvel carrega o Athos.
+- [ ] Portal só conclui com objetivo completo.
+- [ ] Brincar Livre AR mantém câmera real e controles limpos.
