@@ -246,6 +246,13 @@
     @keyframes expectedPulse { 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.08); } }
     .mission-banner.training { border-color: var(--brand-light); box-shadow: 0 10px 30px rgba(255,174,0,.25); }
     .mission-banner.free { border-color: var(--success); box-shadow: 0 10px 30px rgba(32,216,102,.20); }
+
+    /* V13: no Brincar Livre o tutorial não tampa a tela. O HUD vira só placar. */
+    #game-view.free-mode .mission-banner { display: none !important; }
+    #game-view.free-mode .game-hud { left: 10px; right: auto; width: auto; align-items: flex-start; }
+    #game-view.free-mode .hud-top-row { justify-content: flex-start; }
+    #game-view.free-mode .hud-badge { padding: 6px 11px; font-size: 14px; opacity: .92; }
+    #game-view.free-mode .hud-badge b { font-size: 18px; }
     @media (max-width: 480px) {
       .controller-shell { grid-template-columns: 116px 1fr 132px; gap: 6px; }
       .dpad { width: 116px; height: 116px; }
@@ -685,6 +692,67 @@
         grp.add(trunk, leaves); grp.position.set(x, 0, z); return grp;
       };
 
+      const addProp = (obj) => {
+        scene.add(obj);
+        worldProps.push(obj);
+        return obj;
+      };
+
+      const makeBlock = (x, y, z, w, h, d, color, emissive = null) => {
+        const mat = new THREE.MeshStandardMaterial({
+          color,
+          roughness: 0.86,
+          metalness: 0.02,
+          emissive: emissive || 0x000000,
+          emissiveIntensity: emissive ? 0.55 : 0
+        });
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+        mesh.position.set(x, y, z);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        return addProp(mesh);
+      };
+
+      const addSideScrollingDetails = (type) => {
+        const palette = {
+          real:   { tile: 0x222222, edge: 0xffffff, deco: 0xffae00 },
+          fire:   { tile: 0x3a0900, edge: 0xff5e00, deco: 0xff3300 },
+          forest: { tile: 0x2d4c1e, edge: 0x20d866, deco: 0x5a3f2d },
+          castle: { tile: 0x444455, edge: 0x8fa0c4, deco: 0x666677 },
+          space:  { tile: 0x111122, edge: 0xbb00ff, deco: 0xffffff }
+        }[type] || { tile: 0x222222, edge: 0xffae00, deco: 0xffae00 };
+
+        // Plataforma longa: quando o Otto anda para os lados, existe mundo continuando.
+        for (let x = -42; x <= 42; x += 6) {
+          makeBlock(x, -0.08, 3.15, 5.6, 0.14, 0.9, palette.tile);
+          makeBlock(x, -0.05, -4.8, 5.6, 0.12, 0.65, palette.edge, type === 'fire' ? palette.edge : null);
+        }
+
+        // Decorações distribuídas em profundidade/laterais para dar sensação de mapa contínuo.
+        if (type === 'forest') {
+          for (let x = -36; x <= 36; x += 12) addProp(createVoxelTree(x, -6.0));
+        } else if (type === 'fire') {
+          for (let x = -36; x <= 36; x += 12) {
+            makeBlock(x, 0.55, -5.9, 2.2, 1.1, 1.2, 0x111111);
+            makeBlock(x + 2.8, 0.06, -3.2, 2.1, 0.12, 2.4, 0xff3300, 0xff2200);
+          }
+        } else if (type === 'castle') {
+          for (let x = -42; x <= 42; x += 10.5) {
+            makeBlock(x, 1.6, -6.2, 1.5, 3.2, 1.1, 0x666677);
+            makeBlock(x, 3.45, -6.2, 2.0, 0.5, 1.2, 0x777788);
+          }
+        } else if (type === 'space') {
+          for (let i = 0; i < 24; i++) {
+            const sx = -42 + Math.random() * 84;
+            const sy = 1.5 + Math.random() * 7;
+            const sz = -8 - Math.random() * 8;
+            makeBlock(sx, sy, sz, 0.25, 0.25, 0.25, 0xffffff, 0x88bbff);
+          }
+        } else {
+          for (let x = -36; x <= 36; x += 12) makeBlock(x, 0.35, -5.5, 1.1, 0.7, 1.1, palette.deco);
+        }
+      };
+
       const buildWorld = (type) => {
         worldProps.forEach(obj => scene.remove(obj)); worldProps = [];
         if(portalObj) { scene.remove(portalObj); portalObj = null; }
@@ -703,7 +771,7 @@
         }
 
         // Chão 3D
-        const floorGeo = new THREE.PlaneGeometry(60, 60);
+        const floorGeo = new THREE.PlaneGeometry(120, 60);
         const floorMat = type === 'real' ? new THREE.ShadowMaterial({opacity: 0.4}) : new THREE.MeshStandardMaterial({color: conf.floor, roughness: 0.9});
         const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
@@ -733,6 +801,8 @@
           }
         }
 
+        addSideScrollingDetails(type);
+
         // Criar o Portal Voxel (Objetivo visual no fundo)
         portalObj = new THREE.Group();
         const matFrame = new THREE.MeshStandardMaterial({color: 0x222222});
@@ -744,7 +814,7 @@
         const glow = new THREE.Mesh(new THREE.PlaneGeometry(3, 4.5), matGlow); glow.position.set(0, 2.25, 0);
         
         portalObj.add(pL, pR, pT, glow);
-        portalObj.position.set(0, 0, -7);
+        portalObj.position.set(18, 0, -7);
         scene.add(portalObj);
       };
 
@@ -790,9 +860,20 @@
           playerGrp.rotation.y = pRot;
         }
 
+        // Câmera side-scroller: o cenário continua quando o Otto anda para os lados.
+        if (camera) {
+          const targetCamX = state.mode === 'free' ? pX * 0.82 : pX * 0.60;
+          const targetCamZ = 9 + (pZ * 0.35);
+          camera.position.x += (targetCamX - camera.position.x) * 4.2 * dt;
+          camera.position.y += (3.0 - camera.position.y) * 3.5 * dt;
+          camera.position.z += (targetCamZ - camera.position.z) * 3.5 * dt;
+          camera.lookAt(pX, 1.35, pZ - 0.35);
+        }
+
         // Anima Portal
         if (portalObj && portalObj.children[3]) {
           portalObj.children[3].material.opacity = 0.4 + Math.sin(Date.now() * 0.003) * 0.3;
+          portalObj.rotation.y = Math.sin(Date.now() * 0.0014) * 0.09;
         }
 
         // Anima Partículas (Física)
@@ -829,8 +910,9 @@
         if (act === 'normal') { tScl = 1; tSqsh = 1; }
         if (act === 'power') spawnParticles('power');
         
-        tX = Math.max(-4.5, Math.min(4.5, tX)); // Limite lateral
-        tZ = Math.max(-3.5, Math.min(2.5, tZ)); // Limite frente/fundo
+        const lateralLimit = state.mode === 'free' ? 38 : 26;
+        tX = Math.max(-lateralLimit, Math.min(lateralLimit, tX)); // V13: mapa lateral longo
+        tZ = Math.max(-4.5, Math.min(3.2, tZ)); // Limite frente/fundo
 
         checkMissionLogic(act);
       };
@@ -928,26 +1010,34 @@
       // --- NAVEGAÇÃO E MODAIS ---
       const setMode = (m) => {
         state.mode = m;
+        const gameViewEl = $('#game-view');
         if (m === 'lobby') {
           $('#lobby-view').classList.remove('hidden');
-          $('#game-view').classList.remove('active');
+          gameViewEl.classList.remove('active', 'free-mode', 'missions-mode');
           stopCamera();
           updateUIStats();
         } else {
           $('#lobby-view').classList.add('hidden');
-          $('#game-view').classList.add('active');
+          gameViewEl.classList.add('active');
+          gameViewEl.classList.toggle('free-mode', m === 'free');
+          gameViewEl.classList.toggle('missions-mode', m === 'missions');
           initThreeJS();
           if (m === 'missions') {
             if (state.hearts <= 0) { state.hearts = 3; saveState(); }
             loadNextMission();
           } else {
-            // Free play
-            $('#mission-text').textContent = "Brincadeira Livre em 3D/AR: use o controle, troque mundos e brinque sem erro.";
+            // Brincar livre: sem explicação tampando a tela; somente placar + controle.
+            currentMission = null;
+            stepIdx = 0;
+            pX = tX = 0; pZ = tZ = 0; pY = 0; vY = 0; isJumping = false; tScl = 1; pScl = 1; tSqsh = 1; pSqsh = 1;
+            $('#mission-text').textContent = '';
             $('#mission-steps').innerHTML = '';
             const banner = document.querySelector('.mission-banner');
             if (banner) { banner.classList.remove('training'); banner.classList.add('free'); }
             $$('.ctrl-btn').forEach((b) => b.classList.remove('expected'));
             changeWorld('real');
+            showToast('Brincar livre: explore para os lados!', false);
+            speak('Brincar livre. Use o controle para explorar os cenários para os lados.');
           }
         }
       };
