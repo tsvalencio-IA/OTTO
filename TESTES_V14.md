@@ -1,0 +1,23 @@
+# Checklist V14
+
+- [ ] `index.html` abre direto no navegador.
+- [ ] `athos.glb` carrega no lobby via model-viewer.
+- [ ] AR Nativo aparece no celular.
+- [ ] Jogar Fases abre o Three.js.
+- [ ] Athos aparece em 3D no modo jogo.
+- [ ] Controle move Athos para esquerda/direita.
+- [ ] Câmera acompanha o Athos lateralmente.
+- [ ] Pulo funciona.
+- [ ] Abaixar funciona.
+- [ ] Girar funciona.
+- [ ] Poder cria partículas e quebra bloco escuro.
+- [ ] Mini, Normal e Gigante funcionam.
+- [ ] Cristais são coletados.
+- [ ] Portal não conclui fase antes dos objetivos.
+- [ ] Portal conclui fase após os objetivos.
+- [ ] Brincar Livre AR abre com câmera real em HTTPS.
+- [ ] Troca de mundos funciona no Brincar Livre.
+- [ ] Botão Sair funciona no topo e no controle.
+- [ ] Quiz abre e pontua.
+- [ ] Chat responde e fala quando o navegador suporta voz.
+- [ ] Medalhas aparecem na coleção.
