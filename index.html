@@ -299,7 +299,36 @@
   function lavaPenalty(msg){ if(invuln>0||mode!=='missions') return; invuln=.9; state.points=Math.max(0,state.points-8); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),300); toast(msg||'Pisou na lava! -8 pontos','err'); speak('Lava! Perdeu pontos. Pule com A.'); px=Math.max(0,px-1.1); vx=0; }
   function die(msg){ if(invuln>0||mode!=='missions') return; invuln=2; state.hearts-=1; state.points=Math.max(0,state.points-25); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),500); toast(msg||'Caiu no buraco!','err'); speak('Caiu no buraco. Voltando para o checkpoint.'); py=-.6; vy=-8; setTimeout(()=>{if(state.hearts<=0){state.hearts=3; save(); loadLevel(state.level);}else{save(); resetPlayer(); toast('Respawn no checkpoint','good');}},900); }
 
-  function action(act,btn){pulse(btn); if(act==='jump'){if(onGround){vy=11.5; onGround=false; targetSquash=1.18;}} if(act==='crouch'){crouchTimer=.75; targetSquash=.55;} if(act==='mode'){ if(scale<0.75){targetScale=1; toast('Modo normal');} else if(scale<1.3){targetScale=1.55; toast('Modo gigante');} else {targetScale=.55; toast('Modo mini');} } if(act==='respawn'){resetPlayer();toast('Respawn no início');} if(act==='power'){power();} }
+  function action(act,btn){
+    pulse(btn);
+    if(act==='jump'){
+      if(onGround){vy=11.5; onGround=false; targetSquash=1.18;}
+    }
+    if(act==='crouch'){
+      crouchTimer=.75; targetSquash=.55;
+    }
+    if(act==='spin'){
+      targetRot += Math.PI*2;
+      if(objective && objective.spin===false){
+        objective.spin=true;
+        addPoints(8,'Giro ativou energia do portal!');
+        updateGoals();
+      } else {
+        toast('Athos girou!','good');
+      }
+    }
+    if(act==='mode'){
+      if(scale<0.75){targetScale=1; toast('Modo normal');}
+      else if(scale<1.3){targetScale=1.55; toast('Modo gigante');}
+      else {targetScale=.55; toast('Modo mini');}
+    }
+    if(act==='respawn'){
+      resetPlayer();toast('Respawn no início');
+    }
+    if(act==='power'){
+      power();
+    }
+  }
   function power(){spawnParticles('power',22); let broke=false; worldObjs.forEach(o=>{if(o.userData.type==='dark'&&Math.abs(o.position.x-px)<2.2){scene.remove(o); o.userData.removed=true; broke=true;}}); if(broke){objective.powerBroken=true; addPoints(12,'Bloco quebrado!'); updateGoals();} else toast('Poder lançado!');}
   function spawnParticles(type,count=20){if(!scene) return; const geo=new THREE.BoxGeometry(.18,.18,.18); for(let i=0;i<count;i++){const color=type==='win'?Math.random()*0xffffff:0xff6a00; const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color})); m.position.set(px,py+1.6,pz); scene.add(m); particles.push({m,life:1.1+Math.random()*.6,v:new THREE.Vector3((Math.random()-.5)*.24,Math.random()*.24+.06,(Math.random()-.5)*.18),r:Math.random()*.25});}}
   function pulse(btn){if(!btn)return; btn.classList.add('activePress'); setTimeout(()=>btn.classList.remove('activePress'),130);}
@@ -372,7 +401,20 @@
     updateStats(); $$('.diff').forEach(b=>{b.classList.toggle('selected',b.dataset.diff===state.difficulty); b.onclick=()=>{$$('.diff').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); state.difficulty=b.dataset.diff; save();};});
     $('#btnMissions').onclick=()=>startMode('missions'); $('#btnFree').onclick=()=>startMode('free'); $('#btnExitTop').onclick=exitGame; $('#btnRespawn').onclick=()=>action('respawn',$('#btnRespawn')); $('#btnQuiz').onclick=()=>{loadQuiz();openModal('#modalQuiz')}; $('#btnAsk').onclick=()=>openModal('#modalAsk'); $('#btnCollection').onclick=()=>{renderCollection();openModal('#modalCollection')}; $('#btnReset').onclick=()=>{if(confirm('Zerar pontos, fases e medalhas?')){Object.assign(state,defaultState);save();}};
     $('#btnShare').onclick=async()=>{try{if(navigator.share)await navigator.share({title:'Athos',url:location.href});else{await navigator.clipboard.writeText(location.href);toast('Link copiado!','good');}}catch(e){}};
-    $$('[data-hold]').forEach(b=>bindHold(b,b.dataset.hold)); $$('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action,b)); $$('[data-open="quiz"]').forEach(b=>b.onclick=()=>{loadQuiz();openModal('#modalQuiz')}); $$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#modalAsk')); $$('.worldChip').forEach(b=>b.onclick=()=>setWorld(b.dataset.world)); $$('[data-close]').forEach(b=>b.onclick=closeModals); $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals();})); $$('button').forEach(b=>{['contextmenu','selectstart','dragstart'].forEach(ev=>b.addEventListener(ev,e=>e.preventDefault())); ['touchstart','pointerdown','mousedown'].forEach(ev=>b.addEventListener(ev,e=>{e.preventDefault();},{passive:false}));});
+    $$('[data-hold]').forEach(b=>bindHold(b,b.dataset.hold));
+    $$('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action,b));
+    $$('[data-open="quiz"]').forEach(b=>b.onclick=()=>{loadQuiz();openModal('#modalQuiz')});
+    $$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#modalAsk'));
+    $$('.worldChip').forEach(b=>b.onclick=()=>setWorld(b.dataset.world));
+    $$('[data-close]').forEach(b=>b.onclick=closeModals);
+    $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals();}));
+
+    // CORREÇÃO V18: não bloquear touchstart/pointerdown/mousedown em todos os botões.
+    // No Android isso pode cancelar o evento click e fazer os botões parecerem mortos.
+    // Só os botões de movimento contínuo usam preventDefault dentro do bindHold().
+    $$('button').forEach(b=>{
+      ['contextmenu','selectstart','dragstart'].forEach(ev=>b.addEventListener(ev,e=>e.preventDefault()));
+    });
     $('#askSend').onclick=()=>{askAnswer($('#askInput').value);$('#askInput').value=''}; $('#askInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#askSend').click();}); $('#askVoice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voz não suportada','err');return;} const rec=new SR();rec.lang='pt-BR';rec.onresult=e=>{const t=e.results[0][0].transcript;$('#askInput').value=t;askAnswer(t)};rec.start();};
     addEventListener('keydown',e=>{if(e.key==='ArrowLeft')input.left=true;if(e.key==='ArrowRight')input.right=true;if(e.key==='ArrowUp')input.up=true;if(e.key==='ArrowDown')input.down=true;if(e.code==='Space')action('jump');if(e.key==='x')action('spin');if(e.key==='z')action('power');if(e.key==='c')action('crouch');}); addEventListener('keyup',e=>{if(e.key==='ArrowLeft')input.left=false;if(e.key==='ArrowRight')input.right=false;if(e.key==='ArrowUp')input.up=false;if(e.key==='ArrowDown')input.down=false;});
   }
