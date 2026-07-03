@@ -1,330 +1,1597 @@
-(() => {
-  'use strict';
-  const $ = (s, r=document) => r.querySelector(s);
-  const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+// =========================================================================
+// ATHOS: GUARDIÃO DOS PORTAIS — app.js
+// Engine completa: Lobby (model-viewer) + Jogo 3D real (Three.js).
+// Sem build, sem npm — roda direto no GitHub Pages via ES Modules / CDN.
+//
+// Módulos:
+//   StorageManager  -> localStorage (pontos, corações, medalhas, progresso)
+//   AthosBrain      -> respostas locais por palavra-chave + voz
+//   QuizManager     -> perguntas, modal de quiz
+//   WorldBuilder    -> constrói os mundos 3D voxel (chão, obstáculos, portal...)
+//   MissionManager  -> define/valida missões reais (posição + estado, não só botão)
+//   GameEngine      -> Three.js: cena, câmera, player, física simples, loop
+//   LobbyEngine     -> tela inicial (model-viewer + stats + botões)
+// =========================================================================
 
-  const storageKey = 'athos-guardiao-v11-state';
-  const defaultState = { points:0, lives:3, level:1, medals:[], difficulty:'easy', best:0 };
-  let state = loadState();
-  let mode = 'lobby';
-  let currentLevel = null;
-  let currentWorld = 'campo';
-  let collected = 0;
-  let objectiveDone = false;
-  let damageCooldown = 0;
-  let cameraStream = null;
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-  function loadState(){ try { return Object.assign({}, defaultState, JSON.parse(localStorage.getItem(storageKey)||'{}')); } catch { return {...defaultState}; } }
-  function save(){ state.best = Math.max(state.best || 0, state.points || 0); localStorage.setItem(storageKey, JSON.stringify(state)); updateStats(); }
-  function resetState(){ state = {...defaultState}; save(); toast('Progresso zerado.','guide'); }
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  const worlds = {
-    real:{name:'Mundo Real', emoji:'📷', sky:null, fog:null, ground:0x222222, accent:0x1fc4ff, deco:'real'},
-    campo:{name:'Campo dos Blocos', emoji:'🌱', sky:0x9fe0ff, fog:0x9fe0ff, ground:0x4caf50, accent:0x23d96b, deco:'campo'},
-    vulcao:{name:'Vulcão Pixel', emoji:'🔥', sky:0x210702, fog:0x210702, ground:0x4a160d, accent:0xff5e00, deco:'vulcao'},
-    floresta:{name:'Floresta Voxel', emoji:'🌳', sky:0x123522, fog:0x123522, ground:0x2e5d33, accent:0x23d96b, deco:'floresta'},
-    castelo:{name:'Castelo de Pedra', emoji:'🏰', sky:0x151926, fog:0x151926, ground:0x676c75, accent:0x1fc4ff, deco:'castelo'},
-    espaco:{name:'Espaço Cubo', emoji:'🚀', sky:0x05040f, fog:0x05040f, ground:0x252052, accent:0xb264ff, deco:'espaco'}
+const appEl = $('#app');
+
+// -------------------------------------------------------------------------
+// StorageManager
+// -------------------------------------------------------------------------
+const StorageManager = (() => {
+  const KEY = 'athosGP-state-v1';
+
+  const DEFAULT_STATE = {
+    points: 0,
+    hearts: 3,
+    medals: [],
+    currentMissionIndex: 0,
+    difficulty: 'facil',
+    unlockedWorlds: ['campo'],
+    bestScore: 0,
+    quizStats: { right: 0, answered: 0 },
+    counters: { jump: 0, crouch: 0, power: 0, spin: 0, giant: 0, mini: 0, collect: 0 },
+    phase: 1,
+    collection: []
   };
 
-  const medals = [
-    {id:'first', emoji:'⭐', title:'Primeira Fase', desc:'Completou uma fase de verdade.'},
-    {id:'crystal', emoji:'💎', title:'Caçador de Cristais', desc:'Coletou cristais com o Athos.'},
-    {id:'fire', emoji:'🔥', title:'Guardião do Fogo', desc:'Venceu no vulcão.'},
-    {id:'giant', emoji:'🦾', title:'Athos Gigante', desc:'Usou força gigante no portão.'},
-    {id:'quiz', emoji:'🧠', title:'Campeão do Quiz', desc:'Acertou o desafio mental.'},
-    {id:'explorer', emoji:'🗺️', title:'Explorador', desc:'Visitou mundos diferentes.'}
-  ];
-
-  const quiz = [
-    {q:'Qual é o poder principal do Athos?', opts:['Fogo pixelado','Água congelada','Vento invisível'], ans:0, exp:'Isso! O Athos usa fogo pixelado.'},
-    {q:'O que abre a saída da fase?', opts:['O portal','Um carro','Uma televisão'], ans:0, exp:'Certo! O objetivo é chegar no portal.'},
-    {q:'Para passar num túnel baixo, o Athos deve...', opts:['Abaixar ou ficar mini','Ficar gigante','Fechar o jogo'], ans:0, exp:'Perfeito! Abaixar ou mini ajuda nos túneis.'},
-    {q:'Quem é o parceiro do Athos?', opts:['Otto','Dragão','Robô'], ans:0, exp:'Isso! O Otto é o parceiro do Athos.'}
-  ];
-
-  const levels = [
-    {world:'campo', title:'Fase 1 — Campo dos Blocos', objective:'Pegue 3 cristais e chegue no portal.', crystals:[-3,0.5,4], obstacles:[{type:'block',x:2}], portalX:8},
-    {world:'vulcao', title:'Fase 2 — Chão de Lava', objective:'Pule a lava, quebre o bloco escuro com Poder e vá ao portal.', crystals:[-2.5,3.5,6], obstacles:[{type:'lava',x:1.1,w:1.6},{type:'dark',x:5}], portalX:10},
-    {world:'floresta', title:'Fase 3 — Túnel da Floresta', objective:'Fique mini ou abaixe para passar no túnel e colete 3 cristais.', crystals:[-4,1.2,6.5], obstacles:[{type:'tunnel',x:3.4}], portalX:10.5},
-    {world:'castelo', title:'Fase 4 — Portão de Pedra', objective:'Fique gigante para abrir o portão, pegue o cristal e alcance o portal.', crystals:[-3,4,7], obstacles:[{type:'gate',x:4.7}], portalX:11},
-    {world:'espaco', title:'Fase 5 — Espaço Cubo', objective:'Gravidade leve: colete 4 cristais e gire no portal.', crystals:[-4,-1,3,7], obstacles:[{type:'block',x:1.5},{type:'gap',x:5.8,w:1.4}], portalX:11.5, lowGravity:true},
-    {world:'vulcao', title:'Fase 6 — Portal de Fogo', objective:'Colete os cristais, use Poder no bloco e entre no portal.', crystals:[-3,0,3,7], obstacles:[{type:'lava',x:1.6,w:1.4},{type:'dark',x:6}], portalX:12}
-  ];
-
-  // THREE
-  let scene, camera, renderer, clock;
-  let player, athosModel, portal, levelGroup;
-  let solids = [], hazards = [], crystals = [], blockers = [], particles = [];
-  let input = {left:false,right:false,crouch:false};
-  let p = {x:-6,y:0,vx:0,vy:0,scale:1,targetScale:1,rot:0,targetRot:0,squash:1,targetSquash:1,onGround:true,power:false,mini:false,giant:false};
-
-  function updateStats(){
-    $('#statPoints').textContent = state.points; $('#hudPoints').textContent = state.points;
-    $('#statLives').textContent = state.lives; $('#hudLives').textContent = state.lives;
-    $('#statLevel').textContent = state.level; $('#hudLevel').textContent = state.level;
-    $('#statMedals').textContent = state.medals.length;
-    $$('.diffBtn').forEach(b => b.classList.toggle('active', b.dataset.diff === state.difficulty));
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return structuredCloneSafe(DEFAULT_STATE);
+      const parsed = JSON.parse(raw);
+      return Object.assign(structuredCloneSafe(DEFAULT_STATE), parsed, {
+        quizStats: Object.assign({ right: 0, answered: 0 }, parsed.quizStats || {}),
+        counters: Object.assign({ jump: 0, crouch: 0, power: 0, spin: 0, giant: 0, mini: 0, collect: 0 }, parsed.counters || {}),
+        medals: Array.isArray(parsed.medals) ? parsed.medals : [],
+        unlockedWorlds: Array.isArray(parsed.unlockedWorlds) && parsed.unlockedWorlds.length ? parsed.unlockedWorlds : ['campo']
+      });
+    } catch (_) {
+      return structuredCloneSafe(DEFAULT_STATE);
+    }
   }
 
-  function unlock(id){ if(!state.medals.includes(id)){ state.medals.push(id); save(); toast('Nova medalha!', 'ok'); } }
-  function addPoints(n){ state.points += n; save(); }
-  function loseLife(){
-    if (mode !== 'missions') return;
-    if (damageCooldown > 0) return;
-    damageCooldown = 1.2;
-    if (state.difficulty === 'easy') { toast('Cuidado! No fácil não perde vida.', 'guide'); return; }
-    state.lives = Math.max(0, state.lives - 1); save();
-    toast('Cuidado! Perdeu 1 vida.', 'bad');
-    if(state.lives <= 0){ setTimeout(()=>{ state.lives = 3; save(); restartLevel(); }, 1200); }
+  function structuredCloneSafe(obj) {
+    return JSON.parse(JSON.stringify(obj));
   }
 
-  function toast(msg, type=''){
-    const el = $('#toast');
-    el.textContent = msg; el.className = 'toast show ' + type;
-    clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 1800);
+  let state = loadState();
+
+  function saveState() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) { /* silencioso: pode ser modo privado */ }
   }
 
-  function speak(text){
-    if(!('speechSynthesis' in window)) return;
-    try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); u.lang='pt-BR'; u.rate=.98; u.pitch=1.08; speechSynthesis.speak(u); }catch{}
+  function resetState() {
+    state = structuredCloneSafe(DEFAULT_STATE);
+    saveState();
+    return state;
   }
 
-  async function startCamera(){
-    if(cameraStream) return;
-    try{ cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false}); $('#cameraFeed').srcObject = cameraStream; await $('#cameraFeed').play().catch(()=>{}); }
-    catch{ toast('Câmera bloqueada. Use cenário 3D.', 'guide'); }
-  }
-  function stopCamera(){ if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } $('#cameraFeed').srcObject=null; }
-
-  function init3D(){
-    if(renderer) return;
-    const wrap = $('#threeWrap');
-    scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x9fe0ff, 0.02);
-    camera = new THREE.PerspectiveCamera(55, wrap.clientWidth / wrap.clientHeight, .1, 150);
-    camera.position.set(0, 4.2, 9.5); camera.lookAt(0,1,0);
-    renderer = new THREE.WebGLRenderer({alpha:true, antialias:true});
-    renderer.domElement.id = 'three-canvas';
-    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
-    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    wrap.innerHTML=''; wrap.appendChild(renderer.domElement);
-    clock = new THREE.Clock();
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x333333, .75));
-    const sun = new THREE.DirectionalLight(0xffffff, 1.0); sun.position.set(5,12,6); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024); scene.add(sun);
-    player = new THREE.Group(); scene.add(player);
-    loadAthos();
-    levelGroup = new THREE.Group(); scene.add(levelGroup);
-    window.addEventListener('resize', resize3D, {passive:true});
-    animate();
-  }
-  function resize3D(){ if(!renderer) return; const wrap=$('#threeWrap'); camera.aspect = wrap.clientWidth / wrap.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(wrap.clientWidth, wrap.clientHeight); }
-  function loadAthos(){
-    const loader = new THREE.GLTFLoader();
-    loader.load('./athos.glb', gltf => {
-      athosModel = gltf.scene;
-      const box = new THREE.Box3().setFromObject(athosModel);
-      const h = box.max.y - box.min.y || 3;
-      const target = 2.3;
-      const s = target / h;
-      athosModel.scale.set(s,s,s);
-      athosModel.position.y = -box.min.y*s;
-      athosModel.traverse(c=>{ if(c.isMesh){ c.castShadow=true; c.receiveShadow=true; }});
-      player.add(athosModel);
-    }, undefined, () => createFallbackAthos());
-  }
-  function createFallbackAthos(){
-    const black = mat(0x111111), fire=mat(0xff6a00,0x551500), red=mat(0xff1111,0x330000);
-    const g = new THREE.Group();
-    function cube(x,y,z,w,h,d,m){ const mesh=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); mesh.position.set(x,y,z); mesh.castShadow=true; mesh.receiveShadow=true; g.add(mesh); return mesh; }
-    cube(0,1.2,0,1.1,1.4,.7,black); cube(0,2.4,0,1,1,.8,black); cube(-.24,2.48,.43,.18,.12,.08,red); cube(.24,2.48,.43,.18,.12,.08,red); cube(-.8,1.2,0,.35,1.2,.35,fire); cube(.8,1.2,0,.35,1.2,.35,fire); cube(-.32,.35,0,.35,.7,.35,fire); cube(.32,.35,0,.35,.7,.35,fire); athosModel=g; player.add(g);
-  }
-  function mat(color, emissive=0x000000){ return new THREE.MeshStandardMaterial({color, emissive, roughness:.72, metalness:0}); }
-
-  function buildWorld(worldId, level){
-    if(!levelGroup) return;
-    while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
-    solids=[]; hazards=[]; crystals=[]; blockers=[]; particles=[]; portal=null;
-    const conf = worlds[worldId] || worlds.campo;
-    currentWorld = worldId;
-    $('#game').classList.toggle('realMode', worldId === 'real');
-    $('#worldLabel').textContent = conf.emoji + ' ' + conf.name;
-    scene.background = worldId === 'real' ? null : new THREE.Color(conf.sky);
-    scene.fog.color.setHex(conf.fog || 0x000000); scene.fog.density = worldId === 'real' ? 0 : .026;
-    if(worldId === 'real') startCamera(); else stopCamera();
-    $$('.worldChip').forEach(b=>b.classList.toggle('active', b.dataset.world === worldId));
-
-    const groundMat = worldId === 'real' ? new THREE.ShadowMaterial({opacity:.34}) : mat(conf.ground);
-    const ground = new THREE.Mesh(new THREE.BoxGeometry(42,.35,7), groundMat); ground.position.set(3,-.18,0); ground.receiveShadow=true; levelGroup.add(ground); solids.push({x:-18,w:42,y:0,h:.3,mesh:ground});
-    addGrid(conf.ground);
-    addDecor(conf.deco, conf);
-    const px = level ? level.portalX : 8;
-    createPortal(px, conf.accent);
-    if(level) createLevelObjects(level, conf);
-  }
-  function addGrid(color){
-    const lineMat = new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:.12});
-    const g = new THREE.BufferGeometry();
-    const verts=[]; for(let x=-18;x<=24;x+=1){ verts.push(x,.02,-3.5,x,.02,3.5); } for(let z=-3;z<=3;z+=1){ verts.push(-18,.025,z,24,.025,z); }
-    g.setAttribute('position', new THREE.Float32BufferAttribute(verts,3)); const lines=new THREE.LineSegments(g,lineMat); levelGroup.add(lines);
-  }
-  function addDecor(type, conf){
-    const decoMat = mat(conf.accent, type==='vulcao' ? 0x551100 : 0);
-    const dark = mat(0x151515), stone=mat(0x686b73), trunk=mat(0x654321), leaf=mat(0x1f9d45,0x001d05);
-    const cube=(x,y,z,w,h,d,m)=>{ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m); o.position.set(x,y,z); o.castShadow=true; o.receiveShadow=true; levelGroup.add(o); return o; };
-    if(type==='campo'){ [-9,-5,13,18].forEach(x=>cube(x,.35,-3,.7,.7,.7,decoMat)); }
-    if(type==='vulcao'){ cube(-8,.8,-2.8,2,1.6,2,dark); cube(14,.5,-2.5,2,1,2,dark); cube(0,.08,2.7,30,.12,.9,decoMat); }
-    if(type==='floresta'){ [-8,-2,8,15].forEach(x=>{cube(x,1,-3, .7,2,.7,trunk); cube(x,2.7,-3,2,2,2,leaf);}); }
-    if(type==='castelo'){ cube(-9,1.5,-3,1.3,3,1.3,stone); cube(12,1.5,-3,1.3,3,1.3,stone); cube(1,3.2,-3,8,.8,1,stone); }
-    if(type==='espaco'){ for(let i=0;i<20;i++) cube(Math.random()*34-12,Math.random()*6+1,-4-Math.random()*8,.25,.25,.25,mat(0xffffff,0x3355ff)); }
-  }
-  function createPortal(x, color){
-    portal = new THREE.Group();
-    const frame = mat(0x111111);
-    const glowMat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:.55, side:THREE.DoubleSide});
-    const add=(w,h,px,py)=>{ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.55),frame); m.position.set(px,py,0); m.castShadow=true; portal.add(m); };
-    add(.55,3.9,-1.35,1.95); add(.55,3.9,1.35,1.95); add(3.25,.55,0,3.65);
-    const glow=new THREE.Mesh(new THREE.PlaneGeometry(2.45,3.35), glowMat); glow.position.y=1.9; portal.add(glow);
-    portal.position.set(x,0,-2.1); levelGroup.add(portal);
-  }
-  function createLevelObjects(level, conf){
-    level.crystals.forEach(x=>addCrystal(x));
-    level.obstacles.forEach(o=>{
-      if(o.type==='lava'){ const m=addBox(o.x,.08,0,o.w||1.5,.16,3.3,0xff3300,0xaa1100); hazards.push({type:'lava',x:o.x,w:o.w||1.5,mesh:m}); }
-      if(o.type==='block'){ const m=addBox(o.x,.6,0,1,1.2,1.2,0x8a5b33); blockers.push({type:'block',x:o.x,w:1,mesh:m}); }
-      if(o.type==='dark'){ const m=addBox(o.x,.7,0,1.1,1.4,1.1,0x050505); blockers.push({type:'dark',x:o.x,w:1.1,mesh:m,alive:true}); }
-      if(o.type==='tunnel'){ const top=addBox(o.x,1.65,0,2.6,.5,1.2,0x7a5133); blockers.push({type:'tunnel',x:o.x,w:2.6,mesh:top}); }
-      if(o.type==='gate'){ const m=addBox(o.x,1.45,0,2.2,2.9,.7,0x606070); blockers.push({type:'gate',x:o.x,w:2.2,mesh:m,alive:true}); }
-      if(o.type==='gap'){ const m=addBox(o.x,.08,0,o.w||1,.18,3.2,0x110011,0x220044); hazards.push({type:'gap',x:o.x,w:o.w||1,mesh:m}); }
-    });
-  }
-  function addBox(x,y,z,w,h,d,color,em=0){ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(color,em)); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; levelGroup.add(m); return m; }
-  function addCrystal(x){ const m=new THREE.Mesh(new THREE.OctahedronGeometry(.48,0), new THREE.MeshStandardMaterial({color:0x2feaff, emissive:0x004466, roughness:.22, metalness:.2})); m.position.set(x,1.1,0); m.castShadow=true; levelGroup.add(m); crystals.push({x,mesh:m,got:false}); }
-
-  function startMissions(){ mode='missions'; $('#lobby').classList.add('hidden'); $('#game').classList.add('active'); $('#game').setAttribute('aria-hidden','false'); init3D(); state.lives = state.lives || 3; loadLevel(state.level); save(); }
-  function startFree(){ mode='free'; $('#lobby').classList.add('hidden'); $('#game').classList.add('active'); $('#game').setAttribute('aria-hidden','false'); init3D(); currentLevel=null; resetPlayer(-2); buildWorld('real', null); $('#objectiveText').textContent='Brincadeira livre: use o controle para mover o Athos no mundo real ou nos cenários.'; $('#hudCrystals').textContent='Livre'; $('#progressFill').style.width='0%'; save(); }
-  function exitGame(){ mode='lobby'; $('#lobby').classList.remove('hidden'); $('#game').classList.remove('active'); $('#game').setAttribute('aria-hidden','true'); stopCamera(); save(); }
-  function loadLevel(n){
-    currentLevel = levels[(n-1) % levels.length]; collected=0; objectiveDone=false; damageCooldown=0;
-    resetPlayer(-6); buildWorld(currentLevel.world, currentLevel);
-    $('#objectiveText').textContent = currentLevel.objective;
-    $('#hudCrystals').textContent = `0/${currentLevel.crystals.length}`;
-    $('#progressFill').style.width = '0%';
-    speak(currentLevel.title + '. ' + currentLevel.objective);
-    toast(currentLevel.title, 'guide');
-  }
-  function restartLevel(){ loadLevel(state.level); }
-  function resetPlayer(x=-6){ p={x, y:0, vx:0, vy:0, scale:1, targetScale:1, rot:0, targetRot:0, squash:1, targetSquash:1, onGround:true, power:false, mini:false, giant:false}; if(player){ player.position.set(x,0,0); player.scale.set(1,1,1); player.rotation.y=0; } }
-
-  function action(act, btn){
-    if(btn) { btn.style.filter='brightness(1.4)'; setTimeout(()=>btn.style.filter='',120); }
-    if(act==='left') p.vx = -4.2;
-    if(act==='right') p.vx = 4.2;
-    if(act==='jump') jump();
-    if(act==='crouch') crouch();
-    if(act==='spin') { p.targetRot += Math.PI*2; toast('Giro ativado!', 'guide'); }
-    if(act==='power') power();
-    if(act==='mini') { p.targetScale=.55; p.mini=true; p.giant=false; toast('Modo mini!', 'guide'); }
-    if(act==='normal') { p.targetScale=1; p.mini=false; p.giant=false; p.targetSquash=1; toast('Tamanho normal.', 'guide'); }
-    if(act==='giant') { p.targetScale=1.55; p.giant=true; p.mini=false; unlock('giant'); toast('Athos gigante!', 'guide'); }
-  }
-  function jump(){ if(p.onGround){ p.vy = currentLevel && currentLevel.lowGravity ? 9 : 12; p.onGround=false; p.targetSquash=1.12; toast('Pulo!', 'guide'); } }
-  function crouch(){ p.targetSquash=.55; setTimeout(()=>{ if(!input.crouch) p.targetSquash=1; },650); }
-  function power(){
-    spawnParticles('power');
-    const nearDark = blockers.find(b=>b.type==='dark' && b.alive && Math.abs(p.x-b.x)<1.7);
-    if(nearDark){ nearDark.alive=false; levelGroup.remove(nearDark.mesh); toast('Bloco escuro quebrado!', 'ok'); addPoints(5); }
-    toast('Poder de fogo!', 'guide');
-  }
-
-  function animate(){
-    requestAnimationFrame(animate);
-    if(!renderer || mode==='lobby') return;
-    const dt = Math.min(clock.getDelta(), .08);
-    damageCooldown = Math.max(0, damageCooldown-dt);
-    if(input.left) p.vx = -4.2; else if(input.right) p.vx = 4.2; else p.vx *= Math.pow(.0002, dt);
-    if(input.crouch) p.targetSquash = .55;
-    const gravity = currentLevel && currentLevel.lowGravity ? 12 : 26;
-    p.vy -= gravity*dt;
-    p.x += p.vx*dt; p.y += p.vy*dt;
-    if(p.y <= 0){ p.y=0; p.vy=0; p.onGround=true; if(!input.crouch) p.targetSquash=1; }
-    p.x = Math.max(-8.5, Math.min((currentLevel?currentLevel.portalX+2:8), p.x));
-    p.scale += (p.targetScale-p.scale)*8*dt; p.squash += (p.targetSquash-p.squash)*10*dt; p.rot += (p.targetRot-p.rot)*7*dt;
-    if(player){ player.position.set(p.x,p.y,0); player.rotation.y=p.rot; player.scale.set(p.scale, p.scale*p.squash, p.scale); }
-    updateGameLogic(dt);
-    updateCamera();
-    updateParticles(dt);
-    if(portal && portal.children[3]) portal.children[3].material.opacity = .38 + Math.sin(Date.now()*.005)*.24;
-    crystals.forEach(c=>{ if(!c.got){ c.mesh.rotation.y += dt*2.4; c.mesh.position.y = 1.1 + Math.sin(Date.now()*.004 + c.x)*.12; }});
-    renderer.render(scene,camera);
-  }
-  function updateCamera(){ if(!camera || !player) return; const targetX = mode === 'free' ? p.x : Math.max(-2, p.x+1.2); camera.position.x += (targetX-camera.position.x)*.08; camera.position.y += ((p.y+4.0)-camera.position.y)*.035; camera.lookAt(camera.position.x, 1.2, 0); }
-  function updateGameLogic(){
-    if(mode !== 'missions' || !currentLevel) return;
-    crystals.forEach(c=>{ if(!c.got && Math.abs(p.x-c.x)<.75 && p.y<2.6){ c.got=true; levelGroup.remove(c.mesh); collected++; addPoints(10); unlock('crystal'); spawnParticles('win'); toast(`Cristal ${collected}/${currentLevel.crystals.length}`, 'ok'); $('#hudCrystals').textContent=`${collected}/${currentLevel.crystals.length}`; }});
-    blockers.forEach(b=>{
-      if(b.alive===false) return;
-      const near = Math.abs(p.x-b.x) < (b.w/2+.45);
-      if(!near) return;
-      if(b.type==='block' && p.y<1.05){ p.x = b.x - Math.sign(p.vx||1)*(b.w/2+.62); }
-      if(b.type==='tunnel' && !(input.crouch || p.mini || p.squash<.7)){ toast('Túnel baixo: abaixe ou fique mini!', 'guide'); p.x = b.x - Math.sign(p.vx||1)*(b.w/2+.62); }
-      if(b.type==='gate' && !p.giant){ toast('Portão pesado: fique gigante!', 'guide'); p.x = b.x - Math.sign(p.vx||1)*(b.w/2+.62); }
-      if(b.type==='gate' && p.giant){ b.alive=false; levelGroup.remove(b.mesh); toast('Portão aberto!', 'ok'); addPoints(8); }
-      if(b.type==='dark'){ toast('Bloco escuro: use Poder perto dele!', 'guide'); p.x = b.x - Math.sign(p.vx||1)*(b.w/2+.62); }
-    });
-    hazards.forEach(h=>{ if(Math.abs(p.x-h.x)<(h.w/2+.38) && p.y<.75){ loseLife(); p.vy=8; p.x -= Math.sign(p.vx||1)*.8; }});
-    const pct = Math.max(0, Math.min(100, ((p.x+6)/(currentLevel.portalX+6))*100)); $('#progressFill').style.width = pct+'%';
-    if(Math.abs(p.x-currentLevel.portalX)<1.2 && collected>=currentLevel.crystals.length){ completeLevel(); }
-    else if(Math.abs(p.x-currentLevel.portalX)<1.2 && collected<currentLevel.crystals.length){ toast('Pegue todos os cristais antes do portal.', 'guide'); }
-  }
-  function completeLevel(){
-    if(objectiveDone) return; objectiveDone=true; spawnParticles('win'); addPoints(40); unlock('first'); if(currentLevel.world==='vulcao') unlock('fire'); if(currentLevel.world==='espaco') unlock('explorer'); state.level++; save(); toast('Portal aberto! Fase completa!', 'ok'); speak('Fase completa! O portal abriu.'); setTimeout(()=>loadLevel(state.level),2200);
-  }
-  function spawnParticles(kind){
-    if(!scene) return; const count=kind==='win'?38:22;
-    for(let i=0;i<count;i++){ const color=kind==='win'?Math.random()*0xffffff:0xff7a00; const mesh=new THREE.Mesh(new THREE.BoxGeometry(.18,.18,.18), new THREE.MeshBasicMaterial({color})); mesh.position.set(p.x,p.y+1.2,0); scene.add(mesh); particles.push({mesh,life:1+Math.random()*.6,vx:(Math.random()-.5)*.22,vy:Math.random()*.25+.07,vz:(Math.random()-.5)*.22}); }
-  }
-  function updateParticles(dt){
-    for(let i=particles.length-1;i>=0;i--){ const q=particles[i]; q.mesh.position.x+=q.vx; q.mesh.position.y+=q.vy; q.mesh.position.z+=q.vz; q.vy-=.7*dt; q.life-=dt; q.mesh.rotation.x+=.08; q.mesh.rotation.y+=.06; if(q.life<=0){ scene.remove(q.mesh); particles.splice(i,1); }}
-  }
-
-  function openQuiz(){
-    const q = quiz[Math.floor(Math.random()*quiz.length)];
-    $('#quizQuestion').textContent = q.q; $('#quizFeedback').textContent=''; const box=$('#quizOptions'); box.innerHTML='';
-    q.opts.forEach((opt,i)=>{ const b=document.createElement('button'); b.className='btn'; b.textContent=opt; b.onclick=()=>{ box.querySelectorAll('button').forEach(x=>x.disabled=true); if(i===q.ans){ b.classList.add('ok'); $('#quizFeedback').textContent=q.exp+' +10 pontos'; addPoints(10); unlock('quiz'); speak('Resposta certa!'); setTimeout(()=>closeModal(b),1400); } else { b.classList.add('danger'); $('#quizFeedback').textContent='Quase! '+q.exp; speak('Quase!'); }}; box.appendChild(b); });
-    openModal('#quizModal');
-  }
-  function answerAthos(){
-    const q = ($('#askInput').value||'').toLowerCase(); let r='No meu mundo existem cristais, portais e fases para explorar.';
-    if(q.includes('fogo')||q.includes('poder')) r='Meu poder de fogo quebra blocos escuros e acende os portais.';
-    else if(q.includes('otto')) r='O Otto é meu parceiro guardião. Com ele eu consigo passar qualquer fase!';
-    else if(q.includes('portal')) r='Para abrir o portal, colete os cristais e chegue até ele.';
-    else if(q.includes('mini')) r='O modo mini ajuda a passar em túneis pequenos.';
-    else if(q.includes('gigante')) r='O modo gigante abre portões pesados do castelo.';
-    else if(q.includes('quem')) r='Eu sou o Athos, um boneco 3D guardião dos portais.';
-    $('#askResponse').textContent=r; $('#askInput').value=''; speak(r);
-  }
-  function openCollection(){ const grid=$('#collectionGrid'); grid.innerHTML=''; medals.forEach(m=>{ const ok=state.medals.includes(m.id); const div=document.createElement('div'); div.className='badgeItem '+(ok?'':'locked'); div.innerHTML=`<span class="emoji">${ok?m.emoji:'🔒'}</span><strong>${m.title}</strong><small>${m.desc}</small>`; grid.appendChild(div); }); openModal('#collectionModal'); }
-  function openModal(id){ $(id).hidden=false; } function closeModal(el){ el.closest('.modal').hidden=true; }
-
-  // events
-  $('#playBtn').onclick = startMissions; $('#freeBtn').onclick=startFree; $('#exitTopBtn').onclick=exitGame; $('#exitBottomBtn').onclick=exitGame; $('#resetBtn').onclick=()=>{ if(confirm('Zerar pontos, fases e medalhas?')) resetState(); };
-  $('#quizLobbyBtn').onclick=openQuiz; $('#askLobbyBtn').onclick=()=>openModal('#askModal'); $('#collectionBtn').onclick=openCollection;
-  $$('.diffBtn').forEach(b=>b.onclick=()=>{ state.difficulty=b.dataset.diff; save(); });
-  $$('[data-action]').forEach(b=>b.addEventListener('click',()=>action(b.dataset.action,b)));
-  $$('[data-open="quiz"]').forEach(b=>b.onclick=openQuiz); $$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#askModal'));
-  $$('[data-close]').forEach(b=>b.onclick=()=>closeModal(b));
-  $('#askSend').onclick=answerAthos; $('#askInput').onkeydown=e=>{ if(e.key==='Enter') answerAthos(); };
-  $('#askVoice').onclick=()=>{ const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ toast('Voz não suportada neste navegador.','guide'); return;} const rec=new SR(); rec.lang='pt-BR'; rec.onresult=e=>{ $('#askInput').value=e.results[0][0].transcript; answerAthos(); }; rec.start(); };
-  $$('.worldChip').forEach(b=>b.onclick=()=>{ if(mode==='missions'){ toast('Nas fases o mundo vem do portal. Use Brincar Livre para trocar.', 'guide'); return;} buildWorld(b.dataset.world, null); });
-  $$('[data-hold]').forEach(b=>{
-    const key=b.dataset.hold;
-    const down=e=>{e.preventDefault(); input[key]=true; if(key==='jump') jump(); if(key==='crouch') crouch();};
-    const up=()=>{ input[key]=false; if(key==='crouch') p.targetSquash=1; };
-    b.addEventListener('pointerdown',down); b.addEventListener('pointerup',up); b.addEventListener('pointercancel',up); b.addEventListener('pointerleave',up);
-  });
-  document.addEventListener('keydown', e=>{ if(mode==='lobby') return; const map={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowUp:'jump',Space:'jump',KeyW:'jump',ArrowDown:'crouch',KeyS:'crouch',KeyX:'power',KeyY:'spin',KeyG:'giant',KeyM:'mini',KeyN:'normal'}; const a=map[e.code]; if(!a) return; e.preventDefault(); if(a==='left'||a==='right'||a==='crouch') input[a]=true; action(a); });
-  document.addEventListener('keyup', e=>{ const map={ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right',ArrowDown:'crouch',KeyS:'crouch'}; const a=map[e.code]; if(a) {input[a]=false; if(a==='crouch') p.targetSquash=1;} });
-  window.addEventListener('beforeunload', stopCamera);
-  updateStats();
+  return {
+    get: () => state,
+    save: saveState,
+    reset: resetState,
+    set(patch) { Object.assign(state, patch); saveState(); },
+    addPoints(n) { state.points = Math.max(0, state.points + n); if (state.points > state.bestScore) state.bestScore = state.points; saveState(); },
+    loseHeart() { state.hearts = Math.max(0, state.hearts - 1); saveState(); return state.hearts; },
+    resetHearts(n) { state.hearts = n; saveState(); },
+    incCounter(key) { state.counters[key] = (state.counters[key] || 0) + 1; saveState(); return state.counters[key]; },
+    unlockWorld(id) { if (!state.unlockedWorlds.includes(id)) { state.unlockedWorlds.push(id); saveState(); return true; } return false; },
+    unlockMedal(id) { if (!state.medals.includes(id)) { state.medals.push(id); saveState(); return true; } return false; }
+  };
 })();
+
+// -------------------------------------------------------------------------
+// Dados de conteúdo: mundos, medalhas, missões, quiz, respostas
+// -------------------------------------------------------------------------
+
+const WORLDS = [
+  { id: 'campo', name: 'Campo dos Blocos', ground: 0x4caf50, ground2: 0x3d8b40, sky: 0x9fe0ff, fog: 0x9fe0ff, light: 0xfff2cf, accent: 0x2e7d32, deco: 'grass' },
+  { id: 'vulcao', name: 'Vulcão Pixel', ground: 0x5b2a1e, ground2: 0x3a1810, sky: 0x2a0f0a, fog: 0x2a0f0a, light: 0xff8a3d, accent: 0xff5722, deco: 'lava' },
+  { id: 'floresta', name: 'Floresta Voxel', ground: 0x2e5d33, ground2: 0x224526, sky: 0x123322, fog: 0x123322, light: 0xbfffb0, accent: 0x1b5e20, deco: 'trees' },
+  { id: 'castelo', name: 'Castelo de Pedra', ground: 0x777c85, ground2: 0x5b5f66, sky: 0x1c2230, fog: 0x1c2230, light: 0xd8c9a3, accent: 0x8d6e63, deco: 'stone' },
+  { id: 'espaco', name: 'Espaço Cubo', ground: 0x2b2560, ground2: 0x1c1840, sky: 0x05040f, fog: 0x05040f, light: 0x9fd6ff, accent: 0x7c5cff, deco: 'stars' },
+  { id: 'arena', name: 'Arena dos Portais', ground: 0x3a3a4a, ground2: 0x27273a, sky: 0x120f22, fog: 0x120f22, light: 0xffd166, accent: 0xff4d6d, deco: 'portals' }
+];
+// "Mundo Real" é um extra apenas do modo Brincar Livre (usa câmera do celular).
+const REAL_WORLD = { id: 'real', name: 'Mundo Real (câmera)', ground: 0x000000, sky: 0x000000, fog: 0x000000, light: 0xffffff, accent: 0x3dd6ff, deco: 'none' };
+
+function worldById(id) {
+  return WORLDS.find((w) => w.id === id) || (id === 'real' ? REAL_WORLD : WORLDS[0]);
+}
+
+const MEDALS = [
+  { id: 'primeiro_pulo', icon: '🦘', name: 'Primeiro Pulo' },
+  { id: 'guardiao_fogo', icon: '🔥', name: 'Guardião do Fogo' },
+  { id: 'mestre_portais', icon: '🌀', name: 'Mestre dos Portais' },
+  { id: 'athos_gigante', icon: '🦾', name: 'Athos Gigante' },
+  { id: 'campeao_quiz', icon: '🧠', name: 'Campeão do Quiz' },
+  { id: 'explorador_mundos', icon: '🗺️', name: 'Explorador dos Mundos' },
+  { id: 'sequencia_perfeita', icon: '⭐', name: 'Sequência Perfeita' }
+];
+
+const MISSION_STEP_LABEL = {
+  jump: 'Pule sobre o bloco de obstáculo.',
+  crouch: 'Abaixe para passar por baixo do portal.',
+  collectLeft: 'Colete o cristal à esquerda.',
+  collectRight: 'Colete o cristal à direita.',
+  giant: 'Fique gigante para abrir o portão.',
+  mini: 'Fique mini para passar pelo túnel.',
+  power: 'Use o poder de fogo para acender o bloco escuro.',
+  spin: 'Gire perto do portal para ativá-lo.'
+};
+const MISSION_STEP_POOL = Object.keys(MISSION_STEP_LABEL);
+
+const QUIZ_QUESTIONS = [
+  { q: 'Qual é a cor principal do Athos?', options: ['Preto', 'Azul', 'Verde'], answer: 0, explain: 'O Athos é preto, com olhos vermelhos e detalhes de fogo.' },
+  { q: 'Quais cores aparecem no fogo do Athos?', options: ['Amarelo, laranja e vermelho', 'Roxo e rosa', 'Azul e cinza'], answer: 0, explain: 'O fogo pixelado dele tem amarelo, laranja e vermelho.' },
+  { q: 'Quem brinca com o Athos neste jogo?', options: ['Otto', 'Um robô desconhecido', 'Um dragão'], answer: 0, explain: 'O jogo foi feito para o Otto brincar com o Athos.' },
+  { q: 'Qual botão deixa o Athos maior?', options: ['Crescer', 'Mini', 'Pausar'], answer: 0, explain: 'O botão Crescer deixa o Athos gigante.' },
+  { q: 'O que o Athos precisa fazer para passar num túnel baixo?', options: ['Abaixar', 'Girar', 'Ficar gigante'], answer: 0, explain: 'Abaixar deixa o Athos baixinho para passar por baixo.' },
+  { q: 'Como o Athos ativa um portal?', options: ['Girando perto dele', 'Dormindo', 'Ficando parado longe'], answer: 0, explain: 'Girar perto do portal ativa a energia dele.' },
+  { q: 'Qual mundo tem lava e fogo?', options: ['Vulcão Pixel', 'Espaço Cubo', 'Floresta Voxel'], answer: 0, explain: 'O Vulcão Pixel é o mundo de fogo do Athos.' },
+  { q: 'Qual botão faz o Athos responder com voz?', options: ['Falar', 'Mini', 'Direita'], answer: 0, explain: 'Falar faz o Athos conversar com o Otto.' },
+  { q: 'O Athos é mais parecido com qual estilo?', options: ['Boneco blocado voxel', 'Carro realista', 'Peixe'], answer: 0, explain: 'O Athos é um personagem blocado, estilo voxel.' },
+  { q: 'O que dá pontos extras para o Otto?', options: ['Completar missões e o quiz', 'Ficar parado', 'Fechar o jogo'], answer: 0, explain: 'Missões e o quiz dão pontos e medalhas para o Otto.' },
+  { q: 'Qual botão diminui o Athos?', options: ['Mini', 'Gigante', 'Girar'], answer: 0, explain: 'O botão Mini deixa o Athos pequeno.' },
+  { q: 'Para onde o cristal desaparece quando o Athos coleta?', options: ['Vira pontos e brilho', 'Vira uma pedra', 'Nada acontece'], answer: 0, explain: 'Ao coletar, o cristal vira pontos e um brilho de energia.' }
+];
+
+function normalizeText(value) {
+  return String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// -------------------------------------------------------------------------
+// AthosBrain — respostas locais por palavra-chave + voz (sem API externa)
+// -------------------------------------------------------------------------
+const AthosBrain = (() => {
+  function say(text) {
+    if (!('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance(String(text).replace(/<[^>]+>/g, ''));
+      msg.lang = 'pt-BR';
+      msg.rate = 0.96;
+      msg.pitch = 1.06;
+      window.speechSynthesis.speak(msg);
+    } catch (_) { /* voz indisponível, seguimos só com texto */ }
+  }
+
+  function answer(rawQuestion, missionTextNow) {
+    const q = normalizeText(rawQuestion);
+    let a = '';
+    if (!q) a = 'Pergunte alguma coisa sobre mim: meus poderes, meus mundos ou minhas missões.';
+    else if (q.includes('quem') || q.includes('athos') || q.includes('atos')) a = 'Eu sou o Athos, guardião dos portais! Um personagem 3D blocado, preto, com olhos vermelhos e fogo pixelado nos braços e pernas.';
+    else if (q.includes('medo')) a = 'Às vezes fico com medo do escuro dos portais, mas com o Otto do meu lado eu fico corajoso!';
+    else if (q.includes('amigo')) a = 'Meu maior amigo é o Otto. A gente enfrenta os portais e os mundos juntos.';
+    else if (q.includes('poder') || q.includes('forca') || q.includes('magia')) a = 'Meu poder é a chama pixelada! Com ela eu acendo blocos escuros, pulo mais alto e abro portais.';
+    else if (q.includes('otto')) a = 'O Otto é meu parceiro de aventura. Ele escolhe o mundo, cumpre as missões e ganha pontos comigo.';
+    else if (q.includes('missao') || q.includes('fazer agora')) a = 'A missão atual é: ' + (missionTextNow || 'explorar o mundo e procurar o próximo desafio.');
+    else if (q.includes('historia') || q.includes('conte')) a = 'Um dia, no Vulcão Pixel, minhas chamas brilharam tanto que abriram um portal para outros mundos. Desde então eu protejo cada portal com o Otto.';
+    else if (q.includes('fogo') || q.includes('chama') || q.includes('vulcao')) a = 'O Vulcão Pixel é o mundo onde nasci. As chamas dos meus braços e pernas vêm de lá.';
+    else if (q.includes('espaco') || q.includes('estrela') || q.includes('planeta')) a = 'No Espaço Cubo eu viajo entre planetas quadrados e procuro estrelas para guiar o Otto.';
+    else if (q.includes('floresta') || q.includes('arvore')) a = 'A Floresta Voxel tem árvores gigantes escondendo portais secretos.';
+    else if (q.includes('castelo')) a = 'No Castelo de Pedra eu preciso abaixar e passar pelos portões para achar o cristal de fogo.';
+    else if (q.includes('mundo')) a = 'Tenho seis mundos: Campo dos Blocos, Vulcão Pixel, Floresta Voxel, Castelo de Pedra, Espaço Cubo e a Arena dos Portais.';
+    else if (q.includes('gigante')) a = 'Quando fico gigante, consigo abrir portões pesados e proteger o Otto.';
+    else if (q.includes('mini')) a = 'Quando fico mini, passo por túneis pequenos e cantos escondidos.';
+    else if (q.includes('quiz')) a = 'No quiz, você responde perguntas sobre o meu mundo. Cada acerto dá pontos e ajuda a destravar missões.';
+    else if (q.includes('portal')) a = 'Os portais só se abrem quando eu giro perto deles com energia total!';
+    else a = 'Boa pergunta! Tente perguntar sobre fogo, espaço, floresta, castelo, poderes, mundo, medo, amigo ou missões.';
+    say(a);
+    return a;
+  }
+
+  function startVoiceQuestion(onResult, onError) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      onError && onError('Meu celular não aceitou pergunta por voz aqui. Pode digitar a pergunta.');
+      return;
+    }
+    try {
+      const rec = new SpeechRecognition();
+      rec.lang = 'pt-BR';
+      rec.interimResults = false;
+      rec.maxAlternatives = 1;
+      rec.onresult = (event) => {
+        const text = event.results && event.results[0] && event.results[0][0] ? event.results[0][0].transcript : '';
+        onResult && onResult(text);
+      };
+      rec.onerror = () => onError && onError('Não consegui ouvir agora. Digite a pergunta para o Athos.');
+      rec.start();
+    } catch (_) {
+      onError && onError('A pergunta por voz não abriu neste navegador. Use o teclado.');
+    }
+  }
+
+  return { answer, say, startVoiceQuestion };
+})();
+
+// -------------------------------------------------------------------------
+// QuizManager
+// -------------------------------------------------------------------------
+const QuizManager = (() => {
+  let order = [];
+  let current = null;
+  let locked = false;
+  let onCorrectCallback = null;
+
+  const els = {};
+  function bindEls() {
+    els.points = $('#quizPoints');
+    els.right = $('#quizRight');
+    els.answered = $('#quizAnswered');
+    els.question = $('#quizQuestion');
+    els.options = $('#quizOptions');
+    els.feedback = $('#quizFeedback');
+    els.startBtn = $('#quizStartBtn');
+    els.nextBtn = $('#quizNextBtn');
+  }
+
+  function shuffledIndexes(len) {
+    return Array.from({ length: len }, (_, i) => i).sort(() => Math.random() - 0.5);
+  }
+
+  function updateScoreUI() {
+    const s = StorageManager.get();
+    if (els.points) els.points.textContent = String(s.points);
+    if (els.right) els.right.textContent = String(s.quizStats.right);
+    if (els.answered) els.answered.textContent = String(s.quizStats.answered);
+  }
+
+  function renderStart() {
+    if (els.question) els.question.textContent = 'Toque em Começar para jogar o Quiz do Athos.';
+    if (els.options) els.options.innerHTML = '';
+    if (els.feedback) els.feedback.textContent = 'Acerte perguntas para ganhar pontos e medalhas.';
+    updateScoreUI();
+  }
+
+  function next() {
+    if (!order.length) order = shuffledIndexes(QUIZ_QUESTIONS.length);
+    const idx = order.shift();
+    current = QUIZ_QUESTIONS[idx];
+    locked = false;
+    if (els.question) els.question.textContent = current.q;
+    if (els.feedback) els.feedback.textContent = 'Escolha uma resposta.';
+    if (els.options) {
+      els.options.innerHTML = '';
+      current.options.forEach((opt, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = opt;
+        b.addEventListener('click', () => answerQuiz(i, b));
+        els.options.appendChild(b);
+      });
+    }
+  }
+
+  function answerQuiz(i, btn) {
+    if (!current || locked) return;
+    locked = true;
+    const s = StorageManager.get();
+    s.quizStats.answered += 1;
+    const correct = i === current.answer;
+    if (correct) {
+      s.quizStats.right += 1;
+      StorageManager.addPoints(10);
+      if (btn) btn.classList.add('correct');
+      if (els.feedback) els.feedback.textContent = current.explain + ' +10 pontos.';
+      AthosBrain.say('Resposta certa! ' + current.explain);
+      if (s.quizStats.right >= 8) {
+        if (StorageManager.unlockMedal('campeao_quiz')) Toast.medal('🧠 Medalha: Campeão do Quiz!');
+      }
+      if (typeof onCorrectCallback === 'function') { const cb = onCorrectCallback; onCorrectCallback = null; cb(); }
+    } else {
+      if (btn) btn.classList.add('wrong');
+      const correctBtn = els.options ? els.options.children[current.answer] : null;
+      if (correctBtn) correctBtn.classList.add('correct');
+      if (els.feedback) els.feedback.textContent = 'Quase! ' + current.explain;
+      AthosBrain.say('Quase! ' + current.explain);
+    }
+    StorageManager.save();
+    updateScoreUI();
+  }
+
+  function open(onCorrect) {
+    bindEls();
+    onCorrectCallback = onCorrect || null;
+    ModalManager.open('quizModal');
+    renderStart();
+  }
+
+  function init() {
+    bindEls();
+    if (els.startBtn) els.startBtn.addEventListener('click', next);
+    if (els.nextBtn) els.nextBtn.addEventListener('click', next);
+    renderStart();
+  }
+
+  return { init, open, renderStart, updateScoreUI };
+})();
+
+// -------------------------------------------------------------------------
+// ModalManager — genérico para quiz / talk / coleção / dificuldade / mundo
+// -------------------------------------------------------------------------
+const ModalManager = (() => {
+  function open(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.hidden = false;
+    el.setAttribute('aria-hidden', 'false');
+  }
+  function close(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.hidden = true;
+    el.setAttribute('aria-hidden', 'true');
+  }
+  function init() {
+    $$('.modalCloseBtn[data-close-modal]').forEach((btn) => {
+      btn.addEventListener('click', () => close(btn.dataset.closeModal));
+    });
+    $$('.modal').forEach((modal) => {
+      modal.addEventListener('click', (ev) => { if (ev.target === modal) close(modal.id); });
+    });
+  }
+  return { open, close, init };
+})();
+
+// -------------------------------------------------------------------------
+// Toast — feedback visual rápido dentro do jogo
+// -------------------------------------------------------------------------
+const Toast = (() => {
+  let el = null;
+  let hideTimer = null;
+  function ensure() { if (!el) el = $('#toast'); return el; }
+  function show(text, kind = '') {
+    ensure();
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'toast' + (kind ? ' ' + kind : '');
+    el.hidden = false;
+    window.clearTimeout(hideTimer);
+    hideTimer = window.setTimeout(() => { el.hidden = true; }, 2200);
+  }
+  const success = (t) => show(t, 'success');
+  const error = (t) => show(t, 'error');
+  const medal = (t) => show(t, 'success');
+  return { show, success, error, medal };
+})();
+
+// -------------------------------------------------------------------------
+// WorldBuilder — constrói cada mundo 3D voxel (chão, decoração, objetos)
+// -------------------------------------------------------------------------
+const WorldBuilder = (() => {
+  // Posições (lanes) para os objetos interativos das missões.
+  const LANE_X = { collectLeft: -10, crouch: -7.2, jump: -4.3, power: -1.4, spin: 1.4, giant: 4.3, mini: 7.2, collectRight: 10 };
+  const OBJECT_Z = -9;
+
+  let currentGroup = null;
+  const disposables = [];
+
+  function disposeGroup(group) {
+    if (!group) return;
+    group.traverse((obj) => {
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach((m) => m.dispose());
+        else obj.material.dispose();
+      }
+    });
+  }
+
+  function makeGround(worldDef) {
+    const group = new THREE.Group();
+    const size = 26;
+    const half = size / 2;
+    // Chão sólido (colisão / base visual) — MeshLambertMaterial, nunca ShadowMaterial como chão colorido.
+    const baseGeo = new THREE.BoxGeometry(size, 1, 20);
+    const baseMat = new THREE.MeshLambertMaterial({ color: worldDef.ground });
+    const base = new THREE.Mesh(baseGeo, baseMat);
+    base.position.set(0, -0.5, -4);
+    base.receiveShadow = true;
+    group.add(base);
+
+    // Blocos voxel decorativos no chão (InstancedMesh por performance).
+    const blockGeo = new THREE.BoxGeometry(0.98, 0.3, 0.98);
+    const blockMat = new THREE.MeshLambertMaterial({ color: worldDef.ground2 });
+    const cols = 20, rows = 16;
+    const inst = new THREE.InstancedMesh(blockGeo, blockMat, cols * rows);
+    const dummy = new THREE.Object3D();
+    let i = 0;
+    for (let cx = 0; cx < cols; cx++) {
+      for (let cz = 0; cz < rows; cz++) {
+        if (Math.random() > 0.16) continue;
+        const x = -half + cx + (Math.random() * 0.4 - 0.2);
+        const z = -14 + cz + (Math.random() * 0.4 - 0.2);
+        dummy.position.set(x, 0.15, z);
+        dummy.rotation.y = Math.random() * Math.PI;
+        dummy.updateMatrix();
+        inst.setMatrixAt(i++, dummy.matrix);
+      }
+    }
+    inst.count = i;
+    group.add(inst);
+    return group;
+  }
+
+  function makeObstacleJump() {
+    const g = new THREE.Group();
+    const geo = new THREE.BoxGeometry(1.6, 1.1, 1.6);
+    const mat = new THREE.MeshStandardMaterial({ color: 0xff5252, emissive: 0x4a0e0e, roughness: 0.5 });
+    const box = new THREE.Mesh(geo, mat);
+    box.position.y = 0.55;
+    box.castShadow = true;
+    g.add(box);
+    g.userData.baseY = 0.55;
+    return g;
+  }
+
+  function makeTunnelCrouch() {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x8d6e63, roughness: 0.8 });
+    const beamGeo = new THREE.BoxGeometry(2.4, 0.5, 1.2);
+    const beam = new THREE.Mesh(beamGeo, mat);
+    beam.position.y = 1.55;
+    g.add(beam);
+    const postGeo = new THREE.BoxGeometry(0.4, 1.8, 1.2);
+    [-1.2, 1.2].forEach((x) => {
+      const p = new THREE.Mesh(postGeo, mat);
+      p.position.set(x, 0.9, 0);
+      g.add(p);
+    });
+    return g;
+  }
+
+  function makeMiniTunnel() {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x64b5f6, emissive: 0x0a2a4a, roughness: 0.6 });
+    const beamGeo = new THREE.BoxGeometry(1.5, 0.3, 1);
+    const beam = new THREE.Mesh(beamGeo, mat);
+    beam.position.y = 0.75;
+    g.add(beam);
+    const postGeo = new THREE.BoxGeometry(0.25, 0.75, 1);
+    [-0.7, 0.7].forEach((x) => {
+      const p = new THREE.Mesh(postGeo, mat);
+      p.position.set(x, 0.375, 0);
+      g.add(p);
+    });
+    return g;
+  }
+
+  function makeGate() {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0xffb74d, emissive: 0x4a2a05, roughness: 0.4, metalness: 0.2 });
+    const doorGeo = new THREE.BoxGeometry(1.1, 2.6, 0.25);
+    const left = new THREE.Mesh(doorGeo, mat);
+    left.position.set(-0.6, 1.3, 0);
+    left.name = 'doorLeft';
+    const right = new THREE.Mesh(doorGeo, mat.clone());
+    right.position.set(0.6, 1.3, 0);
+    right.name = 'doorRight';
+    g.add(left, right);
+    g.userData.left = left;
+    g.userData.right = right;
+    g.userData.open = false;
+    return g;
+  }
+
+  function makeDarkBlock() {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x1a1a24, emissive: 0x000000, roughness: 0.7 });
+    const geo = new THREE.BoxGeometry(1.3, 1.3, 1.3);
+    const box = new THREE.Mesh(geo, mat);
+    box.position.y = 0.65;
+    g.add(box);
+    g.userData.mesh = box;
+    g.userData.lit = false;
+    return g;
+  }
+
+  function makePortal() {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x7c5cff, emissive: 0x3d2a8f, roughness: 0.3, metalness: 0.4 });
+    const geo = new THREE.TorusGeometry(1.1, 0.18, 12, 24);
+    const torus = new THREE.Mesh(geo, mat);
+    torus.position.y = 1.3;
+    g.add(torus);
+    g.userData.torus = torus;
+    return g;
+  }
+
+  function makeCrystal(color) {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6, roughness: 0.25 });
+    const geo = new THREE.OctahedronGeometry(0.55, 0);
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.y = 1.0;
+    g.add(mesh);
+    g.userData.mesh = mesh;
+    g.userData.collected = false;
+    return g;
+  }
+
+  function addDecor(group, worldDef) {
+    const deco = new THREE.Group();
+    const colors = [worldDef.ground2, worldDef.accent];
+    for (let i = 0; i < 22; i++) {
+      const s = 0.5 + Math.random() * 1.1;
+      const geo = new THREE.BoxGeometry(s, s, s);
+      const mat = new THREE.MeshLambertMaterial({ color: colors[i % colors.length] });
+      const mesh = new THREE.Mesh(geo, mat);
+      const side = Math.random() < 0.5 ? -1 : 1;
+      mesh.position.set(side * (12 + Math.random() * 6), s / 2, -2 - Math.random() * 16);
+      mesh.rotation.y = Math.random() * Math.PI;
+      deco.add(mesh);
+    }
+    group.add(deco);
+  }
+
+  function setupLights(scene, worldDef) {
+    const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+    const dir = new THREE.DirectionalLight(worldDef.light, 0.9);
+    dir.position.set(6, 12, 8);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    const rim = new THREE.PointLight(worldDef.accent, 0.6, 30);
+    rim.position.set(0, 4, -8);
+    const lightGroup = new THREE.Group();
+    lightGroup.add(ambient, dir, rim);
+    scene.add(lightGroup);
+    return lightGroup;
+  }
+
+  function build(scene, worldId, isRealCamera) {
+    if (currentGroup) {
+      scene.remove(currentGroup);
+      disposeGroup(currentGroup);
+      currentGroup = null;
+    }
+    const worldDef = worldById(worldId);
+    const group = new THREE.Group();
+    group.name = 'world-' + worldId;
+
+    if (!isRealCamera) {
+      scene.background = new THREE.Color(worldDef.sky);
+      scene.fog = new THREE.Fog(worldDef.fog, 14, 42);
+      group.add(makeGround(worldDef));
+      addDecor(group, worldDef);
+    } else {
+      scene.background = null;
+      scene.fog = null;
+    }
+
+    const objects = {};
+    objects.jump = makeObstacleJump(); objects.jump.position.set(LANE_X.jump, 0, OBJECT_Z);
+    objects.crouch = makeTunnelCrouch(); objects.crouch.position.set(LANE_X.crouch, 0, OBJECT_Z);
+    objects.collectLeft = makeCrystal(0x3dd6ff); objects.collectLeft.position.set(LANE_X.collectLeft, 0, OBJECT_Z);
+    objects.collectRight = makeCrystal(0xffd166); objects.collectRight.position.set(LANE_X.collectRight, 0, OBJECT_Z);
+    objects.giant = makeGate(); objects.giant.position.set(LANE_X.giant, 0, OBJECT_Z);
+    objects.mini = makeMiniTunnel(); objects.mini.position.set(LANE_X.mini, 0, OBJECT_Z);
+    objects.power = makeDarkBlock(); objects.power.position.set(LANE_X.power, 0, OBJECT_Z);
+    objects.spin = makePortal(); objects.spin.position.set(LANE_X.spin, 0, OBJECT_Z);
+
+    Object.values(objects).forEach((o) => group.add(o));
+
+    const lightGroup = setupLights(scene, worldDef);
+    group.add(lightGroup);
+
+    scene.add(group);
+    currentGroup = group;
+    return { group, objects, laneX: LANE_X, worldDef };
+  }
+
+  return { build, LANE_X, OBJECT_Z };
+})();
+
+// -------------------------------------------------------------------------
+// MissionManager — define/valida missões com condição real (posição+estado)
+// -------------------------------------------------------------------------
+const MissionManager = (() => {
+  const DIFFICULTY_CFG = {
+    facil: { hearts: 3, steps: 1, timeLimit: 0, punishHeart: false, label: 'Fácil' },
+    medio: { hearts: 3, steps: 2, timeLimit: 30, punishHeart: true, label: 'Médio' },
+    dificil: { hearts: 3, steps: 3, timeLimit: 18, punishHeart: true, label: 'Difícil' }
+  };
+
+  let mission = null; // { steps:[{type,done}], stepIndex, timeLeft, timeLimit, isQuiz, perfect, worldId }
+  let listeners = {};
+  let zoneCollisionTimers = {};
+
+  function label(difficulty) { return (DIFFICULTY_CFG[difficulty] || DIFFICULTY_CFG.facil).label; }
+  function cfg(difficulty) { return DIFFICULTY_CFG[difficulty] || DIFFICULTY_CFG.facil; }
+
+  function pickSteps(n) {
+    const pool = MISSION_STEP_POOL.slice();
+    const steps = [];
+    for (let i = 0; i < n; i++) {
+      const idx = Math.floor(Math.random() * pool.length);
+      steps.push(pool.splice(idx, 1)[0]);
+      if (!pool.length) pool.push(...MISSION_STEP_POOL);
+    }
+    return steps;
+  }
+
+  function build(worldId, difficulty, roundIndex) {
+    const c = cfg(difficulty);
+    const isQuizRound = roundIndex > 0 && roundIndex % 5 === 4;
+    zoneCollisionTimers = {};
+    if (isQuizRound) {
+      mission = { worldId, steps: ['quiz'], stepIndex: 0, timeLeft: 0, timeLimit: 0, isQuiz: true, perfect: true, difficulty };
+    } else {
+      const steps = pickSteps(c.steps);
+      mission = { worldId, steps, stepIndex: 0, timeLeft: c.timeLimit, timeLimit: c.timeLimit, isQuiz: false, perfect: true, difficulty };
+    }
+    return mission;
+  }
+
+  function current() { return mission; }
+  function currentStepType() { return mission ? mission.steps[mission.stepIndex] : null; }
+
+  function textFor(mission) {
+    if (!mission) return '';
+    if (mission.isQuiz) return 'Vá até o portal roxo e responda o Quiz do Athos para destravar a fase.';
+    const stepTxt = MISSION_STEP_LABEL[mission.steps[mission.stepIndex]] || '';
+    const stepCount = mission.steps.length;
+    const prefix = stepCount > 1 ? `Passo ${mission.stepIndex + 1}/${stepCount}: ` : '';
+    return prefix + stepTxt;
+  }
+
+  function on(event, fn) { listeners[event] = fn; }
+  function emit(event, payload) { if (listeners[event]) listeners[event](payload); }
+
+  function tick(dt) {
+    if (!mission || mission.isQuiz) return;
+    if (mission.timeLimit > 0) {
+      mission.timeLeft -= dt;
+      if (mission.timeLeft <= 0) {
+        mission.perfect = false;
+        emit('timeout', mission);
+      }
+    }
+  }
+
+  function completeStep() {
+    if (!mission) return;
+    mission.stepIndex += 1;
+    if (mission.stepIndex >= mission.steps.length) {
+      emit('missionComplete', mission);
+    } else {
+      emit('stepComplete', mission);
+    }
+  }
+
+  function failStep(kind) {
+    if (!mission) return;
+    mission.perfect = false;
+    emit('stepFail', { mission, kind });
+  }
+
+  function zoneCollisionTick(key, active, dt, threshold, onFail) {
+    if (!active) { zoneCollisionTimers[key] = 0; return; }
+    zoneCollisionTimers[key] = (zoneCollisionTimers[key] || 0) + dt;
+    if (zoneCollisionTimers[key] >= threshold) {
+      zoneCollisionTimers[key] = 0;
+      onFail();
+    }
+  }
+
+  return { DIFFICULTY_CFG, label, cfg, build, current, currentStepType, textFor, on, tick, completeStep, failStep, zoneCollisionTick };
+})();
+
+// -------------------------------------------------------------------------
+// GameEngine — Three.js: cena, câmera, player, física simples, input, loop
+// -------------------------------------------------------------------------
+const GameEngine = (() => {
+  let renderer = null, scene = null, camera = null;
+  let host = null;
+  let rafId = null;
+  let running = false;
+  let clock = null;
+  let resizeAttached = false;
+
+  let playerRig = null;
+  let playerLoaded = false;
+  let worldData = null;
+
+  const player = {
+    x: 0, y: 0, z: 4, vy: 0,
+    isJumping: false, isCrouching: false, crouchTimer: 0,
+    sizeState: 'normal', baseScale: 1,
+    rotY: 0, spinning: false, spinT: 0,
+    powerT: 0
+  };
+
+  let mode = 'missions'; // 'missions' | 'free'
+  let worldId = 'campo';
+  let paused = false;
+  let cameraStreamActive = false;
+  let cameraStream = null;
+  let particles = [];
+  let stepCooldown = 0; // evita concluir o mesmo passo duas vezes seguidas
+
+  const GRAVITY = -20;
+  const JUMP_VY = 7.2;
+  const GROUND_Y = 0;
+  const ZONE_RADIUS = 1.9;
+
+  function els() {
+    return {
+      screenGame: $('#screen-game'),
+      screenLobby: $('#screen-lobby'),
+      canvasHost: $('#gameCanvasHost'),
+      cameraFeed: $('#cameraFeed'),
+      hudPoints: $('#hudPoints'),
+      hudHearts: $('#hudHearts'),
+      hudHeartsWrap: $('#hudHeartsWrap'),
+      hudPhase: $('#hudPhase'),
+      hudDifficulty: $('#hudDifficulty'),
+      missionMode: $('#missionMode'),
+      missionText: $('#missionText'),
+      missionTimerWrap: $('#missionTimerWrap'),
+      missionTimerBar: $('#missionTimerBar'),
+      pauseOverlay: $('#pauseOverlay'),
+      pauseSummary: $('#pauseSummary'),
+      gameOverOverlay: $('#gameOverOverlay'),
+      worldSwitchGrid: $('#worldSwitchGrid')
+    };
+  }
+
+  function initThree() {
+    host = els().canvasHost;
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(55, host.clientWidth / Math.max(1, host.clientHeight), 0.1, 200);
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.domElement.id = 'three-canvas'; // patch obrigatório: canvas precisa de id próprio
+    host.appendChild(renderer.domElement);
+    clock = new THREE.Clock();
+
+    if (!resizeAttached) {
+      window.addEventListener('resize', onResize);
+      resizeAttached = true; // evita listeners de resize duplicados
+    }
+    onResize();
+  }
+
+  function onResize() {
+    if (!renderer || !camera || !host) return;
+    const w = host.clientWidth || window.innerWidth;
+    const h = host.clientHeight || window.innerHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / Math.max(1, h);
+    camera.updateProjectionMatrix();
+  }
+
+  function proceduralAthos() {
+    const g = new THREE.Group();
+    const black = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.6 });
+    const red = new THREE.MeshStandardMaterial({ color: 0xff2b2b, emissive: 0x7a0000, emissiveIntensity: 0.8 });
+    const flame = new THREE.MeshStandardMaterial({ color: 0xff8a3d, emissive: 0xcc4400, emissiveIntensity: 0.7 });
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), black);
+    head.position.y = 1.55;
+    const eyeGeo = new THREE.BoxGeometry(0.08, 0.08, 0.05);
+    const eyeL = new THREE.Mesh(eyeGeo, red); eyeL.position.set(-0.12, 1.58, 0.26);
+    const eyeR = new THREE.Mesh(eyeGeo, red); eyeR.position.set(0.12, 1.58, 0.26);
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.75, 0.36), black);
+    torso.position.y = 0.95;
+    const armGeo = new THREE.BoxGeometry(0.22, 0.68, 0.22);
+    const armL = new THREE.Mesh(armGeo, black); armL.position.set(-0.44, 0.92, 0);
+    const armR = new THREE.Mesh(armGeo, black); armR.position.set(0.44, 0.92, 0);
+    const flameL = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.24), flame); flameL.position.set(-0.44, 0.55, 0);
+    const flameR = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.16, 0.24), flame); flameR.position.set(0.44, 0.55, 0);
+    const legGeo = new THREE.BoxGeometry(0.26, 0.72, 0.26);
+    const legL = new THREE.Mesh(legGeo, black); legL.position.set(-0.17, 0.2, 0);
+    const legR = new THREE.Mesh(legGeo, black); legR.position.set(0.17, 0.2, 0);
+    const footFlameGeo = new THREE.BoxGeometry(0.28, 0.12, 0.28);
+    const footL = new THREE.Mesh(footFlameGeo, flame); footL.position.set(-0.17, -0.18, 0);
+    const footR = new THREE.Mesh(footFlameGeo, flame); footR.position.set(0.17, -0.18, 0);
+
+    g.add(head, eyeL, eyeR, torso, armL, armR, flameL, flameR, legL, legR, footL, footR);
+    g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    g.userData.isFallback = true;
+    return g;
+  }
+
+  function loadPlayer(onReady) {
+    const loader = new GLTFLoader();
+    loader.load(
+      './athos.glb',
+      (gltf) => {
+        const model = gltf.scene;
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const targetHeight = 1.9;
+        const scale = size.y > 0 ? targetHeight / size.y : 1;
+        model.scale.setScalar(scale);
+        const box2 = new THREE.Box3().setFromObject(model);
+        model.position.y -= box2.min.y;
+        model.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+        playerRig = new THREE.Group();
+        playerRig.add(model);
+        playerLoaded = true;
+        scene.add(playerRig);
+        onReady && onReady(true);
+      },
+      undefined,
+      (err) => {
+        console.warn('athos.glb não carregou, usando Athos alternativo (fallback procedural).', err);
+        playerRig = new THREE.Group();
+        playerRig.add(proceduralAthos());
+        playerLoaded = false;
+        scene.add(playerRig);
+        Toast.show('Athos alternativo carregado (modelo 3D não abriu agora).');
+        onReady && onReady(false);
+      }
+    );
+  }
+
+  // ---------------- Câmera real (fundo) ----------------
+  async function startCamera() {
+    if (cameraStreamActive) return true;
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      Toast.error('Câmera precisa de HTTPS (abra pelo link do GitHub Pages).');
+      return false;
+    }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      Toast.error('Câmera indisponível neste navegador.');
+      return false;
+    }
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      const video = els().cameraFeed;
+      video.srcObject = cameraStream;
+      await video.play().catch(() => {});
+      cameraStreamActive = true;
+      appEl.dataset.cameraOn = '1';
+      scene.background = null;
+      renderer.setClearColor(0x000000, 0); // canvas transparente sobre o vídeo
+      scene.fog = null;
+      return true;
+    } catch (err) {
+      console.warn('Câmera negada ou indisponível.', err);
+      Toast.error('Câmera não liberada. O jogo continua sem o fundo real.');
+      return false;
+    }
+  }
+
+  function stopCamera() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach((t) => t.stop());
+      cameraStream = null;
+    }
+    cameraStreamActive = false;
+    appEl.dataset.cameraOn = '0';
+    const video = els().cameraFeed;
+    if (video) video.srcObject = null;
+  }
+
+  // ---------------- Mundo ----------------
+  function buildWorld(id) {
+    worldId = id;
+    const isReal = id === 'real';
+    worldData = WorldBuilder.build(scene, id, isReal);
+    if (isReal) startCamera(); else stopCamera();
+    resetPlayerPosition();
+  }
+
+  function resetPlayerPosition() {
+    player.x = 0; player.y = GROUND_Y; player.z = 4; player.vy = 0;
+    player.isJumping = false; player.isCrouching = false; player.crouchTimer = 0;
+    player.rotY = 0; player.spinning = false; player.spinT = 0;
+    syncPlayerTransform();
+  }
+
+  function syncPlayerTransform() {
+    if (!playerRig) return;
+    playerRig.position.set(player.x, player.y, player.z);
+    playerRig.rotation.y = player.rotY;
+    const crouchScaleY = player.isCrouching ? 0.55 : 1;
+    let sizeScale = 1;
+    if (player.sizeState === 'giant') sizeScale = 1.7;
+    else if (player.sizeState === 'mini') sizeScale = 0.5;
+    playerRig.scale.set(sizeScale, sizeScale * crouchScaleY, sizeScale);
+  }
+
+  // ---------------- Ações (hotbar) ----------------
+  function handleAction(name) {
+    if (paused || !running) return;
+    switch (name) {
+      case 'left': player.x = clamp(player.x - 1.8, -11.5, 11.5); onMoved(); break;
+      case 'right': player.x = clamp(player.x + 1.8, -11.5, 11.5); onMoved(); break;
+      case 'jump': doJump(); break;
+      case 'crouch': doCrouch(); break;
+      case 'spin': doSpin(); break;
+      case 'giant': setSize('giant'); break;
+      case 'mini': setSize('mini'); break;
+      case 'normal': setSize('normal'); break;
+      case 'power': doPower(); break;
+      case 'talk': openTalk(); break;
+      case 'quiz': openQuizFromHotbar(); break;
+      case 'center': doCenter(); break;
+      case 'exit': openPause(); break;
+      default: break;
+    }
+  }
+
+  function onMoved() { syncPlayerTransform(); }
+
+  function doJump() {
+    if (player.isJumping) return;
+    player.isJumping = true;
+    player.vy = JUMP_VY;
+  }
+
+  function doCrouch() {
+    player.isCrouching = true;
+    player.crouchTimer = 0.9;
+    syncPlayerTransform();
+    if (mode === 'missions') StorageManager.incCounter('crouch');
+  }
+
+  function doSpin() {
+    player.spinning = true;
+    player.spinT = 0;
+    if (mode === 'missions') {
+      const n = StorageManager.incCounter('spin');
+      if (n >= 5 && StorageManager.unlockMedal('mestre_portais')) Toast.medal('🌀 Medalha: Mestre dos Portais!');
+      evaluateActionMission('spin');
+    }
+    if (worldData && worldData.objects.spin) {
+      const near = Math.abs(player.x - WorldBuilder.LANE_X.spin) < ZONE_RADIUS;
+      if (near) pulseObject(worldData.objects.spin.userData.torus, 0xffffff, 300);
+    }
+  }
+
+  function doPower() {
+    player.powerT = 0.001; // dispara animação de partículas
+    spawnPowerParticles();
+    if (mode === 'missions') {
+      StorageManager.incCounter('power');
+      const inFire = worldId === 'vulcao';
+      if (inFire && StorageManager.unlockMedal('guardiao_fogo')) Toast.medal('🔥 Medalha: Guardião do Fogo!');
+      evaluateActionMission('power');
+    }
+  }
+
+  function setSize(state) {
+    player.sizeState = state;
+    syncPlayerTransform();
+    if (mode === 'missions') {
+      if (state === 'giant') {
+        const n = StorageManager.incCounter('giant');
+        if (n >= 1 && StorageManager.unlockMedal('athos_gigante')) Toast.medal('🦾 Medalha: Athos Gigante!');
+      }
+      if (state === 'mini') StorageManager.incCounter('mini');
+    }
+  }
+
+  function doCenter() {
+    player.x = 0;
+    syncPlayerTransform();
+    Toast.show('Athos centralizado.');
+  }
+
+  function spawnPowerParticles() {
+    if (!scene || !playerRig) return;
+    const group = new THREE.Group();
+    const mat = new THREE.SpriteMaterial({ color: 0xffb347 });
+    for (let i = 0; i < 14; i++) {
+      const spr = new THREE.Sprite(mat.clone());
+      spr.scale.set(0.18, 0.18, 0.18);
+      spr.position.copy(playerRig.position);
+      spr.position.y += 0.9;
+      const angle = Math.random() * Math.PI * 2;
+      spr.userData.vx = Math.cos(angle) * (0.8 + Math.random());
+      spr.userData.vz = Math.sin(angle) * (0.8 + Math.random());
+      spr.userData.vy = 1.4 + Math.random();
+      spr.userData.life = 0.7;
+      group.add(spr);
+    }
+    scene.add(group);
+    particles.push(group);
+  }
+
+  function updateParticles(dt) {
+    particles.forEach((group) => {
+      group.children.forEach((spr) => {
+        spr.userData.life -= dt;
+        spr.position.x += spr.userData.vx * dt;
+        spr.position.z += spr.userData.vz * dt;
+        spr.position.y += spr.userData.vy * dt;
+        spr.userData.vy -= 3 * dt;
+        spr.material.opacity = Math.max(0, spr.userData.life / 0.7);
+      });
+    });
+    particles = particles.filter((group) => {
+      const alive = group.children.some((c) => c.userData.life > 0);
+      if (!alive) { scene.remove(group); }
+      return alive;
+    });
+  }
+
+  function pulseObject(mesh, color, ms) {
+    if (!mesh) return;
+    const original = mesh.material.emissive ? mesh.material.emissive.clone() : null;
+    if (mesh.material.emissive) mesh.material.emissive.setHex(color);
+    window.setTimeout(() => { if (original && mesh.material.emissive) mesh.material.emissive.copy(original); }, ms);
+  }
+
+  // ---------------- Missões: avaliação ----------------
+  function evaluateActionMission(actionType) {
+    if (mode !== 'missions') return;
+    const mission = MissionManager.current();
+    if (!mission || mission.isQuiz) return;
+    const stepType = MissionManager.currentStepType();
+    if (stepType !== actionType) return;
+    const laneX = WorldBuilder.LANE_X[actionType];
+    const near = Math.abs(player.x - laneX) < ZONE_RADIUS;
+    if (near) missionStepSucceeded(stepType);
+  }
+
+  function missionStepSucceeded(stepType) {
+    if (stepCooldown > 0) return;
+    stepCooldown = 0.6;
+    if (stepType === 'jump') { if (StorageManager.unlockMedal('primeiro_pulo')) Toast.medal('🦘 Medalha: Primeiro Pulo!'); }
+    if (stepType === 'giant' && worldData && worldData.objects.giant) openGate(worldData.objects.giant);
+    Toast.success('✅ Passo concluído!');
+    MissionManager.completeStep();
+  }
+
+  function openGate(gate) {
+    if (gate.userData.open) return;
+    gate.userData.open = true;
+    const l = gate.userData.left, r = gate.userData.right;
+    let t = 0;
+    const anim = () => {
+      t += 0.05;
+      l.position.x = -0.6 - t * 0.9;
+      r.position.x = 0.6 + t * 0.9;
+      if (t < 1) requestAnimationFrame(anim);
+    };
+    anim();
+  }
+
+  function collectCrystal(which) {
+    if (!worldData) return;
+    const obj = worldData.objects[which];
+    if (!obj || obj.userData.collected) return;
+    obj.userData.collected = true;
+    obj.visible = false;
+    StorageManager.incCounter('collect');
+    StorageManager.addPoints(5);
+    Toast.success('💎 Cristal coletado! +5 pontos');
+  }
+
+  function missionZoneChecks(dt) {
+    if (mode !== 'missions' || !worldData) return;
+    const mission = MissionManager.current();
+    if (!mission || mission.isQuiz) return;
+    const stepType = MissionManager.currentStepType();
+    if (!stepType) return;
+    const laneX = WorldBuilder.LANE_X[stepType];
+    const near = Math.abs(player.x - laneX) < ZONE_RADIUS;
+
+    if (stepType === 'collectLeft' || stepType === 'collectRight') {
+      if (near) { collectCrystal(stepType); missionStepSucceeded(stepType); }
+      return;
+    }
+    if (stepType === 'giant') {
+      if (near && player.sizeState === 'giant') missionStepSucceeded('giant');
+      return;
+    }
+    if (stepType === 'mini') {
+      if (near && player.sizeState === 'mini') missionStepSucceeded('mini');
+      return;
+    }
+    if (stepType === 'jump') {
+      if (near && player.isJumping) { missionStepSucceeded('jump'); return; }
+      const colliding = near && !player.isJumping && player.y <= GROUND_Y + 0.05;
+      const threshold = mission.difficulty === 'facil' ? 999 : 0.7;
+      MissionManager.zoneCollisionTick('jump', colliding, dt, threshold, () => {
+        MissionManager.failStep('jump');
+        onMissionFail('Você bateu no bloco! Pule na próxima tentativa.');
+      });
+      return;
+    }
+    if (stepType === 'crouch') {
+      if (near && player.isCrouching) { missionStepSucceeded('crouch'); return; }
+      const colliding = near && !player.isCrouching;
+      const threshold = mission.difficulty === 'facil' ? 999 : 0.9;
+      MissionManager.zoneCollisionTick('crouch', colliding, dt, threshold, () => {
+        MissionManager.failStep('crouch');
+        onMissionFail('Você esbarrou no portal baixo! Abaixe na próxima tentativa.');
+      });
+      return;
+    }
+  }
+
+  function onMissionFail(text) {
+    const mission = MissionManager.current();
+    if (!mission) return;
+    if (!MissionManager.cfg(mission.difficulty).punishHeart) {
+      Toast.error(text);
+      return;
+    }
+    const hearts = StorageManager.loseHeart();
+    Toast.error(text + ' -1 coração');
+    updateHudHearts();
+    if (hearts <= 0) {
+      showGameOver();
+    } else {
+      // Reinicia a missão atual (mesmos passos, do início) para tentar de novo.
+      mission.stepIndex = 0;
+      mission.timeLeft = mission.timeLimit;
+    }
+  }
+
+  // ---------------- Missão: ciclo de vida ----------------
+  function startMissionRound() {
+    const s = StorageManager.get();
+    const mission = MissionManager.build(worldId, s.difficulty, s.currentMissionIndex);
+    updateMissionHud();
+    if (mission.isQuiz) {
+      Toast.show('Vá até o portal roxo e toque em Quiz!');
+    }
+  }
+
+  function updateMissionHud() {
+    const e = els();
+    const mission = MissionManager.current();
+    const s = StorageManager.get();
+    e.missionMode.textContent = mode === 'free' ? 'BRINCAR LIVRE' : `MISSÃO (${MissionManager.label(s.difficulty)})`;
+    e.missionText.textContent = mode === 'free' ? 'Explore o mundo e brinque sem pressão. Troque de cenário e experimente todas as ações.' : MissionManager.textFor(mission);
+    const hasTimer = mode === 'missions' && mission && !mission.isQuiz && mission.timeLimit > 0;
+    e.missionTimerWrap.hidden = !hasTimer;
+  }
+
+  function updateMissionTimerBar() {
+    const mission = MissionManager.current();
+    const e = els();
+    if (!mission || mission.isQuiz || mission.timeLimit <= 0) return;
+    const pct = Math.max(0, mission.timeLeft / mission.timeLimit) * 100;
+    e.missionTimerBar.style.width = pct + '%';
+  }
+
+  function openQuizFromHotbar() {
+    QuizManager.open(mode === 'missions' && MissionManager.current() && MissionManager.current().isQuiz ? onQuizMissionSolved : null);
+  }
+
+  function onQuizMissionSolved() {
+    ModalManager.close('quizModal');
+    Toast.success('Portal do quiz ativado!');
+    onMissionComplete();
+  }
+
+  function onMissionComplete() {
+    const mission = MissionManager.current();
+    const s = StorageManager.get();
+    const base = mission.isQuiz ? 20 : 15 * mission.steps.length;
+    StorageManager.addPoints(base);
+    s.phase += 1;
+    s.currentMissionIndex += 1;
+    if (mission.difficulty === 'dificil' && mission.perfect && !mission.isQuiz) {
+      StorageManager.addPoints(25);
+      if (StorageManager.unlockMedal('sequencia_perfeita')) Toast.medal('⭐ Medalha: Sequência Perfeita!');
+    }
+    StorageManager.save();
+    maybeUnlockNextWorld();
+    updateHudTop();
+    Toast.success('🎉 Missão concluída! +' + base + ' pontos');
+    window.setTimeout(startMissionRound, 500);
+  }
+
+  function maybeUnlockNextWorld() {
+    const s = StorageManager.get();
+    const idx = WORLDS.findIndex((w) => w.id === worldId);
+    if (s.phase % 3 === 0 && idx >= 0 && idx < WORLDS.length - 1) {
+      const nextWorld = WORLDS[idx + 1];
+      if (StorageManager.unlockWorld(nextWorld.id)) {
+        Toast.medal('🌍 Novo mundo desbloqueado: ' + nextWorld.name + '!');
+      }
+    }
+    if (s.unlockedWorlds.length >= WORLDS.length && StorageManager.unlockMedal('explorador_mundos')) {
+      Toast.medal('🗺️ Medalha: Explorador dos Mundos!');
+    }
+  }
+
+  function showGameOver() {
+    paused = true;
+    els().gameOverOverlay.hidden = false;
+  }
+
+  function hideGameOver() { els().gameOverOverlay.hidden = true; }
+
+  // ---------------- HUD ----------------
+  function updateHudTop() {
+    const s = StorageManager.get();
+    const e = els();
+    e.hudPoints.textContent = String(s.points);
+    e.hudHearts.textContent = String(s.hearts);
+    e.hudPhase.textContent = String(s.phase);
+    e.hudDifficulty.textContent = MissionManager.label(s.difficulty);
+    e.hudHeartsWrap.classList.toggle('lowHearts', mode === 'missions' && s.hearts <= 1);
+    e.hudHeartsWrap.style.opacity = mode === 'free' ? '0.4' : '1';
+  }
+  function updateHudHearts() { updateHudTop(); }
+
+  function openTalk() { ModalManager.open('talkModal'); }
+
+  // ---------------- Pausa ----------------
+  function openPause() {
+    paused = true;
+    const e = els();
+    e.pauseOverlay.hidden = false;
+    if (e.pauseSummary) e.pauseSummary.textContent = 'Pontos e progresso continuam salvos.';
+  }
+  function closePause() { paused = false; els().pauseOverlay.hidden = true; els().worldSwitchGrid.hidden = true; }
+
+  function renderWorldSwitchGrid() {
+    const grid = els().worldSwitchGrid;
+    const s = StorageManager.get();
+    grid.innerHTML = '';
+    const list = mode === 'free' ? WORLDS.concat([REAL_WORLD]) : WORLDS;
+    list.forEach((w) => {
+      const unlocked = mode === 'free' || s.unlockedWorlds.includes(w.id);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = (unlocked ? '' : '🔒 ') + w.name;
+      if (!unlocked) btn.disabled = true;
+      if (w.id === worldId) btn.classList.add('active');
+      btn.addEventListener('click', () => {
+        buildWorld(w.id);
+        if (mode === 'missions') startMissionRound();
+        else updateMissionHud();
+        grid.hidden = true;
+        closePause();
+      });
+      grid.appendChild(btn);
+    });
+    grid.hidden = false;
+  }
+
+  // ---------------- Loop principal ----------------
+  function loop() {
+    if (!running) return;
+    rafId = requestAnimationFrame(loop);
+    const dt = Math.min(clock.getDelta(), 0.05);
+    if (paused) { renderer.render(scene, camera); return; }
+
+    // física simples: gravidade / pulo
+    if (player.isJumping) {
+      player.vy += GRAVITY * dt;
+      player.y += player.vy * dt;
+      if (player.y <= GROUND_Y) { player.y = GROUND_Y; player.vy = 0; player.isJumping = false; }
+    }
+    // agachar: temporizador
+    if (player.isCrouching) {
+      player.crouchTimer -= dt;
+      if (player.crouchTimer <= 0) player.isCrouching = false;
+    }
+    // girar: animação de 360°
+    if (player.spinning) {
+      player.spinT += dt;
+      player.rotY = (player.spinT / 0.5) * Math.PI * 2;
+      if (player.spinT >= 0.5) { player.spinning = false; player.rotY = 0; }
+    }
+    syncPlayerTransform();
+    updateParticles(dt);
+
+    // portal sempre gira devagar
+    if (worldData && worldData.objects.spin) worldData.objects.spin.userData.torus.rotation.z += dt * 0.6;
+    if (worldData && worldData.objects.power && worldData.objects.power.userData.mesh) {
+      worldData.objects.power.rotation.y += dt * 0.4;
+    }
+
+    if (stepCooldown > 0) stepCooldown = Math.max(0, stepCooldown - dt);
+
+    if (mode === 'missions' && !paused) {
+      MissionManager.tick(dt);
+      missionZoneChecks(dt);
+      updateMissionTimerBar();
+    }
+
+    // câmera terceira pessoa segue o player
+    const camTargetX = player.x * 0.5;
+    camera.position.lerp(new THREE.Vector3(camTargetX, 3.4, player.z + 6.4), 0.08);
+    camera.lookAt(player.x * 0.5, 1.1, player.z - 3);
+
+    renderer.render(scene, camera);
+  }
+
+  function start() {
+    if (running) return; // evita loop duplicado (bug fix)
+    running = true;
+    clock.getDelta();
+    loop();
+  }
+  function stop() {
+    running = false;
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+  }
+
+  MissionManager.on('missionComplete', onMissionComplete);
+  MissionManager.on('timeout', () => onMissionFail('O tempo acabou!'));
+
+  function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+  // ---------------- Entrada / saída do jogo ----------------
+  function enterGame({ gameMode }) {
+    mode = gameMode;
+    const e = els();
+    e.screenLobby.hidden = true;
+    e.screenGame.hidden = false;
+    appEl.dataset.screen = 'game';
+    hideGameOver();
+    closePause();
+
+    if (!renderer) {
+      initThree();
+      loadPlayer(() => {
+        const s = StorageManager.get();
+        StorageManager.resetHearts(MissionManager.cfg(s.difficulty).hearts);
+        const startWorld = mode === 'free' ? 'campo' : (s.unlockedWorlds[s.unlockedWorlds.length - 1] || 'campo');
+        buildWorld(startWorld);
+        if (mode === 'missions') startMissionRound(); else updateMissionHud();
+        updateHudTop();
+        start();
+      });
+    } else {
+      const s = StorageManager.get();
+      StorageManager.resetHearts(MissionManager.cfg(s.difficulty).hearts);
+      const startWorld = mode === 'free' ? 'campo' : (s.unlockedWorlds[s.unlockedWorlds.length - 1] || 'campo');
+      buildWorld(startWorld);
+      if (mode === 'missions') startMissionRound(); else updateMissionHud();
+      updateHudTop();
+      onResize();
+      start();
+    }
+  }
+
+  function exitToLobby() {
+    stop();
+    stopCamera();
+    paused = false;
+    closePause();
+    hideGameOver();
+    const e = els();
+    e.screenGame.hidden = true;
+    e.screenLobby.hidden = false;
+    appEl.dataset.screen = 'lobby';
+    LobbyEngine.refreshStats();
+  }
+
+  function retryAfterGameOver() {
+    const s = StorageManager.get();
+    StorageManager.resetHearts(MissionManager.cfg(s.difficulty).hearts);
+    hideGameOver();
+    paused = false;
+    if (mode === 'missions') startMissionRound();
+    updateHudTop();
+  }
+
+  return {
+    enterGame, exitToLobby, handleAction, openPause, closePause, renderWorldSwitchGrid,
+    retryAfterGameOver, updateHudTop
+  };
+})();
+
+// -------------------------------------------------------------------------
+// LobbyEngine
+// -------------------------------------------------------------------------
+const LobbyEngine = (() => {
+  let viewer = null;
+  let loaded = false;
+
+  function els() {
+    return {
+      viewer: $('#lobbyViewer'),
+      progressBar: $('#lobbyProgressBar'),
+      statPoints: $('#statPoints'),
+      statHearts: $('#statHearts'),
+      statMedals: $('#statMedals'),
+      statPhase: $('#statPhase'),
+      statDifficulty: $('#statDifficulty'),
+      lobbyHelp: $('#lobbyHelp'),
+      arNativeBtn: $('#arNativeBtn')
+    };
+  }
+
+  function refreshStats() {
+    const s = StorageManager.get();
+    const e = els();
+    e.statPoints.textContent = String(s.points);
+    e.statHearts.textContent = String(s.hearts);
+    e.statMedals.textContent = `${s.medals.length}/${MEDALS.length}`;
+    e.statPhase.textContent = String(s.phase);
+    e.statDifficulty.textContent = MissionManager.label(s.difficulty);
+  }
+
+  function openNativeAR() {
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+      Toast.error('AR real precisa de HTTPS. Abra pelo link do GitHub Pages.');
+      return;
+    }
+    if (!loaded) {
+      Toast.show('Aguarde o Athos carregar e toque de novo.');
+      return;
+    }
+    if (typeof viewer.activateAR !== 'function') {
+      Toast.error('AR indisponível neste navegador/aparelho.');
+      return;
+    }
+    try {
+      const ret = viewer.activateAR();
+      if (ret && typeof ret.catch === 'function') {
+        ret.catch(() => Toast.error('O AR real não abriu. Use “Jogar Missões” ou “Brincar Livre”.'));
+      }
+    } catch (_) {
+      Toast.error('O AR real não abriu neste navegador.');
+    }
+  }
+
+  function renderMedals() {
+    const grid = $('#medalsGrid');
+    if (!grid) return;
+    const s = StorageManager.get();
+    grid.innerHTML = '';
+    MEDALS.forEach((m) => {
+      const unlocked = s.medals.includes(m.id);
+      const card = document.createElement('div');
+      card.className = 'medalCard' + (unlocked ? ' unlocked' : '');
+      card.innerHTML = `<span class="medalIcon">${m.icon}</span><span class="medalName">${m.name}</span>`;
+      grid.appendChild(card);
+    });
+  }
+
+  function renderDifficultyModal() {
+    const s = StorageManager.get();
+    $$('.difficultyOption').forEach((btn) => btn.classList.toggle('active', btn.dataset.difficulty === s.difficulty));
+  }
+
+  function init() {
+    viewer = els().viewer;
+    viewer.addEventListener('progress', (ev) => {
+      const p = Math.round((ev.detail.totalProgress || 0) * 100);
+      els().progressBar.style.width = p + '%';
+    });
+    viewer.addEventListener('load', () => { loaded = true; });
+    viewer.addEventListener('error', () => { Toast.error('O athos.glb não abriu no visualizador do Lobby.'); });
+
+    $$('[data-lobby-action]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const action = btn.dataset.lobbyAction;
+        if (action === 'play-missions') GameEngine.enterGame({ gameMode: 'missions' });
+        else if (action === 'play-free') GameEngine.enterGame({ gameMode: 'free' });
+        else if (action === 'ar-native') openNativeAR();
+        else if (action === 'quiz') QuizManager.open();
+        else if (action === 'talk') ModalManager.open('talkModal');
+        else if (action === 'collection') { renderMedals(); ModalManager.open('collectionModal'); }
+        else if (action === 'difficulty') { renderDifficultyModal(); ModalManager.open('difficultyModal'); }
+        else if (action === 'reset') {
+          if (window.confirm('Isso vai apagar pontos, corações, medalhas e progresso. Continuar?')) {
+            StorageManager.reset();
+            refreshStats();
+            Toast.show('Progresso reiniciado.');
+          }
+        }
+      });
+    });
+
+    $$('.difficultyOption').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        StorageManager.set({ difficulty: btn.dataset.difficulty });
+        renderDifficultyModal();
+        refreshStats();
+        ModalManager.close('difficultyModal');
+        Toast.show('Dificuldade: ' + MissionManager.label(btn.dataset.difficulty));
+      });
+    });
+
+    if ($('#arNativeBtn')) $('#arNativeBtn').addEventListener('click', openNativeAR);
+
+    $('#themeBtn').addEventListener('click', () => {
+      const cur = appEl.dataset.theme === 'dark' ? 'light' : 'dark';
+      appEl.dataset.theme = cur;
+      localStorage.setItem('athosGP-theme', cur);
+      $('#themeBtn').textContent = cur === 'dark' ? '🌙' : '☀️';
+    });
+    const savedTheme = localStorage.getItem('athosGP-theme') || 'dark';
+    appEl.dataset.theme = savedTheme;
+    $('#themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+
+    refreshStats();
+  }
+
+  return { init, refreshStats };
+})();
+
+// -------------------------------------------------------------------------
+// Bootstrap / wiring geral (hotbar, pausa, talk, resize seguro, etc.)
+// -------------------------------------------------------------------------
+function initGlobalUI() {
+  ModalManager.init();
+  QuizManager.init();
+
+  // Hotbar do jogo
+  $$('.hotBtn[data-action]').forEach((btn) => {
+    btn.addEventListener('click', () => GameEngine.handleAction(btn.dataset.action));
+  });
+  $('#pauseBtn').addEventListener('click', () => GameEngine.openPause());
+
+  $$('[data-pause-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.pauseAction;
+      if (act === 'resume') GameEngine.closePause();
+      else if (act === 'worlds') GameEngine.renderWorldSwitchGrid();
+      else if (act === 'exit') GameEngine.exitToLobby();
+    });
+  });
+
+  $$('[data-gameover-action]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const act = btn.dataset.gameoverAction;
+      if (act === 'retry') GameEngine.retryAfterGameOver();
+      else if (act === 'exit') GameEngine.exitToLobby();
+    });
+  });
+
+  // Falar com Athos
+  const askInput = $('#askInput');
+  const askAnswer = $('#askAnswer');
+  function ask(text) {
+    const missionTxt = $('#missionText') ? $('#missionText').textContent : '';
+    const a = AthosBrain.answer(text, missionTxt);
+    askAnswer.textContent = a;
+  }
+  $('#askSendBtn').addEventListener('click', () => { ask(askInput.value); askInput.value = ''; });
+  askInput.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') { ask(askInput.value); askInput.value = ''; } });
+  $$('.quickQuestions [data-question]').forEach((btn) => {
+    btn.addEventListener('click', () => ask(btn.dataset.question));
+  });
+  $('#askVoiceBtn').addEventListener('click', () => {
+    askAnswer.textContent = 'Estou ouvindo... fale com o Athos.';
+    AthosBrain.startVoiceQuestion(
+      (text) => { askInput.value = text; ask(text); },
+      (msg) => { askAnswer.textContent = msg; }
+    );
+  });
+
+  // Avisos de boot (arquivo local / offline)
+  if (location.protocol === 'file:') {
+    Toast.error('Abra pelo GitHub Pages (https), não como arquivo solto, para câmera e AR funcionarem.');
+  }
+  if (!navigator.onLine) {
+    Toast.show('Sem internet: o Three.js e o model-viewer podem não carregar agora.');
+  }
+
+  // Limpa cache antigo de service worker de versões anteriores, se houver.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister().catch(() => {}))).catch(() => {});
+  }
+
+  window.addEventListener('beforeunload', () => {
+    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  LobbyEngine.init();
+  initGlobalUI();
+});
