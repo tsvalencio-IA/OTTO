@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#090d16" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D/AR voxel para celular." />
-  <title>Athos: Guardião dos Portais V20</title>
+  <title>Athos: Guardião dos Portais V21</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
@@ -23,7 +23,7 @@
       --bg:#090d16; --panel:rgba(15,22,38,.94); --panel2:rgba(25,35,60,.94); --text:#fff; --muted:#9dafd6;
       --orange:#ff6a00; --gold:#ffc400; --green:#29e070; --blue:#17b7ff; --red:#ff365c; --purple:#b14dff;
       --radius:24px; --shadow:0 18px 55px rgba(0,0,0,.42);
-      --safe-bottom:env(safe-area-inset-bottom); --console-w:clamp(318px,34vw,378px);
+      --safe-bottom:env(safe-area-inset-bottom); --console-w:clamp(276px,32vw,342px);
     }
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
     html,body{margin:0;min-height:100%;overflow-x:hidden;background:var(--bg);color:var(--text);font-family:'Fredoka',system-ui,sans-serif}
@@ -97,7 +97,7 @@
 <body>
   <main id="lobby">
     <header class="topbar">
-      <div class="brand"><div class="face" aria-hidden="true"></div><div><p>V20 — mobile landscape + inimigos</p><h1>Athos: Guardião dos Portais</h1></div></div>
+      <div class="brand"><div class="face" aria-hidden="true"></div><div><p>V21 — aventura 3D longa + inimigos</p><h1>Athos: Guardião dos Portais</h1></div></div>
       <button id="btnShare" class="btn small blue" type="button">🔗 Link</button>
     </header>
     <section class="lobbyGrid">
@@ -141,7 +141,7 @@
   <section id="game" aria-label="Jogo 3D do Athos">
     <video id="cameraFeed" autoplay playsinline muted></video>
     <div id="rotateHint" class="rotateHint">↔️ Vire o celular de lado para jogar melhor</div>
-    <div id="assistBox" class="assistBox">Paisagem automática. Segure Frente + A para pulão; B lança fogo contra inimigos.</div>
+    <div id="assistBox" class="assistBox">Segure Frente + A para pular longe. Use ◀ ▶ para mudar de lado e B para acertar inimigos.</div>
     <div id="threeContainer"></div>
     <button id="btnExitTop" class="btn small red exitTop" type="button">⏹️ Sair</button>
     <div id="hud" class="hud">
@@ -167,10 +167,10 @@
       <div class="padShell">
         <div class="dpad">
           <button class="dBtn up" data-hold="up" type="button">▲<span>Frente</span></button>
-          <button class="dBtn left" data-hold="left" type="button">◀<span>Voltar</span></button>
+          <button class="dBtn left" data-hold="left" type="button">◀<span>Esq</span></button>
           <div class="center">●</div>
-          <button class="dBtn right" data-hold="right" type="button">▶<span>Avançar</span></button>
-          <button class="dBtn down" data-hold="down" type="button">▼<span>Ré</span></button>
+          <button class="dBtn right" data-hold="right" type="button">▶<span>Dir</span></button>
+          <button class="dBtn down" data-hold="down" type="button">▼<span>Voltar</span></button>
         </div>
         <div class="gameMeta" aria-label="Controles centrais do jogo">
           <div class="metaPill"><b class="pixel">ATHOS</b><span>Controle real</span></div>
@@ -195,9 +195,10 @@
   'use strict';
   const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 
-  const STORE='athos-v17-state';
+  const STORE='athos-v21-state';
   const defaultState={points:0,hearts:3,level:0,medals:[],difficulty:'facil',best:0};
-  const state=Object.assign({},defaultState, JSON.parse(localStorage.getItem(STORE)||'{}'));
+  function readSavedState(){try{return JSON.parse(localStorage.getItem(STORE)||'{}')||{};}catch(_){return {};}}
+  const state=Object.assign({},defaultState, readSavedState());
   const save=()=>{state.best=Math.max(state.best,state.points);localStorage.setItem(STORE,JSON.stringify(state)); updateStats();};
 
   const worlds={
@@ -211,14 +212,14 @@
   };
 
   const levels=[
-    {name:'Treino de Guardião',world:'field',length:24,objective:'Pegue 2 cristais, ative o checkpoint, pule o buraco e entre no portal.',crystals:[4,9],checkpoints:[10],holes:[{x:15,w:1.5}],portalX:22,hints:['Use ◀ ▶ para andar.','Pule com A.']},
-    {name:'Ponte de Lava',world:'fire',length:30,objective:'A lava tira pontos. Pule as poças, derrote o inimigo e alcance o portal.',crystals:[5,12,22],hazards:[{x:7,w:1.7},{x:17,w:1.9}],enemies:[{x:14,range:2.2,type:'walker'}],checkpoints:[15],holes:[{x:25,w:1.6}],portalX:29},
-    {name:'Plataformas do Campo',world:'field',length:34,objective:'Use a plataforma móvel, pule os buracos, colete cristais e chegue vivo ao portal.',crystals:[4,14,28],platforms:[{x:10,y:1.15,range:3.5,w:3.2,speed:1.1}],enemies:[{x:20,range:2.0,type:'walker'},{x:29,range:1.5,type:'flyer',z:-.5}],checkpoints:[18],holes:[{x:8,w:1.55},{x:24,w:1.85}],portalX:33},
-    {name:'Túnel da Floresta',world:'forest',length:32,objective:'Abaixe no túnel, pule o inimigo, ative o checkpoint e pegue os cristais.',crystals:[4,12,25],tunnels:[{x:9,w:2.4}],enemies:[{x:17,range:1.8,type:'jumper'}],checkpoints:[19],holes:[{x:23,w:1.6}],portalX:31},
-    {name:'Portão do Castelo',world:'castle',length:34,objective:'Fique gigante para abrir o portão, pegue a chave/cristal e pule o buraco.',crystals:[4,18,29],gates:[{x:10,w:1.2,needs:'giant'}],checkpoints:[13],enemies:[{x:23,range:2.4,type:'walker'},{x:29,range:1.6,type:'flyer'}],holes:[{x:26,w:1.7}],portalX:33},
-    {name:'Pedra Sombria',world:'fire',length:36,objective:'Use B Poder no bloco escuro, desvie da lava, colete cristais e entre no portal.',crystals:[5,16,30],hazards:[{x:8,w:1.5},{x:23,w:1.9}],darkBlocks:[{x:12,w:1.4}],checkpoints:[18],enemies:[{x:26,range:2.0,type:'spike'}],portalX:35},
-    {name:'Espaço Cubo',world:'space',length:40,objective:'Use plataformas móveis, não caia no vazio, colete 4 cristais e encontre o portal.',crystals:[5,13,24,35],floating:true,platforms:[{x:11,y:1.4,range:3.8,w:3.4,speed:1.2},{x:27,y:1.6,range:3.0,w:3.0,speed:1.5}],checkpoints:[20],holes:[{x:18,w:2.0},{x:31,w:2.2}],enemies:[{x:33,range:1.7,type:'flyer'}],portalX:39},
-    {name:'Arena Final',world:'arena',length:46,objective:'Fase final: cristais, lava, inimigos, plataforma, bloco escuro e portal final.',crystals:[4,8,14,22,35],hazards:[{x:15,w:1.5},{x:38,w:1.8}],holes:[{x:21,w:1.8},{x:30,w:1.5}],platforms:[{x:26,y:1.25,range:3.2,w:3.4,speed:1.4}],enemies:[{x:11,range:2.2,type:'walker'},{x:34,range:2.0,type:'jumper'},{x:40,range:2.1,type:'flyer'}],darkBlocks:[{x:41,w:1.4}],checkpoints:[24],portalX:45}
+    {name:'Treino no Campo dos Blocos',world:'field',length:72,objective:'Atravesse a trilha longa, pegue 3 cristais, pule o buraco e entre no portal.',crystals:[9,24,48],checkpoints:[34],holes:[{x:56,w:1.45}],enemies:[{x:18,range:3.2,type:'walker'}],portalX:68,hints:['Segure Frente para avançar.','Use ◀ ▶ para mudar de lado.','A pula longe quando você segura Frente.']},
+    {name:'Ponte de Lava',world:'fire',length:84,objective:'Pule as poças de lava, derrote 2 inimigos e chegue ao portal do vulcão.',crystals:[10,28,53,70],hazards:[{x:18,w:1.65},{x:39,w:1.75},{x:62,w:1.65}],enemies:[{x:30,range:3.4,type:'walker'},{x:58,range:2.8,type:'jumper'}],checkpoints:[43],holes:[{x:74,w:1.55}],portalX:80},
+    {name:'Plataformas do Campo',world:'field',length:92,objective:'Use plataformas móveis, colete cristais em altura e não caia nos vãos.',crystals:[12,36,61,82],platforms:[{x:28,y:1.15,range:5.0,w:3.6,speed:1.0},{x:66,y:1.35,range:4.2,w:3.4,speed:1.25}],enemies:[{x:48,range:3.0,type:'walker'},{x:76,range:2.4,type:'flyer',z:-.5}],checkpoints:[50],holes:[{x:22,w:1.35},{x:42,w:1.55},{x:72,w:1.75}],portalX:88},
+    {name:'Túnel da Floresta',world:'forest',length:88,objective:'Abaixe nos túneis, desvie dos inimigos e encontre o portal escondido na floresta.',crystals:[11,31,57,78],tunnels:[{x:24,w:2.7},{x:63,w:2.4}],enemies:[{x:41,range:2.8,type:'jumper'},{x:70,range:2.2,type:'walker'}],checkpoints:[46],holes:[{x:80,w:1.55}],portalX:85},
+    {name:'Portão do Castelo',world:'castle',length:96,objective:'Fique gigante para abrir os portões, pegue a chave e fuja dos guardas.',crystals:[10,38,62,88],gates:[{x:26,w:1.2,needs:'giant'},{x:72,w:1.2,needs:'giant'}],checkpoints:[49],enemies:[{x:43,range:3.0,type:'walker'},{x:60,range:2.2,type:'spike'},{x:84,range:2.6,type:'flyer'}],holes:[{x:54,w:1.55}],portalX:93},
+    {name:'Pedras Sombrias do Vulcão',world:'fire',length:104,objective:'Use B Poder nos blocos escuros, desvie da lava e avance até o portal de fogo.',crystals:[12,34,59,88],hazards:[{x:22,w:1.5},{x:49,w:1.8},{x:79,w:1.65}],darkBlocks:[{x:30,w:1.4},{x:68,w:1.4}],checkpoints:[55],enemies:[{x:40,range:3.0,type:'walker'},{x:92,range:2.0,type:'spike'}],portalX:100},
+    {name:'Espaço Cubo',world:'space',length:112,objective:'Atravesse plataformas flutuantes, colete 5 cristais e não caia no vazio espacial.',crystals:[10,27,49,73,99],floating:true,platforms:[{x:24,y:1.4,range:5.0,w:3.4,speed:1.1},{x:55,y:1.6,range:4.5,w:3.2,speed:1.35},{x:88,y:1.4,range:4.0,w:3.5,speed:1.25}],checkpoints:[57],holes:[{x:38,w:1.8},{x:67,w:1.9},{x:95,w:2.0}],enemies:[{x:80,range:2.7,type:'flyer'}],portalX:108},
+    {name:'Arena Final dos Portais',world:'arena',length:128,objective:'Fase final: cristais, lava, inimigos, plataforma, bloco escuro, quiz e portal final.',crystals:[10,22,42,66,91,115],hazards:[{x:34,w:1.55},{x:76,w:1.75},{x:106,w:1.65}],holes:[{x:51,w:1.7},{x:86,w:1.65}],platforms:[{x:58,y:1.25,range:4.6,w:3.4,speed:1.35},{x:101,y:1.35,range:4.0,w:3.2,speed:1.45}],enemies:[{x:28,range:3.2,type:'walker'},{x:70,range:2.8,type:'jumper'},{x:96,range:2.6,type:'flyer'},{x:118,range:2.3,type:'spike'}],darkBlocks:[{x:110,w:1.4}],checkpoints:[64,104],requiresSpin:true,requiresQuiz:true,portalX:124}
   ];
   const medals=[
     {id:'first',emoji:'⭐',title:'Primeira Fase',desc:'Concluiu uma fase.'},
@@ -258,7 +259,7 @@
     if(renderer) return;
     const c=$('#threeContainer');
     scene=new THREE.Scene(); clock=new THREE.Clock();
-    camera=new THREE.PerspectiveCamera(55,c.clientWidth/c.clientHeight,.1,140); camera.position.set(0,4.4,10);
+    camera=new THREE.PerspectiveCamera(58,c.clientWidth/c.clientHeight,.1,260); camera.position.set(-7,5.2,10);
     renderer=new THREE.WebGLRenderer({alpha:true,antialias:true}); renderer.domElement.id='three-canvas'; renderer.setSize(c.clientWidth,c.clientHeight); renderer.setPixelRatio(Math.min(2,devicePixelRatio||1)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; c.innerHTML=''; c.appendChild(renderer.domElement);
     scene.add(new THREE.HemisphereLight(0xffffff,0x26304b,.75));
     const sun=new THREE.DirectionalLight(0xffffff,1.1); sun.position.set(6,14,8); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-18; sun.shadow.camera.right=18; sun.shadow.camera.top=18; sun.shadow.camera.bottom=-18; scene.add(sun);
@@ -303,18 +304,18 @@
     add(g); enemies.push(g); return g;
   }
   function movingPlatform(x,y=1.2,z=0,w=3.0,range=3.0,speed=1.1){const m=new THREE.Mesh(new THREE.BoxGeometry(w,.32,2.6),new THREE.MeshStandardMaterial({color:0xffc400,emissive:0x3b2600,roughness:.7})); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; m.userData={type:'platform',x,w,h:.32,d:2.6,baseX:x,range,speed,prevX:x,used:false}; add(m); platforms.push(m); return m;}
-  function makePortal(x,color){const g=new THREE.Group(); const frame=mat(0x111111); const glow=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.56,side:THREE.DoubleSide}); const l=new THREE.Mesh(new THREE.BoxGeometry(.55,4.3,.55),frame); l.position.set(-1.6,2.15,0); const r=l.clone();r.position.x=1.6; const t=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,.55),frame); t.position.set(0,4.05,0); const p=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.6),glow); p.position.set(0,2.15,0); [l,r,t].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(l,r,t,p); g.position.set(x,0,-2.2); g.userData={glow:p}; return add(g);}
+  function makePortal(x,color){const g=new THREE.Group(); const frame=mat(0x111111); const glow=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.56,side:THREE.DoubleSide}); const l=new THREE.Mesh(new THREE.BoxGeometry(.55,4.3,.55),frame); l.position.set(-1.6,2.15,0); const r=l.clone();r.position.x=1.6; const t=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,.55),frame); t.position.set(0,4.05,0); const p=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.6),glow); p.position.set(0,2.15,0); [l,r,t].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(l,r,t,p); g.position.set(x,0,0); g.userData={glow:p}; return add(g);}
   function tree(x,z=-3){const g=new THREE.Group(); const tr=new THREE.Mesh(new THREE.BoxGeometry(.7,2,.7),mat(0x6b3f21)); tr.position.y=1; const lv=new THREE.Mesh(new THREE.BoxGeometry(2.25,2.25,2.25),mat(0x22a947)); lv.position.y=2.85; [tr,lv].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(tr,lv); g.position.set(x,0,z); return add(g);}
   function buildWorld(worldId,level){
     clearWorld(); currentWorld=worldId; const w=worlds[worldId]||worlds.field; $('#game').classList.toggle('realMode',worldId==='real');
-    if(worldId==='real'){scene.background=null;scene.fog=null;startCamera();}else{stopCamera();scene.background=new THREE.Color(w.bg); scene.fog=new THREE.FogExp2(w.bg,.016);}
-    const len=(level&&level.length)||42; const tex = worldId==='fire'?canvasTexture([0x361005,0x220803]):worldId==='castle'?canvasTexture([0x555667,0x444453]):worldId==='space'?canvasTexture([0x181a3b,0x0d0f27]):canvasTexture([w.floor||0x2d7232,0x235626]);
+    if(worldId==='real'){scene.background=null;scene.fog=null;startCamera();}else{stopCamera();scene.background=new THREE.Color(w.bg); scene.fog=new THREE.FogExp2(w.bg,.0075);}
+    const len=(level&&level.length)||72; const tex = worldId==='fire'?canvasTexture([0x361005,0x220803]):worldId==='castle'?canvasTexture([0x555667,0x444453]):worldId==='space'?canvasTexture([0x181a3b,0x0d0f27]):canvasTexture([w.floor||0x2d7232,0x235626]);
     const floorMat=worldId==='real'?new THREE.ShadowMaterial({opacity:.36}):new THREE.MeshStandardMaterial({map:tex,roughness:.95});
-    ground=new THREE.Mesh(new THREE.BoxGeometry(len+20,.25,8),floorMat); ground.position.set((len/2)-2,-.13,0); ground.receiveShadow=true; add(ground);
+    ground=new THREE.Mesh(new THREE.BoxGeometry(len+28,.25,13),floorMat); ground.position.set((len/2)-3,-.13,0); ground.receiveShadow=true; add(ground);
     // trilha e decorações para dar continuidade lateral
-    for(let x=-8;x<len+10;x+=4){cube(x,.05,-4.2,1.3,.7,1.3, worldId==='fire'?0x111111:worldId==='space'?0x30306a:0x5b6b50,0,'decor');}
-    if(worldId==='forest'||worldId==='field'||worldId==='real'){for(let x=-5;x<len+8;x+=7)tree(x,-3.6);} 
-    if(worldId==='castle'){for(let x=-4;x<len+8;x+=8){cube(x,0,-3.5,1.4,3.2,1.2,0x666777);}}
+    for(let x=-10;x<len+14;x+=4){cube(x,.05,-5.9,1.3,.7,1.3, worldId==='fire'?0x111111:worldId==='space'?0x30306a:0x5b6b50,0,'decor'); cube(x,.05,5.9,1.3,.7,1.3, worldId==='fire'?0x111111:worldId==='space'?0x30306a:0x5b6b50,0,'decor');}
+    if(worldId==='forest'||worldId==='field'||worldId==='real'){for(let x=-5;x<len+10;x+=8){tree(x,-5.1); if(x%16===3)tree(x+3,5.0);}} 
+    if(worldId==='castle'){for(let x=-4;x<len+10;x+=8){cube(x,0,-5.2,1.4,3.2,1.2,0x666777); cube(x+3,0,5.2,1.2,2.6,1.1,0x555764);}}
     if(worldId==='space'){for(let i=0;i<22;i++) cube(Math.random()*len-5, 1+Math.random()*6, -5-Math.random()*8, .3,.3,.3,0xffffff,0x7777ff);}
     if(worldId==='fire'){for(let x=2;x<len;x+=6) cube(x,0,-3.5,2,.32,2,0xff3c00,0x941000,'lavaDecor');}
     if(level){
@@ -357,21 +358,21 @@
   function action(act,btn){
     pulse(btn);
     if(act==='jump'){
-      const wantsForward = input.up || input.right || mode==='missions';
-      const wantsBack = input.down || input.left;
+      const wantsForward = input.up || (mode==='missions' && !input.down);
+      const wantsBack = input.down;
       if(onGround || jumpGrace > 0){
-        vy = 13.8;
+        vy = 14.6;
         onGround = false;
         doubleJumpReady = true;
         jumpGrace = 0;
         targetSquash = 1.20;
         // V20: pulo Mario-like. Em fase, A sempre ajuda a atravessar buraco; segurando Frente fica mais forte.
-        if(wantsForward) vx = Math.max(vx, input.up||input.right ? 8.25 : 6.45);
+        if(wantsForward) vx = Math.max(vx, input.up ? 8.9 : 6.9);
         if(wantsBack) vx = Math.min(vx, -5.9);
       } else if(doubleJumpReady){
         doubleJumpReady=false;
-        vy = Math.max(vy, 10.2);
-        if(wantsForward) vx = Math.max(vx, 6.7);
+        vy = Math.max(vy, 11.0);
+        if(wantsForward) vx = Math.max(vx, 7.1);
         if(wantsBack) vx = Math.min(vx, -5.2);
         spawnParticles('jump',10);
         toast('Pulo duplo!','good');
@@ -444,7 +445,7 @@
       e.rotation.y += dt*1.8*u.dir;
       const dx=Math.abs(e.position.x-px), dz=Math.abs(e.position.z-pz), dy=Math.abs(e.position.y-(py+.75));
       if(dx<.88&&dz<1.05&&dy<1.25){
-        if(u.kind!=='spike' && py>.65 && vy<0){destroyEnemy(e,'Pisou no inimigo!'); vy=9.2; onGround=false; doubleJumpReady=true;}
+        if(u.kind!=='spike' && py>.55 && vy<1.2){destroyEnemy(e,'Pisou no inimigo!'); vy=9.8; onGround=false; doubleJumpReady=true;}
         else if(u.hitCooldown<=0){u.hitCooldown=.9; fail(u.kind==='flyer'?'Morcego de portal acertou o Athos!':'Inimigo acertou o Athos!');}
       }
     });
@@ -462,20 +463,19 @@
   function updatePlayer(dt){
     const speed=mode==='free'?5.8:5.45;
     let ax=0,az=0;
-    // V19: no celular, Frente/Avançar levam para frente da fase. Esquerda/Ré voltam.
-    if(input.left || input.down) ax-=1;
-    if(input.right || input.up) ax+=1;
-    // pequeno deslocamento lateral só quando usa esquerda/direita junto com frente/ré, para não confundir a criança.
-    if(input.left && (input.up||input.down)) az-=1;
-    if(input.right && (input.up||input.down)) az+=1;
+    // V21: jogo em profundidade. Frente/Voltar andam na pista; Esq/Dir mudam de lado.
+    if(input.up) ax+=1;
+    if(input.down) ax-=1;
+    if(input.left) az-=1;
+    if(input.right) az+=1;
     const airFactor = onGround ? 1 : 1.18;
     vx+=ax*speed*dt*3.4*airFactor;
     vz+=az*speed*dt*1.55;
     vx*=Math.pow(.86,dt*12);
     vz*=Math.pow(.82,dt*12);
-    px+=vx*dt; pz+=vz*dt; pz=Math.max(-2.2,Math.min(2.2,pz)); if(currentLevel)px=Math.max(-2,Math.min(currentLevel.length+2,px)); else px=Math.max(-10,Math.min(42,px));
+    px+=vx*dt; pz+=vz*dt; pz=Math.max(-3.8,Math.min(3.8,pz)); if(currentLevel)px=Math.max(-3,Math.min(currentLevel.length+4,px)); else px=Math.max(-12,Math.min(60,px));
     if(onGround) jumpGrace=.16; else jumpGrace=Math.max(0,jumpGrace-dt);
-    if(!onGround){vy-=23.5*dt; py+=vy*dt; if(py<=0){py=0;vy=0;onGround=true;doubleJumpReady=true;jumpGrace=.18;targetSquash=1;}}
+    if(!onGround){vy-=21.4*dt; py+=vy*dt; if(py<=0){py=0;vy=0;onGround=true;doubleJumpReady=true;jumpGrace=.18;targetSquash=1;}}
     if(crouchTimer>0){crouchTimer-=dt;if(crouchTimer<=0)targetSquash=1;}
     scale+=(targetScale-scale)*Math.min(1,dt*7); rot+=(targetRot-rot)*Math.min(1,dt*7); squash+=(targetSquash-squash)*Math.min(1,dt*12);
     if(player){player.position.set(px,py,pz); player.scale.set(scale,scale*squash,scale); player.rotation.y=rot+(vx<-.05?Math.PI:0);}
@@ -497,7 +497,7 @@
       if(t==='gate'&&dx<w){ if(scale>=1.35){objective.gateOpen=true; o.visible=false; o.userData.removed=true; unlock('giant'); addPoints(12,'Portão aberto!'); updateGoals();} else {px-=Math.sign(vx||1)*.25; vx=0; toast('Fique gigante para abrir');} }
       if(t==='dark'&&dx<w){px-=Math.sign(vx||1)*.22; vx=0; toast('Use B Poder no bloco');}
     });
-    if(portal&&Math.abs(portal.position.x-px)<1.45){ if(canFinish()) completeLevel(); else toast('Complete os objetivos antes do portal'); }
+    if(portal&&Math.abs(portal.position.x-px)<1.65&&Math.abs(portal.position.z-pz)<2.6){ if(canFinish()) completeLevel(); else toast('Complete os objetivos antes do portal'); }
   }
   function updateFireballs(dt){
     for(let i=fireballs.length-1;i>=0;i--){
@@ -509,7 +509,16 @@
     }
   }
   function updateParticles(dt){for(let i=particles.length-1;i>=0;i--){const p=particles[i]; p.life-=dt; p.v.y-=1.1*dt; p.m.position.add(p.v); p.m.rotation.x+=p.r; p.m.rotation.y+=p.r*.7; if(p.life<=0){scene.remove(p.m);particles.splice(i,1);}}}
-  function updateCamera(dt){const targetX=px+1.2; camera.position.x+=(targetX-camera.position.x)*Math.min(1,dt*3.8); camera.position.y+=((mode==='free'&&currentWorld==='real'?3.6:4.2)-camera.position.y)*dt*2; camera.position.z+=((mode==='free'&&currentWorld==='real'?8.2:9.2)-camera.position.z)*dt*2; camera.lookAt(camera.position.x+.8,1.25,pz*.25);}
+  function updateCamera(dt){
+    const camBack = mode==='free'&&currentWorld==='real' ? 7.5 : 8.4;
+    const camHeight = mode==='free'&&currentWorld==='real' ? 4.1 : 5.1;
+    const targetX = px - 6.2;
+    const targetZ = pz + camBack;
+    camera.position.x += (targetX - camera.position.x) * Math.min(1, dt*3.5);
+    camera.position.y += (camHeight - camera.position.y) * Math.min(1, dt*2.2);
+    camera.position.z += (targetZ - camera.position.z) * Math.min(1, dt*3.0);
+    camera.lookAt(px + 5.5, 1.25, pz * .45);
+  }
 
   function setWorld(w){if(!(w in worlds))return; if(mode==='missions'){toast('Na missão, o mundo faz parte da fase'); return;} buildWorld(w, null); if(mode==='free'){$('#missionText').textContent=''; $('#goalLine').innerHTML='';} }
   function openModal(id){$(id).classList.add('active')} function closeModals(){$$('.modal').forEach(m=>m.classList.remove('active'))}
