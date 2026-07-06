@@ -1,26 +1,53 @@
-# Athos: Guardião dos Portais — V14 Jogo 3D/AR
+# Athos: Guardião dos Portais — V30
 
-Versão reconstruída para preservar o coração do projeto: Athos 3D real, AR nativo, câmera real, Three.js, controle estilo videogame e fases com objetivos reais.
+Versão completa para GitHub Pages.
 
-## Como subir no GitHub Pages
+## Arquivos principais
 
-1. Envie todos os arquivos deste ZIP para o repositório.
-2. Confirme que `athos.glb` está na mesma pasta do `index.html`.
-3. Ative: Settings > Pages > Deploy from branch > main > root.
-4. Abra pelo link HTTPS no celular.
+- `index.html` — estrutura do jogo, lobby, HUD, controles e modais.
+- `style.css` — visual voxel, layout mobile, paisagem e controles.
+- `app.js` — motor do jogo com Three.js, fases, colisão, inimigos, cristais, portais, quiz e fala.
+- `athos.glb` — personagem 3D real do Athos.
+- `manifest.webmanifest` — instalação como app.
+- `sw.js` — service worker leve sem cache agressivo.
+- `icons/` — ícones do app.
+- `assets/moldes/` — moldes/imagens para impressão.
 
-## O que testar primeiro
+## Como subir
 
-1. Lobby com Athos 3D girando.
-2. Botão AR Nativo do model-viewer.
-3. Jogar Fases.
-4. Brincar Livre AR com câmera.
-5. Controle: esquerda, direita, frente, voltar, pular, abaixar, girar, poder, mini, normal e gigante.
-6. Fases: coletar cristais, pular lava, abaixar em túnel, abrir portão gigante, quebrar bloco escuro e entrar no portal.
-7. Quiz, chat e coleção.
+1. Extraia este ZIP.
+2. Envie o conteúdo da pasta `athos-guardiao-v30-comercial` para a raiz do repositório.
+3. Confirme que `index.html`, `app.js`, `style.css` e `athos.glb` estão na raiz.
+4. Ative o GitHub Pages.
+5. Abra no celular pelo link HTTPS.
 
-## Observações
+## Como testar
 
-- O AR Nativo depende do celular/navegador. Android normalmente usa Scene Viewer/WebXR; iOS usa Quick Look quando compatível.
-- O modo Brincar Livre AR mantém a câmera real dentro da página, permitindo que os botões continuem funcionando.
-- O jogo principal usa Three.js e carrega `athos.glb` com GLTFLoader.
+1. Abra o jogo no celular.
+2. Toque em **Jogar Fases 3D**.
+3. Use o joystick da esquerda para ir para o fundo, voltar e mudar de lado.
+4. Use **A** para pular, **B** para poder, **Y** para abaixar e **X** para tamanho.
+5. Pule em cima de caixas e plataformas.
+6. Colete cristais, derrote inimigos e entre no portal.
+7. Teste também **Brincar Livre / AR por câmera** e **AR Nativo** no lobby.
+
+## O que entrou na V30
+
+- Controle por joystick virtual.
+- Pulo com buffer e coyote time.
+- Câmera suave seguindo Athos em profundidade.
+- Caixas e plataformas sólidas.
+- Fases longas com profundidade.
+- Inimigos com tipos diferentes.
+- Poder de fogo com projéteis.
+- Cristais, portais, checkpoints, túneis e portões.
+- Quiz integrado.
+- Fala local com respostas por palavra-chave.
+- Modo hub, fases, brincar livre e AR nativo.
+- Progresso local com XP, fases e medalhas.
+
+## Limitações honestas
+
+- O AR Nativo depende do navegador e do celular. Em alguns aparelhos, o visualizador AR nativo não aceita controles dentro dele.
+- O jogo principal com controles roda no modo Three.js dentro da página.
+- A rotação de tela depende da configuração do celular; o navegador tenta adaptar e solicitar paisagem, mas não consegue forçar se o sistema bloquear.

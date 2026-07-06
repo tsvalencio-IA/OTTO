@@ -1,15 +1,13 @@
 {
-  "name": "Athos: Guardião dos Portais",
-  "short_name": "Athos Portais",
-  "description": "Jogo 3D voxel e AR do Athos, com missões, quiz e mundos para o Otto brincar.",
+  "name": "Athos: Guardião dos Portais V30",
+  "short_name": "Athos V30",
   "start_url": "./index.html",
-  "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#0a0e17",
-  "theme_color": "#0b0f1a",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "orientation": "any",
   "icons": [
-    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
   ]
 }

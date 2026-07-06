@@ -3,633 +3,172 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
-  <meta name="theme-color" content="#090d16" />
-  <meta name="description" content="Athos: Guardião dos Portais — jogo 3D/AR voxel para celular." />
-  <title>Athos: Guardião dos Portais V24 Profundidade</title>
+  <meta name="theme-color" content="#0b1020" />
+  <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
+  <title>Athos: Guardião dos Portais V30</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700;800&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css?v=30" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
-  <style>
-    :root{
-      --bg:#090d16; --panel:rgba(15,22,38,.94); --panel2:rgba(25,35,60,.94); --text:#fff; --muted:#9dafd6;
-      --orange:#ff6a00; --gold:#ffc400; --green:#29e070; --blue:#17b7ff; --red:#ff365c; --purple:#b14dff;
-      --radius:24px; --shadow:0 18px 55px rgba(0,0,0,.42);
-      --safe-bottom:env(safe-area-inset-bottom);
-    }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
-    html,body{margin:0;min-height:100%;overflow-x:hidden;background:var(--bg);color:var(--text);font-family:'Fredoka',system-ui,sans-serif}
-    body{background-image:radial-gradient(circle at 15% 10%,rgba(255,106,0,.20),transparent 28%),radial-gradient(circle at 85% 0,rgba(23,183,255,.18),transparent 33%),linear-gradient(rgba(255,255,255,.03) 2px,transparent 2px),linear-gradient(90deg,rgba(255,255,255,.03) 2px,transparent 2px);background-size:auto,auto,42px 42px,42px 42px}
-    button,input{font:inherit}button{border:0;cursor:pointer;color:inherit;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation}
-    .hidden{display:none!important}.pixel{font-family:'VT323',monospace;letter-spacing:1px}
-    .btn{border-radius:18px;background:linear-gradient(180deg,#485778,#252d44);border:2px solid rgba(255,255,255,.16);box-shadow:0 7px 0 rgba(0,0,0,.5),0 14px 26px rgba(0,0,0,.28);padding:13px 16px;font-weight:800;text-transform:uppercase;text-shadow:0 2px 0 rgba(0,0,0,.35);transition:transform .08s,box-shadow .08s,filter .12s}
-    .btn:active,.btn.activePress{transform:translateY(6px) scale(.98);box-shadow:0 1px 0 rgba(0,0,0,.55)}
-    .btn.primary{background:linear-gradient(180deg,#ffb000,#ff6500);box-shadow:0 7px 0 #8b3400,0 14px 26px rgba(255,106,0,.22)}
-    .btn.green{background:linear-gradient(180deg,#36f082,#11a84a);box-shadow:0 7px 0 #075424,0 14px 26px rgba(41,224,112,.18)}
-    .btn.blue{background:linear-gradient(180deg,#22c5ff,#087cbd);box-shadow:0 7px 0 #064b72,0 14px 26px rgba(23,183,255,.18)}
-    .btn.red{background:linear-gradient(180deg,#ff5c7a,#bc1238);box-shadow:0 7px 0 #6e0920,0 14px 26px rgba(255,54,92,.18)}
-    .btn.small{font-size:13px;padding:8px 11px;border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.45)}
-
-    #lobby{max-width:1180px;margin:0 auto;padding:18px 14px 28px}
-    .topbar{display:flex;gap:14px;align-items:center;justify-content:space-between;margin-bottom:16px}
-    .brand{display:flex;gap:14px;align-items:center;min-width:0}.face{width:64px;height:64px;border-radius:18px;background:#080808;border:3px solid var(--orange);box-shadow:0 0 26px rgba(255,106,0,.36);position:relative;flex:0 0 auto}.face:before,.face:after{content:"";position:absolute;top:20px;width:18px;height:12px;background:#fff;border-radius:3px;box-shadow:7px 0 0 #ff273f}.face:before{left:10px}.face:after{right:17px}
-    h1{font-size:clamp(29px,5vw,50px);line-height:.93;margin:0;text-shadow:0 4px 0 rgba(0,0,0,.35)}.brand p{margin:3px 0 0;color:var(--gold);font-weight:800;text-transform:uppercase;font-size:13px}.topbar .btn{white-space:nowrap}
-    .lobbyGrid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;align-items:stretch}@media(max-width:900px){.lobbyGrid{grid-template-columns:1fr}.topbar{align-items:flex-start}.topbar .btn{font-size:13px}}
-    .viewerCard,.sideCard{background:var(--panel);border:2px solid rgba(255,255,255,.10);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.viewerCard{position:relative;height:min(67vh,620px);min-height:450px}.viewerCard model-viewer{width:100%;height:100%;background:radial-gradient(circle at center,#283764,#070a12);--poster-color:transparent}.arSlot{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);width:min(86%,380px)}
-    .side{display:grid;gap:14px}.sideCard{padding:17px}.sideCard h2{margin:0 0 12px;color:var(--gold);font-size:23px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:rgba(0,0,0,.28);border-radius:17px;padding:13px;text-align:center;border:1px solid rgba(255,255,255,.07)}.stat span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800}.stat strong{display:block;margin-top:3px;font-size:31px;color:#fff}.stat strong.gold{color:var(--gold)}
-    .menu{display:grid;gap:10px}.menu .btn{width:100%;text-align:left;display:flex;justify-content:space-between;align-items:center;font-size:18px}.row{display:flex;gap:9px}.row>*{flex:1}.difficulty{display:flex;gap:7px;flex-wrap:wrap}.difficulty .btn{font-size:12px;padding:8px 10px}.difficulty .selected{outline:3px solid var(--gold);filter:brightness(1.18)}.tip{font-size:13px;color:var(--muted);line-height:1.4;margin:11px 0 0}
-
-    #game{display:none;position:fixed;inset:0;z-index:1000;background:#000;overflow:hidden}#game.active{display:block}
-    #cameraFeed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;display:none}#game.realMode #cameraFeed{display:block}#threeContainer{position:absolute;inset:0;z-index:1;background:#000}#game.realMode #threeContainer{background:transparent}#threeContainer canvas{display:block;width:100%;height:100%}
-    .hud{position:absolute;z-index:10;left:10px;right:10px;top:max(8px,env(safe-area-inset-top));pointer-events:none}.hudTop{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}.badge{pointer-events:auto;background:rgba(7,12,22,.82);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(9px);border-radius:999px;padding:7px 12px;font-weight:800;box-shadow:0 8px 25px rgba(0,0,0,.28)}.badge b{color:var(--gold);font-size:20px}.missionBox{pointer-events:auto;margin:8px auto 0;max-width:660px;background:rgba(7,12,22,.84);border:2px solid rgba(23,183,255,.55);border-radius:20px;padding:10px 14px;text-align:center;box-shadow:0 14px 35px rgba(0,0,0,.32)}.missionBox.compact{max-width:380px;padding:7px 12px;opacity:.90}.missionBox small{display:block;color:var(--blue);font-size:11px;text-transform:uppercase;font-weight:800;letter-spacing:.8px}.missionBox strong{display:block;font-size:17px;line-height:1.22}.missionBox.compact strong{font-size:13px}.goalLine{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:7px}.goal{font-size:11px;border-radius:999px;background:rgba(255,255,255,.08);padding:5px 9px;border:1px solid rgba(255,255,255,.13)}.goal.done{background:rgba(41,224,112,.22);color:#a8ffc6;border-color:rgba(41,224,112,.5)}
-    .exitTop{position:absolute;right:10px;top:max(8px,env(safe-area-inset-top));z-index:18}.toast{position:absolute;z-index:30;left:50%;top:38%;transform:translate(-50%,-50%) scale(.65);opacity:0;background:rgba(7,12,22,.93);border:3px solid var(--gold);border-radius:28px;padding:15px 27px;font-size:24px;font-weight:800;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.65);transition:.22s;pointer-events:none}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}.toast.err{border-color:var(--red);color:#ff9aaa}.toast.good{border-color:var(--green);color:#aeffca}
-    .controller{position:absolute;z-index:12;left:0;right:0;bottom:0;padding:9px 8px calc(9px + var(--safe-bottom));background:linear-gradient(0deg,rgba(5,8,15,.98),rgba(5,8,15,.78));border-top:1px solid rgba(255,255,255,.13)}#game.missionMode .worlds{display:none!important}#game.freeMode #missionBox{display:none!important}#game.freeMode .hud{top:max(6px,env(safe-area-inset-top))}.dangerFlash{animation:dangerPulse .45s ease-in-out 2}@keyframes dangerPulse{0%,100%{filter:none}50%{filter:drop-shadow(0 0 18px #ff365c) brightness(1.35)}}.worlds{display:flex;gap:6px;overflow-x:auto;padding:0 2px 6px;scrollbar-width:none}.worlds::-webkit-scrollbar{display:none}.worldChip{flex:0 0 auto;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.13);border-radius:999px;padding:7px 12px;font-weight:800;font-size:12px}.worldChip.active{background:var(--blue);color:#001427;box-shadow:0 0 18px rgba(23,183,255,.42)}.padShell{display:grid;grid-template-columns:132px 84px 144px;align-items:center;gap:10px;max-width:540px;margin:0 auto}.dpad{position:relative;width:132px;height:132px}.dBtn,.center,.aBtn,.miniCtrl{position:absolute;border-radius:18px;background:linear-gradient(180deg,#33415f,#171d2e);border:2px solid rgba(255,255,255,.18);box-shadow:0 6px 0 rgba(0,0,0,.55);font-weight:900}.dBtn:active,.aBtn:active,.dBtn.hold,.miniCtrl:active,.miniCtrl.activePress{transform:translateY(5px);box-shadow:0 1px 0 rgba(0,0,0,.55);filter:brightness(1.25)}.dBtn{width:50px;height:50px;font-size:20px}.dBtn span,.aBtn span,.miniCtrl span{display:block;font-size:9px;line-height:1;text-transform:uppercase}.up{left:41px;top:0}.left{left:0;top:41px}.right{right:0;top:41px}.down{left:41px;bottom:0}.center{left:41px;top:41px;width:50px;height:50px;display:grid;place-items:center;color:rgba(255,255,255,.35)}.gameMeta{display:grid;grid-template-rows:1fr 1fr;gap:8px;align-self:stretch}.metaPill,.miniCtrl{display:grid;place-items:center;border-radius:16px;min-height:62px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.12);box-shadow:0 8px 22px rgba(0,0,0,.28);font-weight:900;text-align:center;padding:6px 4px}.metaPill b{display:block;font-size:18px}.metaPill span{display:block;font-size:10px;text-transform:uppercase;color:var(--muted)}.miniCtrl{position:static;background:linear-gradient(180deg,#4a5d85,#1a2236)}.miniCtrl.exit{background:linear-gradient(180deg,#ff5c7a,#bc1238)}.actions{position:relative;width:144px;height:132px}.aBtn{width:58px;height:58px;font-size:18px}.a{right:0;bottom:12px;background:linear-gradient(180deg,#ffbd2a,#ff6500)}.b{left:0;bottom:12px;background:linear-gradient(180deg,#ff6280,#bf173b)}.x{right:28px;top:0;background:linear-gradient(180deg,#29c7ff,#0879b9)}.y{left:28px;top:0;background:linear-gradient(180deg,#35ee83,#0e9442)}@media(max-width:520px){.padShell{grid-template-columns:110px 72px 122px;gap:6px}.dpad{width:110px;height:110px}.dBtn{width:43px;height:43px;font-size:17px}.up{left:34px}.left{top:34px}.right{top:34px}.down{left:34px}.center{left:34px;top:34px;width:43px;height:43px}.gameMeta{gap:6px}.metaPill,.miniCtrl{min-height:50px;font-size:13px}.actions{width:122px;height:110px}.aBtn{width:50px;height:50px}.a{bottom:5px}.b{bottom:5px}.x{right:23px}.y{left:23px}.hudTop{padding-right:64px}.badge{font-size:13px;padding:6px 9px}.missionBox{margin-top:6px}.controller{padding-left:5px;padding-right:5px}.worldChip{font-size:11px;padding:6px 10px}}
-
-    /* V19 — jogabilidade mobile: controles sem sobreposição e modo paisagem */
-    .controller *{touch-action:none}
-    .assistBox{position:absolute;z-index:11;left:10px;bottom:calc(166px + var(--safe-bottom));max-width:260px;background:rgba(7,12,22,.78);border:1px solid rgba(255,196,0,.42);border-radius:16px;padding:7px 10px;font-size:12px;line-height:1.25;color:#fff;pointer-events:none}
-    @media(orientation:landscape) and (max-height:620px){
-      #game.active{display:grid;grid-template-columns:1fr clamp(285px,34vw,360px);grid-template-rows:1fr}
-      #cameraFeed{right:clamp(285px,34vw,360px);width:auto}
-      #threeContainer{right:clamp(285px,34vw,360px)}
-      .controller{left:auto;top:0;bottom:0;width:clamp(285px,34vw,360px);padding:calc(8px + env(safe-area-inset-top)) 8px calc(8px + var(--safe-bottom));border-top:0;border-left:1px solid rgba(255,255,255,.13);display:flex;flex-direction:column;justify-content:center;gap:8px;background:linear-gradient(90deg,rgba(5,8,15,.92),rgba(5,8,15,.99))}
-      .worlds{padding:0;max-height:34px;overflow-x:auto}
-      .padShell{grid-template-columns:118px 64px 132px;gap:7px;max-width:100%;width:100%;margin:0 auto}
-      .dpad{width:118px;height:118px}.dBtn{width:46px;height:46px;font-size:18px}.up{left:36px}.left{top:36px}.right{top:36px}.down{left:36px}.center{left:36px;top:36px;width:46px;height:46px}
-      .actions{width:132px;height:118px}.aBtn{width:54px;height:54px}.a{bottom:5px}.b{bottom:5px}.x{right:24px}.y{left:24px}
-      .metaPill,.miniCtrl{min-height:52px;font-size:13px}.hud{right:calc(clamp(285px,34vw,360px) + 10px)}.missionBox{max-width:520px;padding:7px 11px}.missionBox strong{font-size:14px}.goal{font-size:10px;padding:4px 7px}
-      .exitTop{right:calc(clamp(285px,34vw,360px) + 10px)}.assistBox{left:12px;bottom:12px;max-width:310px}
-    }
-    @media(orientation:portrait){.assistBox{display:none}}
-    /* V22: sem aviso invasivo no meio da tela. O layout se adapta automaticamente quando o Android permitir rotação. */
-    @media (max-width: 920px) and (orientation: landscape) {
-      #game.active{touch-action:none}
-      #threeContainer{right:var(--console-w)}
-      .controller{left:auto;right:0;top:0;bottom:0;width:var(--console-w);padding:calc(7px + env(safe-area-inset-top)) 7px calc(7px + var(--safe-bottom));border-top:0;border-left:1px solid rgba(255,255,255,.13);display:flex;flex-direction:column;justify-content:center;gap:8px;background:linear-gradient(90deg,rgba(5,8,15,.90),rgba(5,8,15,.99))}
-      .controller .worlds{max-height:34px;overflow-x:auto;padding-bottom:4px}
-      .padShell{grid-template-columns:118px 58px 128px;gap:6px;max-width:100%;width:100%}
-      .dpad{width:118px;height:118px}.dBtn{width:46px;height:46px}.up{left:36px}.left{top:36px}.right{top:36px}.down{left:36px}.center{left:36px;top:36px;width:46px;height:46px}
-      .gameMeta{gap:6px}.metaPill,.miniCtrl{min-height:52px}.actions{width:128px;height:118px}.aBtn{width:52px;height:52px}.a{bottom:7px}.b{bottom:7px}.x{right:25px}.y{left:25px}
-      .exitTop{right:calc(var(--console-w) + 10px)}
-      .hud{right:calc(var(--console-w) + 10px)}
-      .missionBox{max-width:520px;padding:7px 10px}.missionBox strong{font-size:13px}.goalLine{display:none}
-      .assistBox{left:10px;bottom:10px;max-width:320px;opacity:.82}
-    }
-
-    .modal{display:none;position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.82);backdrop-filter:blur(5px);align-items:center;justify-content:center;padding:14px}.modal.active{display:flex}.modalCard{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:2px solid rgba(255,255,255,.14);border-radius:28px;padding:20px;box-shadow:0 35px 80px rgba(0,0,0,.72)}.modalHead{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid rgba(255,255,255,.11);padding-bottom:12px;margin-bottom:15px}.modalHead h3{margin:0;color:var(--gold);font-size:25px}.modalHead small{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:800}.close{width:40px;height:40px;border-radius:13px;background:rgba(255,255,255,.1);font-weight:900}.quizOptions{display:grid;gap:10px}.quizOptions .btn{text-align:left;text-transform:none}.askInput{width:100%;border:1px solid rgba(255,255,255,.16);border-radius:16px;background:rgba(0,0,0,.34);padding:14px;color:white;margin-bottom:10px;-webkit-user-select:text;user-select:text}.bubble{min-height:82px;border:2px dashed rgba(255,196,0,.7);background:rgba(255,196,0,.09);border-radius:17px;padding:15px;text-align:center;color:#ffd86a;line-height:1.35}.collection{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.medal{border-radius:17px;background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);text-align:center;padding:14px}.medal.locked{opacity:.45;filter:grayscale(1)}.medal b{font-size:32px}.medal strong{display:block;margin-top:4px}.medal span{display:block;color:var(--muted);font-size:12px;margin-top:3px;line-height:1.2}.shake{animation:shake .36s linear}@keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
-  </style>
 </head>
 <body>
-  <main id="lobby">
-    <header class="topbar">
-      <div class="brand"><div class="face" aria-hidden="true"></div><div><p>V17 — jogo 3D/AR 10/10</p><h1>Athos: Guardião dos Portais</h1></div></div>
-      <button id="btnShare" class="btn small blue" type="button">🔗 Link</button>
-    </header>
-    <section class="lobbyGrid">
-      <div class="viewerCard" aria-label="Athos 3D e AR nativo">
-        <model-viewer id="nativeViewer" src="./athos.glb" alt="Athos 3D" camera-controls auto-rotate rotation-per-second="28deg" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" shadow-intensity="1.4" shadow-softness="0.45" exposure="1.18" environment-image="neutral" scale="0.85 0.85 0.85" camera-orbit="0deg 75deg 3.6m">
-          <button slot="ar-button" class="btn primary arSlot" type="button">📱 AR Nativo — Ver no mundo real</button>
-        </model-viewer>
+  <div id="app" class="app">
+    <section id="lobby" class="screen lobby active" aria-label="Lobby do jogo">
+      <div class="hero-shell">
+        <header class="hero">
+          <div class="athos-badge" aria-hidden="true">
+            <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
+          </div>
+          <div>
+            <p class="eyebrow">V30 • Guardião dos Portais</p>
+            <h1>Athos Adventure 3D</h1>
+            <p class="subtitle">Controle por joystick, fases longas, caixas sólidas, inimigos, portais, AR e mundo voxel próprio.</p>
+          </div>
+        </header>
+
+        <div class="lobby-grid">
+          <section class="panel viewer-panel">
+            <div class="panel-head">
+              <div>
+                <strong>Athos 3D real</strong>
+                <span id="modelStatus">Carregando athos.glb...</span>
+              </div>
+              <em>AR Nativo</em>
+            </div>
+
+            <model-viewer
+              id="nativeViewer"
+              class="native-viewer"
+              src="./athos.glb"
+              alt="Athos 3D"
+              camera-controls
+              auto-rotate
+              ar
+              ar-modes="webxr scene-viewer quick-look"
+              ar-placement="floor"
+              shadow-intensity="1"
+              exposure="1"
+              environment-image="neutral"
+              camera-orbit="25deg 68deg 3.8m">
+              <button class="pixel-btn ar-native-btn" type="button" slot="ar-button">📱 Abrir Athos em AR Real</button>
+            </model-viewer>
+          </section>
+
+          <aside class="panel menu-panel" aria-label="Menu principal">
+            <div class="stats-grid">
+              <div><small>XP</small><b id="statXP">0</b></div>
+              <div><small>Fase</small><b id="statLevel">1</b></div>
+              <div><small>Medalhas</small><b id="statMedals">0</b></div>
+              <div><small>Recorde</small><b id="statBest">0</b></div>
+            </div>
+
+            <label class="field-label" for="difficultySelect">Dificuldade</label>
+            <select id="difficultySelect" class="pixel-select">
+              <option value="easy">Fácil — Otto se diverte sem travar</option>
+              <option value="medium">Médio — desafio justo</option>
+              <option value="hard">Difícil — guardião expert</option>
+            </select>
+
+            <div class="main-actions">
+              <button id="playBtn" class="pixel-btn primary big" type="button">🎮 Jogar Fases 3D</button>
+              <button id="hubBtn" class="pixel-btn big" type="button">🌀 Hub dos Portais</button>
+              <button id="freeBtn" class="pixel-btn big" type="button">📷 Brincar Livre / AR por câmera</button>
+              <button id="quizBtn" class="pixel-btn big" type="button">🧠 Quiz do Athos</button>
+              <button id="askBtn" class="pixel-btn big" type="button">💬 Falar com Athos</button>
+              <button id="collectionBtn" class="pixel-btn big" type="button">🏅 Coleção do Otto</button>
+              <button id="resetBtn" class="pixel-btn danger big" type="button">🔄 Resetar progresso</button>
+            </div>
+
+            <div class="hint-box">
+              <b>Como jogar:</b> use o joystick para ir para o fundo, voltar e mudar de lado. A pula, B lança poder, Y abaixa, X muda tamanho. Caixas e plataformas são sólidas: pule em cima delas.
+            </div>
+          </aside>
+        </div>
       </div>
-      <aside class="side">
-        <div class="sideCard">
-          <h2>Progresso do Otto</h2>
-          <div class="stats">
-            <div class="stat"><span>Pontos</span><strong id="uiPoints" class="gold pixel">0</strong></div>
-            <div class="stat"><span>Vidas</span><strong id="uiHearts" class="pixel">3</strong></div>
-            <div class="stat"><span>Fase</span><strong id="uiLevel" class="pixel">1</strong></div>
-            <div class="stat"><span>Medalhas</span><strong id="uiMedals" class="pixel">0</strong></div>
-          </div>
-        </div>
-        <div class="sideCard">
-          <h2>Entrar no jogo</h2>
-          <div class="menu">
-            <button id="btnMissions" class="btn primary" type="button">🎮 Jogar Fases <span>▶</span></button>
-            <button id="btnFree" class="btn green" type="button">📷 Brincar Livre AR <span>▶</span></button>
-            <div class="row"><button id="btnQuiz" class="btn blue" type="button">🧠 Quiz</button><button id="btnAsk" class="btn blue" type="button">💬 Falar</button></div>
-            <div class="row"><button id="btnCollection" class="btn" type="button">🏅 Coleção</button><button id="btnReset" class="btn red" type="button">🔄 Reset</button></div>
-          </div>
-          <p class="tip">O <b>AR Nativo</b> projeta o Athos pelo visualizador do celular. O <b>Brincar Livre AR</b> usa câmera + Three.js para manter os botões funcionando.</p>
-        </div>
-        <div class="sideCard">
-          <h2>Dificuldade</h2>
-          <div class="difficulty">
-            <button class="btn small diff selected" data-diff="facil" type="button">Fácil</button>
-            <button class="btn small diff" data-diff="medio" type="button">Médio</button>
-            <button class="btn small diff" data-diff="dificil" type="button">Difícil</button>
-          </div>
-        </div>
-      </aside>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V30</footer>
     </section>
-  </main>
 
-  <section id="game" aria-label="Jogo 3D do Athos">
-    <video id="cameraFeed" autoplay playsinline muted></video>
-    <div id="assistBox" class="assistBox">Segure Frente + A para pular longe. Use B contra obstáculos.</div>
-    <div id="threeContainer"></div>
-    <button id="btnExitTop" class="btn small red exitTop" type="button">⏹️ Sair</button>
-    <div id="hud" class="hud">
-      <div class="hudTop">
-        <div class="badge">⭐ <b id="hudPoints" class="pixel">0</b></div>
-        <div class="badge">❤️ <b id="hudHearts" class="pixel">3</b></div>
-        <div class="badge">💎 <b id="hudCrystals" class="pixel">0/0</b></div>
-        <div class="badge">🏁 <b id="hudLevel" class="pixel">1</b></div>
+    <section id="game" class="screen game" aria-label="Jogo 3D">
+      <video id="cameraFeed" class="camera-feed" autoplay playsinline muted></video>
+      <div id="threeStage" class="three-stage"></div>
+      <div id="screenFlash" class="screen-flash"></div>
+
+      <div class="hud top-hud">
+        <div class="hud-box"><small>❤️ Vida</small><b id="hudHearts">5</b></div>
+        <div class="hud-box"><small>⭐ XP</small><b id="hudXP">0</b></div>
+        <div class="hud-box"><small>💎 Cristais</small><b id="hudCrystals">0/0</b></div>
+        <div class="hud-box"><small>⚔️ Inimigos</small><b id="hudEnemies">0/0</b></div>
+        <div class="hud-box"><small>⏱️ Tempo</small><b id="hudTime">∞</b></div>
       </div>
-      <div id="missionBox" class="missionBox"><small id="worldLabel">Mundo</small><strong id="missionText">Carregando...</strong><div id="goalLine" class="goalLine"></div></div>
+
+      <div id="objectiveCard" class="objective-card">
+        <small id="worldName">Campo dos Blocos</small>
+        <strong id="objectiveText">Carregando objetivo...</strong>
+        <div class="objective-progress"><span id="objectiveProgress"></span></div>
+      </div>
+
+      <div id="tutorialBox" class="tutorial-box" hidden>
+        <b id="tutorialTitle">Tutorial</b>
+        <span id="tutorialText">Use o joystick para andar.</span>
+      </div>
+
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+      <div id="miniMap" class="minimap" aria-hidden="true">
+        <span id="miniPlayer"></span><span id="miniPortal"></span>
+      </div>
+
+      <div class="game-controls" aria-label="Controles do jogo">
+        <div class="left-zone">
+          <div id="joystick" class="joystick" aria-label="Joystick virtual">
+            <div class="joy-ring"><span id="joyKnob" class="joy-knob"></span></div>
+            <small>andar</small>
+          </div>
+        </div>
+
+        <div class="right-zone">
+          <div class="world-strip">
+            <button class="world-chip active" data-world="field" type="button">🌱 Campo</button>
+            <button class="world-chip" data-world="fire" type="button">🔥 Vulcão</button>
+            <button class="world-chip" data-world="forest" type="button">🌳 Floresta</button>
+            <button class="world-chip" data-world="castle" type="button">🏰 Castelo</button>
+            <button class="world-chip" data-world="space" type="button">🚀 Espaço</button>
+            <button class="world-chip" data-world="arena" type="button">🌀 Arena</button>
+            <button class="world-chip" data-world="real" type="button">📷 Real</button>
+          </div>
+
+          <div class="action-grid">
+            <button class="action-btn a" data-action="jump" type="button">A<span>Pular</span></button>
+            <button class="action-btn b" data-action="power" type="button">B<span>Poder</span></button>
+            <button class="action-btn y" data-hold="crouch" type="button">Y<span>Abaixar</span></button>
+            <button class="action-btn x" data-action="size" type="button">X<span>Tamanho</span></button>
+            <button class="action-btn" data-action="spin" type="button">R<span>Girar</span></button>
+            <button class="action-btn" data-action="interact" type="button">I<span>Interagir</span></button>
+            <button class="action-btn" data-action="quiz" type="button">🧠<span>Quiz</span></button>
+            <button class="action-btn" data-action="ask" type="button">💬<span>Falar</span></button>
+            <button id="pauseBtn" class="action-btn warn" data-action="pause" type="button">⏸<span>Pausa</span></button>
+            <button id="exitBtn" class="action-btn danger" type="button">⏹<span>Sair</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="modal" class="modal" hidden>
+      <div class="modal-card panel">
+        <div class="modal-top">
+          <h2 id="modalTitle">Modal</h2>
+          <button id="modalClose" class="pixel-btn danger" type="button">X</button>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+      </div>
     </div>
-    <div id="toast" class="toast">Mensagem</div>
-    <div class="controller">
-      <div class="worlds" id="worlds">
-        <button class="worldChip active" data-world="real" type="button">📷 Real</button>
-        <button class="worldChip" data-world="field" type="button">🌱 Campo</button>
-        <button class="worldChip" data-world="fire" type="button">🔥 Vulcão</button>
-        <button class="worldChip" data-world="forest" type="button">🌳 Floresta</button>
-        <button class="worldChip" data-world="castle" type="button">🏰 Castelo</button>
-        <button class="worldChip" data-world="space" type="button">🚀 Espaço</button>
-        <button class="worldChip" data-world="arena" type="button">🌀 Arena</button>
-      </div>
-      <div class="padShell">
-        <div class="dpad">
-          <button class="dBtn up" data-hold="up" type="button">▲<span>Fundo</span></button>
-          <button class="dBtn left" data-hold="left" type="button">◀<span>Esq.</span></button>
-          <div class="center">●</div>
-          <button class="dBtn right" data-hold="right" type="button">▶<span>Dir.</span></button>
-          <button class="dBtn down" data-hold="down" type="button">▼<span>Voltar</span></button>
-        </div>
-        <div class="gameMeta" aria-label="Controles centrais do jogo">
-          <div class="metaPill"><b class="pixel">ATHOS</b><span>Controle real</span></div>
-          <button id="btnRespawn" class="miniCtrl" type="button">🔁<span>Respawn</span></button>
-        </div>
-        <div class="actions">
-          <button class="aBtn y" data-action="crouch" type="button">Y<span>Abaixar</span></button>
-          <button class="aBtn x" data-action="mode" type="button">X<span>Modo</span></button>
-          <button class="aBtn b" data-action="power" type="button">B<span>Poder</span></button>
-          <button class="aBtn a" data-action="jump" type="button">A<span>Pular+</span></button>
-        </div>
-      </div>
-    </div>
-  </section>
+  </div>
 
-  <div id="modalQuiz" class="modal"><div class="modalCard"><div class="modalHead"><div><small>Desafio do portal</small><h3>Quiz do Athos</h3></div><button class="close" data-close type="button">X</button></div><p id="quizQ" style="font-size:21px;text-align:center;font-weight:800"></p><div id="quizOpts" class="quizOptions"></div><p id="quizFeedback" style="text-align:center;color:var(--gold);font-weight:800"></p></div></div>
-  <div id="modalAsk" class="modal"><div class="modalCard"><div class="modalHead"><div><small>Comunicação local</small><h3>Falar com Athos</h3></div><button class="close" data-close type="button">X</button></div><input id="askInput" class="askInput" placeholder="Pergunte sobre fogo, portais, missão..." maxlength="120"><div class="row"><button id="askSend" class="btn primary" type="button">Enviar</button><button id="askVoice" class="btn blue" type="button">🎙️ Voz</button></div><div id="askResp" class="bubble">Oi Otto! Vamos explorar os portais?</div></div></div>
-  <div id="modalCollection" class="modal"><div class="modalCard"><div class="modalHead"><div><small>Conquistas</small><h3>Coleção do Otto</h3></div><button class="close" data-close type="button">X</button></div><div id="collection" class="collection"></div></div></div>
-
-<script>
-(() => {
-  'use strict';
-  const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-
-  const STORE='athos-v24-depth-challenge-state';
-  const defaultState={points:0,hearts:3,level:0,medals:[],difficulty:'facil',best:0};
-  const state=Object.assign({},defaultState, JSON.parse(localStorage.getItem(STORE)||'{}'));
-  const save=()=>{state.best=Math.max(state.best,state.points);localStorage.setItem(STORE,JSON.stringify(state)); updateStats();};
-
-  const worlds={
-    real:{label:'Mundo Real AR',emoji:'📷',bg:null,floor:null,portal:0xffffff,sky:null},
-    field:{label:'Campo dos Blocos',emoji:'🌱',bg:0x87ceeb,floor:0x357b2c,portal:0x29e070},
-    fire:{label:'Vulcão Pixel',emoji:'🔥',bg:0x180400,floor:0x2d0800,portal:0xff6a00},
-    forest:{label:'Floresta Voxel',emoji:'🌳',bg:0x7ed2ff,floor:0x244f20,portal:0x29e070},
-    castle:{label:'Castelo de Pedra',emoji:'🏰',bg:0x161622,floor:0x4c4d5c,portal:0x17b7ff},
-    space:{label:'Espaço Cubo',emoji:'🚀',bg:0x030712,floor:0x101132,portal:0xb14dff},
-    arena:{label:'Arena dos Portais',emoji:'🌀',bg:0x0d1024,floor:0x222648,portal:0xffc400}
-  };
-
-  const levels=[
-    {name:'Treino dos Portais',world:'field',length:52,objective:'Fase maior: avance no fundo, pegue 4 cristais, suba em caixas, derrote 1 cubo e entre no portal.',crystals:[{x:5,z:0},{x:13,z:-1.45},{x:27,z:1.35},{x:43,z:0}],checkpoints:[18,36],holes:[{x:22,w:1.6},{x:39,w:1.8}],enemies:[{x:31,range:2.4,z:0,kind:'walker'}],enemyGoal:1,portalX:50,hints:['▲ entra no fundo da fase.','◀/▶ mudam de faixa.','A + ▲ pula para frente.']},
-    {name:'Vale dos Cubos Raivosos',world:'forest',length:64,objective:'Derrote 3 adversários, pegue os cristais e use as caixas para atravessar o vale.',crystals:[{x:7,z:-1.2},{x:18,z:1.25},{x:32,z:-1.35},{x:50,z:1.15}],enemies:[{x:12,range:2.4,z:0,kind:'walker'},{x:25,range:2.1,z:1.35,kind:'jumper'},{x:44,range:2.8,z:-1.25,kind:'walker'}],enemyGoal:3,boxes:[{x:15,z:-1.4,w:2.0,h:1.0,d:1.8},{x:29,z:1.35,w:2.2,h:1.2,d:1.8},{x:39,z:0,w:2.4,h:1.1,d:1.9}],checkpoints:[24,45],holes:[{x:20,w:1.7},{x:37,w:1.9},{x:55,w:1.8}],portalX:62},
-    {name:'Ponte de Lava Viva',world:'fire',length:70,objective:'Desvie da lava, use B Poder nos inimigos de fogo e pule os buracos até o portal.',crystals:[{x:6,z:0},{x:17,z:1.3},{x:33,z:-1.2},{x:48,z:1.2},{x:61,z:0}],hazards:[{x:10,w:1.7},{x:23,w:2.0},{x:40,w:1.8},{x:58,w:2.1}],holes:[{x:29,w:1.9},{x:53,w:2.0}],enemies:[{x:15,range:2.6,z:0,kind:'walker'},{x:36,range:2.4,z:-1.35,kind:'spiker'},{x:63,range:2.5,z:1.25,kind:'jumper'}],enemyGoal:2,darkBlocks:[{x:46,w:1.4}],checkpoints:[26,50],portalX:68},
-    {name:'Túnel da Floresta Voxel',world:'forest',length:72,objective:'Abaixe nos túneis, pule em cima das caixas e derrote 2 inimigos para abrir o portal.',crystals:[{x:8,z:0},{x:21,z:-1.35},{x:34,z:1.35},{x:52,z:0},{x:65,z:-1.2}],tunnels:[{x:14,w:2.4},{x:44,w:2.8}],boxes:[{x:25,z:1.35,w:2.0,h:1.15,d:1.8},{x:38,z:-1.3,w:2.2,h:1.25,d:1.8},{x:59,z:1.15,w:2.0,h:1.2,d:1.8}],enemies:[{x:31,range:2.2,z:0,kind:'walker'},{x:56,range:2.8,z:-1.2,kind:'jumper'}],enemyGoal:2,checkpoints:[30,55],holes:[{x:19,w:1.6},{x:49,w:1.9}],portalX:70},
-    {name:'Castelo dos Guardas',world:'castle',length:78,objective:'Fique gigante para abrir portões, derrote guardas e chegue ao portal do castelo.',crystals:[{x:7,z:-1.2},{x:20,z:1.2},{x:38,z:0},{x:58,z:-1.3},{x:70,z:1.2}],gates:[{x:16,w:1.2,needs:'giant'},{x:51,w:1.4,needs:'giant'}],enemies:[{x:28,range:2.4,z:0,kind:'walker'},{x:43,range:2.2,z:1.25,kind:'spiker'},{x:64,range:2.8,z:-1.25,kind:'walker'}],enemyGoal:2,boxes:[{x:24,z:-1.35,w:2.0,h:1.1,d:1.8},{x:34,z:1.35,w:2.3,h:1.3,d:1.8},{x:61,z:0,w:2.1,h:1.2,d:1.8}],checkpoints:[32,60],holes:[{x:46,w:1.7},{x:68,w:1.8}],portalX:76},
-    {name:'Fábrica de Blocos Sombrios',world:'fire',length:82,objective:'Use B Poder para quebrar blocos escuros, derrotar inimigos e liberar caminho.',crystals:[{x:6,z:0},{x:18,z:-1.3},{x:31,z:1.3},{x:47,z:0},{x:66,z:-1.2},{x:77,z:1.2}],darkBlocks:[{x:13,w:1.4},{x:36,w:1.5},{x:71,w:1.5}],hazards:[{x:25,w:1.8},{x:54,w:2.0}],enemies:[{x:22,range:2.5,z:1.25,kind:'walker'},{x:44,range:2.7,z:-1.25,kind:'spiker'},{x:62,range:3.0,z:0,kind:'flyer'}],enemyGoal:2,platforms:[{x:58,y:1.25,range:3.8,w:3.2,speed:1.25}],checkpoints:[30,57],holes:[{x:40,w:1.8},{x:74,w:1.9}],portalX:80},
-    {name:'Espaço Cubo Profundo',world:'space',length:88,objective:'Fase longa no espaço: use plataformas, derrote inimigos voadores e não caia no vazio.',crystals:[{x:7,z:0},{x:19,z:1.35},{x:33,z:-1.3},{x:49,z:1.2},{x:63,z:-1.2},{x:78,z:0}],floating:true,platforms:[{x:16,y:1.35,range:4.2,w:3.3,speed:1.2},{x:37,y:1.55,range:3.6,w:3.4,speed:1.45},{x:67,y:1.7,range:4.0,w:3.2,speed:1.55}],holes:[{x:25,w:2.1},{x:45,w:2.3},{x:72,w:2.2}],enemies:[{x:30,range:2.5,z:0,kind:'flyer'},{x:55,range:3.0,z:1.25,kind:'flyer'},{x:81,range:2.5,z:-1.2,kind:'jumper'}],enemyGoal:2,checkpoints:[34,64],portalX:86},
-    {name:'Arena dos Portais',world:'arena',length:96,objective:'Desafio final: cristais, lava, caixas, túneis, guardas, bloco escuro e mini-boss.',crystals:[{x:6,z:0},{x:14,z:-1.3},{x:26,z:1.3},{x:41,z:0},{x:59,z:-1.2},{x:75,z:1.2},{x:90,z:0}],hazards:[{x:20,w:1.7},{x:52,w:2.0},{x:84,w:1.8}],holes:[{x:32,w:2.0},{x:68,w:2.2}],tunnels:[{x:47,w:2.6}],gates:[{x:73,w:1.3,needs:'giant'}],darkBlocks:[{x:61,w:1.5}],boxes:[{x:10,z:-1.4,w:2.0,h:1.0,d:1.8},{x:37,z:1.35,w:2.2,h:1.25,d:1.8},{x:57,z:-1.25,w:2.1,h:1.2,d:1.8},{x:79,z:1.25,w:2.0,h:1.15,d:1.8}],platforms:[{x:24,y:1.25,range:3.5,w:3.4,speed:1.3},{x:66,y:1.45,range:4.0,w:3.2,speed:1.45}],enemies:[{x:18,range:2.5,z:0,kind:'walker'},{x:43,range:2.4,z:1.25,kind:'spiker'},{x:70,range:3.0,z:-1.25,kind:'flyer'},{x:89,range:3.0,z:0,kind:'boss'}],enemyGoal:4,requiresSpin:true,requiresQuiz:true,checkpoints:[35,65],portalX:94}
-  ];
-
-  // V24: fases mais longas e inimigos variados. Mantive a base V24 de profundidade real,
-  // mas agora os objetivos exigem derrotar adversários, coletar cristais e superar obstáculos.
-
-  
-const medals=[
-    {id:'first',emoji:'⭐',title:'Primeira Fase',desc:'Concluiu uma fase.'},
-    {id:'lava',emoji:'🔥',title:'Pulou Lava',desc:'Venceu a ponte de lava.'},
-    {id:'tunnel',emoji:'⬇️',title:'Mestre do Túnel',desc:'Passou agachado.'},
-    {id:'giant',emoji:'🦾',title:'Athos Gigante',desc:'Abriu o portão.'},
-    {id:'power',emoji:'💥',title:'Poder Pixel',desc:'Quebrou bloco escuro.'},
-    {id:'quiz',emoji:'🧠',title:'Campeão do Quiz',desc:'Acertou desafio.'},
-    {id:'enemy',emoji:'👾',title:'Caçador de Cubos',desc:'Derrotou um inimigo.'},
-    {id:'checkpoint',emoji:'🚩',title:'Checkpoint',desc:'Ativou uma bandeira.'},
-    {id:'platform',emoji:'🧱',title:'Plataforma Móvel',desc:'Usou uma plataforma.'},
-    {id:'final',emoji:'🏆',title:'Guardião 10/10',desc:'Venceu a arena final.'}
-  ];
-
-  const quiz=[
-    {q:'Qual é a energia principal do Athos?',opts:['Fogo pixelado','Água azul','Gelo secreto'],a:0,exp:'Isso! O fogo pixelado alimenta os portais.'},
-    {q:'O que abre as fases do Athos?',opts:['Portais','Sorvete','Buzina'],a:0,exp:'Certo! Os portais ligam os mundos.'},
-    {q:'Qual botão faz o Athos pular?',opts:['A','B','Y'],a:0,exp:'A é o pulo do Athos.'},
-    {q:'Para passar por túnel baixo, o Athos deve...',opts:['Abaixar','Ficar parado','Dormir'],a:0,exp:'Perfeito! Use Y para abaixar.'}
-  ];
-
-  let scene,camera,renderer,clock,player,athos,portal,ground,worldObjs=[],items=[],enemies=[],platforms=[],checkpoints=[],particles=[],camStream=null,animStarted=false;
-  let mode='lobby', currentLevel=null, currentWorld='field', objective={crystals:0,totalCrystals:0,enemyKills:0,enemyGoal:0,portal:false,quiz:false,spin:false};
-  let px=0,py=0,pz=0,vx=0,vy=0,vz=0,onGround=true,targetScale=1,scale=1,rot=0,targetRot=0,squash=1,targetSquash=1,crouchTimer=0,invuln=0,checkpointX=0,lastSafeX=0,jumpGrace=0;
-  const input={left:false,right:false,up:false,down:false};
-
-  function updateStats(){
-    $('#uiPoints').textContent=state.points; $('#uiHearts').textContent=state.hearts; $('#uiLevel').textContent=(state.level%levels.length)+1; $('#uiMedals').textContent=state.medals.length;
-    $('#hudPoints').textContent=state.points; $('#hudHearts').textContent=state.hearts; $('#hudLevel').textContent=(state.level%levels.length)+1;
-  }
-  function toast(msg,kind=''){const el=$('#toast'); el.textContent=msg; el.className='toast show '+(kind==='err'?'err':kind==='good'?'good':''); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),1900);}
-  function speak(txt){ if(!window.speechSynthesis) return; try{speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(txt); u.lang='pt-BR'; u.rate=1.02; u.pitch=1.12; speechSynthesis.speak(u);}catch(e){} }
-  function addPoints(n,msg){state.points+=n; save(); if(msg) toast(msg,'good');}
-  function unlock(id){if(!state.medals.includes(id)){state.medals.push(id); save(); toast('Nova medalha!','good');}}
-
-  function initThree(){
-    if(renderer) return;
-    const c=$('#threeContainer');
-    scene=new THREE.Scene(); clock=new THREE.Clock();
-    camera=new THREE.PerspectiveCamera(55,c.clientWidth/c.clientHeight,.1,140); camera.position.set(0,4.4,10);
-    renderer=new THREE.WebGLRenderer({alpha:true,antialias:true}); renderer.domElement.id='three-canvas'; renderer.setSize(c.clientWidth,c.clientHeight); renderer.setPixelRatio(Math.min(2,devicePixelRatio||1)); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; c.innerHTML=''; c.appendChild(renderer.domElement);
-    scene.add(new THREE.HemisphereLight(0xffffff,0x26304b,.75));
-    const sun=new THREE.DirectionalLight(0xffffff,1.1); sun.position.set(6,14,8); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-18; sun.shadow.camera.right=18; sun.shadow.camera.top=18; sun.shadow.camera.bottom=-18; scene.add(sun);
-    player=new THREE.Group(); scene.add(player);
-    loadAthos();
-    addEventListener('resize',resizeThree,{passive:true});
-    if(!animStarted){animStarted=true; requestAnimationFrame(loop);}
-  }
-  function resizeThree(){if(!renderer) return; const c=$('#threeContainer'); camera.aspect=c.clientWidth/c.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(c.clientWidth,c.clientHeight);}
-  function loadAthos(){
-    const loader=new THREE.GLTFLoader();
-    loader.load('./athos.glb',g=>{ athos=g.scene; const box=new THREE.Box3().setFromObject(athos); const size=new THREE.Vector3(); box.getSize(size); const h=size.y||2.4; const factor=2.65/h; athos.scale.setScalar(factor); const box2=new THREE.Box3().setFromObject(athos); athos.position.y=-box2.min.y; athos.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.roughness=.72;}}}); player.add(athos); },undefined,()=>makeFallbackAthos());
-  }
-  function makeFallbackAthos(){
-    const black=new THREE.MeshStandardMaterial({color:0x090909,roughness:.8}); const fire=new THREE.MeshStandardMaterial({color:0xff6a00,emissive:0x6b1800}); const red=new THREE.MeshStandardMaterial({color:0xff1939,emissive:0x7a0010});
-    athos=new THREE.Group(); const body=new THREE.Mesh(new THREE.BoxGeometry(1.1,1.35,.7),black);body.position.y=1.05; const head=new THREE.Mesh(new THREE.BoxGeometry(1,1,.9),black);head.position.y=2.25; const l=new THREE.Mesh(new THREE.BoxGeometry(.32,1.1,.32),fire);l.position.set(-.8,1.05,0); const r=l.clone();r.position.x=.8; const e1=new THREE.Mesh(new THREE.BoxGeometry(.2,.12,.08),red);e1.position.set(-.25,2.34,.47); const e2=e1.clone();e2.position.x=.25; [body,head,l,r,e1,e2].forEach(m=>{m.castShadow=true;m.receiveShadow=true;athos.add(m)}); player.add(athos);
-  }
-
-  function canvasTexture(colors){
-    const s=128,cv=document.createElement('canvas'); cv.width=cv.height=s; const ctx=cv.getContext('2d'); ctx.fillStyle='#'+colors[0].toString(16).padStart(6,'0'); ctx.fillRect(0,0,s,s); ctx.fillStyle='#'+colors[1].toString(16).padStart(6,'0'); for(let y=0;y<4;y++)for(let x=0;x<4;x++)if((x+y)%2===0)ctx.fillRect(x*32,y*32,32,32); const tex=new THREE.CanvasTexture(cv); tex.wrapS=tex.wrapT=THREE.RepeatWrapping; tex.repeat.set(20,4); tex.magFilter=THREE.NearestFilter; return tex;
-  }
-  function mat(color,em=0){return new THREE.MeshStandardMaterial({color,emissive:em,roughness:.84,metalness:0});}
-  function clearWorld(){worldObjs.forEach(o=>scene.remove(o)); worldObjs=[]; items=[]; enemies=[]; platforms=[]; checkpoints=[]; portal=null; ground=null;}
-  function add(o){scene.add(o); worldObjs.push(o); return o;}
-  function cube(x,y,z,w,h,d,color,em=0,type='decor'){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat(color,em)); m.position.set(x,y+h/2,z); m.castShadow=true;m.receiveShadow=true;m.userData={type,x,y,z,w,h,d,baseX:x,baseY:y,baseZ:z}; return add(m);}
-  function crystal(x,y=1.4,z=0){const geo=new THREE.OctahedronGeometry(.42,0); const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0x7af7ff,emissive:0x1aa9ff,roughness:.35,metalness:.15})); m.position.set(x,y,z); m.castShadow=true; m.userData={type:'crystal',collected:false}; add(m); items.push(m); return m;}
-  function checkpoint(x,z=0){const g=new THREE.Group(); const pole=new THREE.Mesh(new THREE.BoxGeometry(.18,2.4,.18),mat(0xf4f4f4)); pole.position.set(0,1.2,0); const flag=new THREE.Mesh(new THREE.BoxGeometry(1.0,.55,.08),mat(0xffc400,0x332000)); flag.position.set(.52,2.05,0); [pole,flag].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(pole,flag); g.position.set(x,0,z); g.userData={type:'checkpoint',x,w:1.1,active:false}; add(g); checkpoints.push(g); return g;}
-  function enemy(x,range=2.0,z=0,kind='walker',speed=0,hp=0){
-    const cfg={
-      walker:{color:0x7a0824,em:0x240006,y:.45,size:.9,hp:1,speed:.78,label:'cubo'},
-      jumper:{color:0xff7b00,em:0x421500,y:.52,size:.92,hp:1,speed:.92,label:'saltador'},
-      flyer:{color:0x7c3cff,em:0x220066,y:1.65,size:.82,hp:1,speed:1.05,label:'voador'},
-      spiker:{color:0x1a1a1a,em:0x440000,y:.48,size:.98,hp:1,speed:.70,label:'espinhoso'},
-      boss:{color:0x330011,em:0x770000,y:.85,size:1.65,hp:3,speed:.58,label:'mini-boss'}
-    }[kind]||{};
-    const body=new THREE.Mesh(new THREE.BoxGeometry(cfg.size||.9,cfg.size||.9,cfg.size||.9),new THREE.MeshStandardMaterial({color:cfg.color||0x6a0620,emissive:cfg.em||0x230008,roughness:.75}));
-    body.position.set(x,cfg.y||.45,z); body.castShadow=true; body.receiveShadow=true;
-    const eyeMat=new THREE.MeshBasicMaterial({color:kind==='spiker'?0xff3333:0xffee66});
-    const e1=new THREE.Mesh(new THREE.BoxGeometry(.16,.12,.05),eyeMat); e1.position.set(-.18,.12,(cfg.size||.9)/2+.02); const e2=e1.clone(); e2.position.x=.18; body.add(e1,e2);
-    if(kind==='spiker'){for(let sx of [-.32,0,.32]){const sp=new THREE.Mesh(new THREE.ConeGeometry(.13,.32,4),new THREE.MeshBasicMaterial({color:0xff3333})); sp.position.set(sx,.62,0); sp.rotation.x=Math.PI; body.add(sp);}}
-    if(kind==='flyer'){const wingMat=new THREE.MeshBasicMaterial({color:0x9bd7ff,transparent:true,opacity:.82}); const w1=new THREE.Mesh(new THREE.BoxGeometry(.08,.35,.72),wingMat); w1.position.set(-.62,0,0); const w2=w1.clone(); w2.position.x=.62; body.add(w1,w2);}
-    if(kind==='boss'){const crown=new THREE.Mesh(new THREE.BoxGeometry(1.1,.22,1.1),new THREE.MeshBasicMaterial({color:0xffc400})); crown.position.y=.95; body.add(crown);}
-    body.userData={type:'enemy',kind:kind,x,w:cfg.size||1,baseX:x,baseY:body.position.y,baseZ:z,range,dir:1,speed:speed||cfg.speed||.8,alive:true,hp:hp||cfg.hp||1,label:cfg.label||'inimigo',hitCooldown:0};
-    add(body); enemies.push(body); return body;
-  }
-  
-function movingPlatform(x,y=1.2,z=0,w=3.0,range=3.0,speed=1.1){const m=new THREE.Mesh(new THREE.BoxGeometry(w,.32,2.6),new THREE.MeshStandardMaterial({color:0xffc400,emissive:0x3b2600,roughness:.7})); m.position.set(x,y,z); m.castShadow=true; m.receiveShadow=true; m.userData={type:'platform',x,w,h:.32,d:2.6,baseX:x,range,speed,prevX:x,used:false}; add(m); platforms.push(m); return m;}
-  function makePortal(x,color){const g=new THREE.Group(); const frame=mat(0x111111); const glow=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.56,side:THREE.DoubleSide}); const l=new THREE.Mesh(new THREE.BoxGeometry(.55,4.3,.55),frame); l.position.set(-1.6,2.15,0); const r=l.clone();r.position.x=1.6; const t=new THREE.Mesh(new THREE.BoxGeometry(3.7,.55,.55),frame); t.position.set(0,4.05,0); const p=new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.6),glow); p.position.set(0,2.15,0); [l,r,t].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(l,r,t,p); g.position.set(x,0,-2.2); g.userData={glow:p}; return add(g);}
-  function tree(x,z=-3){const g=new THREE.Group(); const tr=new THREE.Mesh(new THREE.BoxGeometry(.7,2,.7),mat(0x6b3f21)); tr.position.y=1; const lv=new THREE.Mesh(new THREE.BoxGeometry(2.25,2.25,2.25),mat(0x22a947)); lv.position.y=2.85; [tr,lv].forEach(m=>{m.castShadow=true;m.receiveShadow=true;}); g.add(tr,lv); g.position.set(x,0,z); return add(g);}
-  function buildWorld(worldId,level){
-    clearWorld(); currentWorld=worldId; const w=worlds[worldId]||worlds.field; $('#game').classList.toggle('realMode',worldId==='real');
-    if(worldId==='real'){scene.background=null;scene.fog=null;startCamera();}else{stopCamera();scene.background=new THREE.Color(w.bg); scene.fog=new THREE.FogExp2(w.bg,.016);}
-    const len=(level&&level.length)||42; const tex = worldId==='fire'?canvasTexture([0x361005,0x220803]):worldId==='castle'?canvasTexture([0x555667,0x444453]):worldId==='space'?canvasTexture([0x181a3b,0x0d0f27]):canvasTexture([w.floor||0x2d7232,0x235626]);
-    const floorMat=worldId==='real'?new THREE.ShadowMaterial({opacity:.36}):new THREE.MeshStandardMaterial({map:tex,roughness:.95});
-    ground=new THREE.Mesh(new THREE.BoxGeometry(len+20,.25,8),floorMat); ground.position.set((len/2)-2,-.13,0); ground.receiveShadow=true; add(ground);
-    // trilha e decorações para dar continuidade lateral
-    for(let x=-8;x<len+10;x+=4){cube(x,.05,-4.2,1.3,.7,1.3, worldId==='fire'?0x111111:worldId==='space'?0x30306a:0x5b6b50,0,'decor');}
-    if(worldId==='forest'||worldId==='field'||worldId==='real'){for(let x=-5;x<len+8;x+=7)tree(x,-3.6);} 
-    if(worldId==='castle'){for(let x=-4;x<len+8;x+=8){cube(x,0,-3.5,1.4,3.2,1.2,0x666777);}}
-    if(worldId==='space'){for(let i=0;i<22;i++) cube(Math.random()*len-5, 1+Math.random()*6, -5-Math.random()*8, .3,.3,.3,0xffffff,0x7777ff);}
-    if(worldId==='fire'){for(let x=2;x<len;x+=6) cube(x,0,-3.5,2,.32,2,0xff3c00,0x941000,'lavaDecor');}
-    if(level){
-      (level.crystals||[]).forEach((c,i)=>{const x=typeof c==='number'?c:c.x; const z=typeof c==='number'?0:(c.z||0); const y=(typeof c==='object'&&c.y)?c.y:(level.floating ? (i%2?2.15:1.45) : 1.35); crystal(x,y,z);});
-      (level.hazards||[]).forEach(h=>cube(h.x,0,0,h.w,.18,2.6,0xff2d00,0xaa0000,'hazard'));
-      (level.tunnels||[]).forEach(t=>{cube(t.x,1.55,0,t.w,.35,2.5,0x3a2511,0,'tunnel'); cube(t.x,0,0,.25,1.55,2.5,0x3a2511,0,'tunnel');});
-      (level.gates||[]).forEach(g=>cube(g.x,0,0,g.w,3.0,2.8,0x777a86,0,'gate'));
-      (level.darkBlocks||[]).forEach(b=>cube(b.x,0,0,b.w,1.65,2.2,0x080808,0x220000,'dark'));
-      (level.holes||[]).forEach(h=>{cube(h.x,.01,0,h.w,.08,3.25,0x000000,0,'pit'); cube(h.x,.04,-1.72,h.w,.18,.18,0x4b4b55,0,'decor'); cube(h.x,.04,1.72,h.w,.18,.18,0x4b4b55,0,'decor');});
-      (level.checkpoints||[]).forEach(x=>checkpoint(x));
-      (level.enemies||[]).forEach(e=>enemy(e.x,e.range||2,e.z||0,e.kind||'walker',e.speed||0,e.hp||0));
-      (level.platforms||[]).forEach(p=>movingPlatform(p.x,p.y||1.25,p.z||0,p.w||3,p.range||3,p.speed||1));
-      (level.boxes||[]).forEach(b=>cube(b.x,0,b.z||0,b.w||1.8,b.h||1.05,b.d||1.8, worldId==='castle'?0x8d8068:worldId==='fire'?0x5b2712:worldId==='space'?0x3c3f88:0x9a6b34,0,'box'));
-      portal=makePortal(level.portalX,w.portal);
-    } else { portal=makePortal(18,w.portal); for(let x=5;x<34;x+=6) crystal(x,1.35,0); enemy(12,2); movingPlatform(21,1.25,0,3.2,3,1.15); cube(8,0,-1.35,1.8,1.05,1.8,0x9a6b34,0,'box'); cube(16,0,1.35,2.0,1.2,1.8,0x9a6b34,0,'box'); cube(28,0,0,1.4,1.65,2.2,0x080808,0x220000,'dark'); }
-    updateWorldUI();
-  }
-
-  function startCamera(){if(camStream) return; if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){toast('Câmera indisponível','err');return;} navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false}).then(s=>{camStream=s; $('#cameraFeed').srcObject=s; $('#cameraFeed').play().catch(()=>{});}).catch(()=>toast('Libere a câmera no navegador','err'));}
-  function stopCamera(){if(camStream){camStream.getTracks().forEach(t=>t.stop()); camStream=null;} $('#cameraFeed').srcObject=null;}
-
-  function resetPlayer(){px=checkpointX||0;py=0;pz=0;vx=0;vy=0;vz=0;scale=targetScale=1;rot=targetRot=0;squash=targetSquash=1;crouchTimer=0;jumpGrace=0;onGround=true; if(player){player.position.set(0,0,0); player.scale.set(1,1,1); player.rotation.set(0,0,0);}}
-  function startMode(m){mode=m; $('#lobby').classList.add('hidden'); const game=$('#game'); game.classList.add('active'); game.classList.toggle('missionMode',m==='missions'); game.classList.toggle('freeMode',m==='free'); initThree(); checkpointX=0; resetPlayer(); if(m==='missions'){loadLevel(state.level);} else {currentLevel=null; objective={crystals:0,totalCrystals:0,enemyKills:0,enemyGoal:0,portal:false,quiz:true,spin:true,powerBroken:true,gateOpen:true,passedTunnel:true}; $('#missionBox').classList.add('compact'); $('#missionText').textContent=''; $('#goalLine').innerHTML=''; buildWorld('real',null); toast('Brincar livre 3D: ▲ fundo, ◀/▶ lados, A pula nas caixas','good');} updateStats();}
-  function exitGame(){mode='lobby'; $('#lobby').classList.remove('hidden'); $('#game').classList.remove('active','missionMode','freeMode','realMode'); stopCamera(); updateStats();}
-  function loadLevel(index){
-    currentLevel=levels[index%levels.length]; checkpointX=0; lastSafeX=0; $('#missionBox').classList.remove('compact'); resetPlayer(); objective={crystals:0,totalCrystals:(currentLevel.crystals||[]).length,enemyKills:0,enemyGoal:currentLevel.enemyGoal||0,portal:false,quiz:!currentLevel.requiresQuiz,spin:!currentLevel.requiresSpin,powerBroken:!(currentLevel.darkBlocks&&currentLevel.darkBlocks.length),gateOpen:!(currentLevel.gates&&currentLevel.gates.length),passedTunnel:!(currentLevel.tunnels&&currentLevel.tunnels.length)};
-    buildWorld(currentLevel.world,currentLevel); $('#missionText').textContent=currentLevel.objective; speak('Fase '+((index%levels.length)+1)+': '+currentLevel.objective); updateGoals();
-  }
-  function updateWorldUI(){const w=worlds[currentWorld]; $('#worldLabel').textContent=(w?w.emoji+' '+w.label:'Mundo'); $$('.worldChip').forEach(b=>b.classList.toggle('active',b.dataset.world===currentWorld));}
-  function updateGoals(){
-    $('#hudCrystals').textContent=objective.totalCrystals?`${objective.crystals}/${objective.totalCrystals}`:'0/0';
-    const goals=[];
-    if(objective.totalCrystals) goals.push(['💎 Cristais '+objective.crystals+'/'+objective.totalCrystals, objective.crystals>=objective.totalCrystals]);
-    if(objective.enemyGoal) goals.push(['👾 Adversários '+objective.enemyKills+'/'+objective.enemyGoal, objective.enemyKills>=objective.enemyGoal]);
-    if(currentLevel&&currentLevel.tunnels) goals.push(['⬇️ Passar túnel', objective.passedTunnel]);
-    if(currentLevel&&currentLevel.gates) goals.push(['🦾 Abrir portão', objective.gateOpen]);
-    if(currentLevel&&currentLevel.darkBlocks) goals.push(['🔥 Quebrar bloco', objective.powerBroken]);
-    if(currentLevel&&currentLevel.requiresSpin) goals.push(['🔄 Ativar giro', objective.spin]);
-    if(currentLevel&&currentLevel.requiresQuiz) goals.push(['🧠 Quiz', objective.quiz]);
-    goals.push(['🌀 Portal', objective.portal]);
-    $('#goalLine').innerHTML=goals.map(g=>`<span class="goal ${g[1]?'done':''}">${g[0]}</span>`).join('');
-  }
-  
-function canFinish(){return objective.crystals>=objective.totalCrystals && objective.enemyKills>=objective.enemyGoal && objective.quiz && objective.spin && objective.powerBroken!==false && objective.gateOpen!==false && objective.passedTunnel!==false;}
-  function completeLevel(){if(objective.portal)return; objective.portal=true; updateGoals(); addPoints(50,'Fase completa!'); unlock('first'); if(currentLevel.world==='fire')unlock('lava'); if(currentLevel.tunnels)unlock('tunnel'); if(currentLevel.gates)unlock('giant'); if(currentLevel.darkBlocks)unlock('power'); if(currentLevel.enemyGoal)unlock('enemy'); if(currentLevel.name==='Arena dos Portais')unlock('final'); spawnParticles('win',70); speak('Fase completa! O portal abriu para o próximo mundo.'); state.level=(state.level+1)%levels.length; save(); setTimeout(()=>{if(mode==='missions')loadLevel(state.level);},2400);}
-  function fail(msg){ if(invuln>0||mode!=='missions') return; invuln=1.2; state.hearts-=1; $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),400); if(state.hearts<=0){state.hearts=3; state.points=Math.max(0,state.points-20); save(); toast('Recomeçando fase','err'); speak('Vamos tentar de novo.'); setTimeout(()=>loadLevel(state.level),900);} else {save(); toast(msg||'Cuidado!','err'); speak(msg||'Cuidado!'); px=Math.max(checkpointX,px-1.2); vx=0;} }
-  function lavaPenalty(msg){ if(invuln>0||mode!=='missions') return; invuln=.9; state.points=Math.max(0,state.points-8); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),300); toast(msg||'Pisou na lava! -8 pontos','err'); speak('Lava! Perdeu pontos. Pule com A.'); px=Math.max(0,px-1.1); vx=0; }
-  function die(msg){ if(invuln>0||mode!=='missions') return; invuln=2; state.hearts-=1; state.points=Math.max(0,state.points-25); save(); $('#hud').classList.add('shake'); setTimeout(()=>$('#hud').classList.remove('shake'),500); toast(msg||'Caiu no buraco!','err'); speak('Caiu no buraco. Voltando para o checkpoint.'); py=-.6; vy=-8; setTimeout(()=>{if(state.hearts<=0){state.hearts=3; save(); loadLevel(state.level);}else{save(); resetPlayer(); toast('Respawn no checkpoint','good');}},900); }
-
-  function action(act,btn){
-    pulse(btn);
-    if(act==='jump'){
-      const wantsForward = input.up;
-      const wantsBack = input.down;
-      const wantsLeft = input.left;
-      const wantsRight = input.right;
-      if(onGround || jumpGrace > 0){
-        vy = 13.6;
-        onGround = false;
-        jumpGrace = 0;
-        targetSquash = 1.20;
-        // V24: pulo 3D. Segurar ▲ + A dá impulso para o fundo da tela;
-        // segurar ◀/▶ + A ajuda a cair em cima de caixas laterais.
-        if(wantsForward) vx = Math.max(vx, 7.7);
-        if(wantsBack) vx = Math.min(vx, -5.8);
-        if(wantsLeft) vz = Math.min(vz, -4.3);
-        if(wantsRight) vz = Math.max(vz, 4.3);
-      } else {
-        if(wantsForward) vx = Math.max(vx, 5.0);
-        if(wantsLeft) vz = Math.min(vz, -3.0);
-        if(wantsRight) vz = Math.max(vz, 3.0);
-      }
-    }
-    if(act==='crouch'){
-      crouchTimer=.75; targetSquash=.55;
-    }
-    if(act==='spin'){
-      targetRot += Math.PI*2;
-      if(objective && objective.spin===false){
-        objective.spin=true;
-        addPoints(8,'Giro ativou energia do portal!');
-        updateGoals();
-      } else {
-        toast('Athos girou!','good');
-      }
-    }
-    if(act==='mode'){
-      if(scale<0.75){targetScale=1; toast('Modo normal');}
-      else if(scale<1.3){targetScale=1.55; toast('Modo gigante');}
-      else {targetScale=.55; toast('Modo mini');}
-    }
-    if(act==='respawn'){
-      resetPlayer();toast('Respawn no início');
-    }
-    if(act==='power'){
-      power();
-    }
-  }
-  function power(){
-    spawnParticles('power',28); let broke=false;
-    worldObjs.forEach(o=>{if(o.userData.type==='dark'&&Math.abs(o.position.x-px)<3.2&&Math.abs(o.position.z-pz)<1.9){scene.remove(o); o.userData.removed=true; broke=true;}});
-    enemies.forEach(e=>{const u=e.userData;if(u&&u.alive&&Math.abs(e.position.x-px)<3.8&&Math.abs(e.position.z-pz)<1.9){if(damageEnemy(e,1,'Poder queimou adversário!')) broke=true;}});
-    if(broke){objective.powerBroken=true; addPoints(12,'Poder acertou!'); updateGoals();}
-    else toast('Bola de fogo lançada. Mire no inimigo ou bloco escuro!');
-  }
-  
-function spawnParticles(type,count=20){if(!scene) return; const geo=new THREE.BoxGeometry(.18,.18,.18); for(let i=0;i<count;i++){const color=type==='win'?Math.random()*0xffffff:0xff6a00; const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color})); m.position.set(px,py+1.6,pz); scene.add(m); particles.push({m,life:1.1+Math.random()*.6,v:new THREE.Vector3((Math.random()-.5)*.24,Math.random()*.24+.06,(Math.random()-.5)*.18),r:Math.random()*.25});}}
-  function pulse(btn){if(!btn)return; btn.classList.add('activePress'); setTimeout(()=>btn.classList.remove('activePress'),130);}
-
-  
-  function updatePlatforms(dt){
-    platforms.forEach(p=>{
-      const u=p.userData; const oldX=p.position.x; p.position.x=u.baseX+Math.sin(performance.now()*.001*u.speed)*u.range; const dxMove=p.position.x-oldX; u.prevX=oldX;
-      const dx=Math.abs(px-p.position.x), dz=Math.abs(pz-p.position.z); const top=p.position.y+(u.h||.32)/2;
-      if(dx<(u.w||3)/2+.45 && dz<(u.d||2.6)/2+.35 && py>=top-.18 && py<=top+.65 && vy<=0){
-        py=top; onGround=true; vy=0; px+=dxMove; if(!u.used){u.used=true; unlock('platform'); addPoints(6,'Plataforma usada!');}
-      }
-    });
-  }
-  function defeatEnemy(e,msg='Inimigo derrotado!'){
-    const u=e.userData; if(!u||!u.alive)return;
-    u.alive=false; e.visible=false; objective.enemyKills=(objective.enemyKills||0)+1; unlock('enemy'); addPoints(u.kind==='boss'?35:18,msg); spawnParticles('win',u.kind==='boss'?42:18); updateGoals();
-  }
-  function damageEnemy(e,amount=1,msg='Poder acertou o inimigo!'){
-    const u=e.userData; if(!u||!u.alive)return false;
-    u.hp=(u.hp||1)-amount; u.hitCooldown=.35; spawnParticles('power',10);
-    if(u.hp<=0){defeatEnemy(e,msg); return true;}
-    toast(`Acertou ${u.label}! Falta ${u.hp}.`,'good');
-    return true;
-  }
-  function updateEnemies(dt){
-    enemies.forEach(e=>{
-      const u=e.userData; if(!u||!u.alive)return; u.hitCooldown=Math.max(0,(u.hitCooldown||0)-dt);
-      e.position.x += u.dir*u.speed*dt; if(e.position.x>u.baseX+u.range||e.position.x<u.baseX-u.range){u.dir*=-1;}
-      if(u.kind==='flyer') e.position.y = u.baseY + Math.sin(performance.now()*.004 + u.baseX)*.55;
-      if(u.kind==='jumper') e.position.y = u.baseY + Math.max(0,Math.sin(performance.now()*.005 + u.baseX))* .75;
-      if(u.kind==='boss') e.scale.setScalar(1 + Math.sin(performance.now()*.004)*.035);
-      e.rotation.y += dt*(u.kind==='flyer'?3.2:1.8)*u.dir;
-      const dx=Math.abs(e.position.x-px), dz=Math.abs(e.position.z-pz), dy=Math.abs(e.position.y-(py+.65));
-      const hitRange=u.kind==='boss'?1.35:.9;
-      if(dx<hitRange&&dz<1.05&&dy<1.35){
-        const stomp=py>.70 && vy<0;
-        if(stomp && u.kind!=='spiker'){
-          vy=9.2; onGround=false; damageEnemy(e,1,u.kind==='boss'?'Mini-boss sofreu dano!':'Inimigo pisado!');
-        } else if(u.hitCooldown<=0){
-          fail(u.kind==='spiker'?'Espinhos! Use B Poder ou desvie.':'Adversário acertou o Athos!');
-          u.hitCooldown=.75;
-        }
-      }
-    });
-  }
-  
-function updateCheckpoints(){
-    checkpoints.forEach(c=>{
-      if(c.userData.active)return; if(Math.abs(c.position.x-px)<1.1&&Math.abs(c.position.z-pz)<1.2){
-        c.userData.active=true; checkpointX=c.position.x; lastSafeX=checkpointX; unlock('checkpoint'); addPoints(8,'Checkpoint ativado!');
-        if(c.children[1]) c.children[1].material.color.setHex(0x29e070);
-      }
-    });
-  }
-
-  function loop(){requestAnimationFrame(loop); if(!renderer||mode==='lobby')return; const dt=Math.min(clock.getDelta(),.08); invuln=Math.max(0,invuln-dt); updatePlayer(dt); updatePlatforms(dt); updateCollisions(dt); updateEnemies(dt); updateCheckpoints(); updateParticles(dt); updateCamera(dt); if(portal&&portal.userData.glow){portal.userData.glow.material.opacity=.42+Math.sin(performance.now()*.004)*.18; portal.rotation.y=Math.sin(performance.now()*.001)*.08;} items.forEach(i=>{if(!i.userData.collected){i.rotation.y+=dt*2.4;i.position.y+=Math.sin(performance.now()*.004+i.position.x)*.002;}}); renderer.render(scene,camera);}
-  function updatePlayer(dt){
-    const forwardSpeed=mode==='free'?6.2:5.85;
-    const sideSpeed=mode==='free'?5.2:4.85;
-    let ax=0,az=0;
-    // V24: profundidade real no controle.
-    // ▲/▼ avançam e voltam na fase (eixo X visto em profundidade pela câmera).
-    // ◀/▶ mudam de lado na pista (eixo Z), como um jogo 3D de corredor/plataforma.
-    if(input.up) ax+=1;
-    if(input.down) ax-=1;
-    if(input.left) az-=1;
-    if(input.right) az+=1;
-
-    const airFactor=onGround?1:.82;
-    vx+=ax*forwardSpeed*dt*3.2*airFactor;
-    vz+=az*sideSpeed*dt*3.1*airFactor;
-    vx*=Math.pow(.84,dt*12);
-    vz*=Math.pow(.80,dt*12);
-    px+=vx*dt;
-    pz+=vz*dt;
-    pz=Math.max(-3.05,Math.min(3.05,pz));
-    if(currentLevel)px=Math.max(-2,Math.min(currentLevel.length+2,px)); else px=Math.max(-10,Math.min(42,px));
-
-    // Se estiver sobre caixa/plataforma, updateCollisions/updatePlatforms vai recolocar onGround=true.
-    if(py>0.05||vy>0.05) onGround=false;
-    if(onGround) jumpGrace=.16; else jumpGrace=Math.max(0,jumpGrace-dt);
-    if(!onGround){
-      vy-=22.0*dt;
-      py+=vy*dt;
-      if(py<=0){py=0;vy=0;onGround=true;jumpGrace=.16;targetSquash=1;}
-    }
-    if(crouchTimer>0){crouchTimer-=dt;if(crouchTimer<=0)targetSquash=1;}
-    scale+=(targetScale-scale)*Math.min(1,dt*7);
-    rot+=(targetRot-rot)*Math.min(1,dt*7);
-    squash+=(targetSquash-squash)*Math.min(1,dt*12);
-    if(player){
-      player.position.set(px,py,pz);
-      player.scale.set(scale,scale*squash,scale);
-      // Athos olha para o sentido da profundidade; se voltar, vira para trás.
-      const facing = vx < -.08 ? -Math.PI/2 : Math.PI/2;
-      player.rotation.y = facing + rot;
-    }
-  }
-  function updateCollisions(dt){
-    // Coleta de cristais em 3D: precisa estar perto na profundidade e na lateral.
-    items.forEach(it=>{if(it.userData.collected)return; const dx=Math.abs(it.position.x-px); const dy=Math.abs(it.position.y-(py+1.25)); const dz=Math.abs(it.position.z-pz); if(dx<.85&&dy<1.25&&dz<1.05){it.userData.collected=true; it.visible=false; objective.crystals++; addPoints(10,'Cristal coletado!'); updateGoals();}});
-    if(!currentLevel)return;
-
-    // Caixas sólidas: agora o Athos pode subir e ficar em cima.
-    worldObjs.forEach(o=>{
-      if(o.userData.removed)return;
-      const t=o.userData.type;
-      if(t!=='box')return;
-      const ux=o.userData;
-      const dx=Math.abs(o.position.x-px);
-      const dz=Math.abs(o.position.z-pz);
-      const top=o.position.y+(ux.h||1)/2;
-      const halfX=(ux.w||1)/2+.42;
-      const halfZ=(ux.d||1)/2+.38;
-      const aboveTop=py>=top-.22 && py<=top+.75 && vy<=0;
-      if(dx<halfX&&dz<halfZ&&aboveTop){
-        py=top;
-        vy=0;
-        onGround=true;
-        jumpGrace=.16;
-        lastSafeX=px;
-      } else if(dx<halfX&&dz<halfZ&&py<top-.24){
-        // Colisão lateral simples para não atravessar caixa.
-        const pushX=halfX-dx;
-        const pushZ=halfZ-dz;
-        if(pushX<pushZ){px+=Math.sign(px-o.position.x||1)*pushX; vx=0;} else {pz+=Math.sign(pz-o.position.z||1)*pushZ; vz=0;}
-      }
-    });
-
-    // Obstáculos reais no corredor 3D.
-    worldObjs.forEach(o=>{
-      if(o.userData.removed)return;
-      const t=o.userData.type;
-      if(!t||t==='decor'||t==='lavaDecor'||t==='box')return;
-      const ux=o.userData;
-      const dx=Math.abs(o.position.x-px);
-      const dz=Math.abs(o.position.z-pz);
-      const w=(ux.w||1)/2+.45;
-      const d=(ux.d||2.6)/2+.36;
-      const near=dx<w&&dz<d;
-
-      if(t==='hazard'&&near&&py<.42) lavaPenalty('Pisou na lava! Pule ou desvie para o lado.');
-      if(t==='pit'){
-        const pitW=(ux.w||1)/2+.10;
-        // O buraco pega só a pista central; dá para pular ou desviar para as laterais.
-        if(dx<pitW&&Math.abs(pz)<1.48&&py<.32) die('Caiu no buraco! Use A ou desvie para o lado.');
-      }
-      if(t==='tunnel'&&near&&crouchTimer<=0&&scale>.7){px -= Math.sign(vx||1)*.18; vx=0; toast('Abaixe com Y para passar');}
-      if(t==='tunnel'&&near&&crouchTimer>0){objective.passedTunnel=true; updateGoals();}
-      if(t==='gate'&&near){ if(scale>=1.35){objective.gateOpen=true; o.visible=false; o.userData.removed=true; unlock('giant'); addPoints(12,'Portão aberto!'); updateGoals();} else {px-=Math.sign(vx||1)*.28; vx=0; toast('Use X até ficar gigante');} }
-      if(t==='dark'&&near){px-=Math.sign(vx||1)*.24; vx=0; toast('Use B Poder no bloco');}
-    });
-    if(portal&&Math.abs(portal.position.x-px)<1.45&&Math.abs(portal.position.z-pz)<2.15){ if(canFinish()) completeLevel(); else toast('Complete os objetivos antes do portal'); }
-  }
-  function updateParticles(dt){for(let i=particles.length-1;i>=0;i--){const p=particles[i]; p.life-=dt; p.v.y-=1.1*dt; p.m.position.add(p.v); p.m.rotation.x+=p.r; p.m.rotation.y+=p.r*.7; if(p.life<=0){scene.remove(p.m);particles.splice(i,1);}}}
-  function updateCamera(dt){
-    // V24: câmera atrás do Athos, olhando para o fundo da fase.
-    // Isso transforma ▲ em profundidade visual, não em movimento lateral de tela.
-    const landscape=innerWidth>innerHeight;
-    const back=landscape?8.3:9.8;
-    const side=landscape?6.1:7.2;
-    const height=landscape?4.3:5.0;
-    const targetX=px-back;
-    const targetY=py+height;
-    const targetZ=pz+side;
-    camera.position.x+=(targetX-camera.position.x)*Math.min(1,dt*3.0);
-    camera.position.y+=(targetY-camera.position.y)*Math.min(1,dt*2.4);
-    camera.position.z+=(targetZ-camera.position.z)*Math.min(1,dt*3.0);
-    camera.lookAt(px+4.4,py+1.15,pz*.55);
-  }
-
-  function setWorld(w){if(!(w in worlds))return; if(mode==='missions'){toast('Na missão, o mundo faz parte da fase'); return;} buildWorld(w, null); if(mode==='free'){$('#missionText').textContent=''; $('#goalLine').innerHTML='';} }
-  function openModal(id){$(id).classList.add('active')} function closeModals(){$$('.modal').forEach(m=>m.classList.remove('active'))}
-  function askAnswer(q){const s=(q||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); let r='No mundo do Athos, cada lugar pode virar uma aventura com blocos, portais e cristais.'; if(s.includes('miss'))r=currentLevel?'A missão é: '+currentLevel.objective:'No modo livre, explore e invente sua missão.'; else if(s.includes('fogo')||s.includes('poder'))r='Meu poder de fogo pixel quebra blocos escuros e acende portais.'; else if(s.includes('otto'))r='O Otto é o parceiro oficial do Athos e guia o personagem pelo controle.'; else if(s.includes('portal'))r='O portal abre quando você completa cristais e objetivos da fase.'; else if(s.includes('quem'))r='Eu sou o Athos, guardião dos portais, personagem 3D do Otto.'; $('#askResp').textContent=r; speak(r); }
-  function loadQuiz(){const q=quiz[Math.floor(Math.random()*quiz.length)]; $('#quizQ').textContent=q.q; $('#quizFeedback').textContent=''; $('#quizOpts').innerHTML=''; q.opts.forEach((op,i)=>{const b=document.createElement('button');b.className='btn blue';b.type='button';b.textContent=op;b.onclick=()=>{if(i===q.a){b.className='btn green';$('#quizFeedback').textContent=q.exp+' +10 pontos'; objective.quiz=true; unlock('quiz'); addPoints(10); updateGoals(); setTimeout(closeModals,900);}else{b.className='btn red';$('#quizFeedback').textContent='Quase! '+q.exp;}};$('#quizOpts').appendChild(b);});}
-  function renderCollection(){const el=$('#collection'); el.innerHTML=medals.map(m=>{const has=state.medals.includes(m.id); return `<div class="medal ${has?'':'locked'}"><b>${has?m.emoji:'🔒'}</b><strong>${m.title}</strong><span>${m.desc}</span></div>`;}).join('');}
-
-  function bindHold(btn,key){
-    const start=e=>{e.preventDefault();try{btn.setPointerCapture(e.pointerId)}catch(_){} input[key]=true;btn.classList.add('hold')};
-    const end=e=>{input[key]=false;btn.classList.remove('hold');try{btn.releasePointerCapture(e.pointerId)}catch(_){}};
-    btn.addEventListener('pointerdown',start,{passive:false}); btn.addEventListener('pointerup',end); btn.addEventListener('pointercancel',end); btn.addEventListener('pointerleave',end);
-  }
-  function bindActionButton(btn){
-    const run=e=>{e.preventDefault(); action(btn.dataset.action,btn);};
-    btn.addEventListener('pointerdown',run,{passive:false});
-  }
-  function boot(){
-    updateStats(); $$('.diff').forEach(b=>{b.classList.toggle('selected',b.dataset.diff===state.difficulty); b.onclick=()=>{$$('.diff').forEach(x=>x.classList.remove('selected')); b.classList.add('selected'); state.difficulty=b.dataset.diff; save();};});
-    $('#btnMissions').onclick=()=>startMode('missions'); $('#btnFree').onclick=()=>startMode('free'); $('#btnExitTop').onclick=exitGame; $('#btnRespawn').onclick=()=>action('respawn',$('#btnRespawn')); $('#btnQuiz').onclick=()=>{loadQuiz();openModal('#modalQuiz')}; $('#btnAsk').onclick=()=>openModal('#modalAsk'); $('#btnCollection').onclick=()=>{renderCollection();openModal('#modalCollection')}; $('#btnReset').onclick=()=>{if(confirm('Zerar pontos, fases e medalhas?')){Object.assign(state,defaultState);save();}};
-    $('#btnShare').onclick=async()=>{try{if(navigator.share)await navigator.share({title:'Athos',url:location.href});else{await navigator.clipboard.writeText(location.href);toast('Link copiado!','good');}}catch(e){}};
-    $$('[data-hold]').forEach(b=>bindHold(b,b.dataset.hold));
-    $$('[data-action]').forEach(b=>bindActionButton(b));
-    $$('[data-open="quiz"]').forEach(b=>b.onclick=()=>{loadQuiz();openModal('#modalQuiz')});
-    $$('[data-open="ask"]').forEach(b=>b.onclick=()=>openModal('#modalAsk'));
-    $$('.worldChip').forEach(b=>b.onclick=()=>setWorld(b.dataset.world));
-    $$('[data-close]').forEach(b=>b.onclick=closeModals);
-    $$('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)closeModals();}));
-
-    // CORREÇÃO V18: não bloquear touchstart/pointerdown/mousedown em todos os botões.
-    // No Android isso pode cancelar o evento click e fazer os botões parecerem mortos.
-    // Só os botões de movimento contínuo usam preventDefault dentro do bindHold().
-    $$('button').forEach(b=>{
-      ['contextmenu','selectstart','dragstart'].forEach(ev=>b.addEventListener(ev,e=>e.preventDefault()));
-    });
-    $('#askSend').onclick=()=>{askAnswer($('#askInput').value);$('#askInput').value=''}; $('#askInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('#askSend').click();}); $('#askVoice').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast('Voz não suportada','err');return;} const rec=new SR();rec.lang='pt-BR';rec.onresult=e=>{const t=e.results[0][0].transcript;$('#askInput').value=t;askAnswer(t)};rec.start();};
-    addEventListener('keydown',e=>{if(e.key==='ArrowLeft')input.left=true;if(e.key==='ArrowRight')input.right=true;if(e.key==='ArrowUp')input.up=true;if(e.key==='ArrowDown')input.down=true;if(e.code==='Space')action('jump');if(e.key==='x')action('spin');if(e.key==='z')action('power');if(e.key==='c')action('crouch');}); addEventListener('keyup',e=>{if(e.key==='ArrowLeft')input.left=false;if(e.key==='ArrowRight')input.right=false;if(e.key==='ArrowUp')input.up=false;if(e.key==='ArrowDown')input.down=false;});
-  }
-  boot();
-})();
-</script>
+  <script src="./app.js?v=30"></script>
 </body>
 </html>
