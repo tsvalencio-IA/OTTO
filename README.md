@@ -1,53 +1,51 @@
-# Athos: Guardião dos Portais — V30
+# Athos: Guardião dos Portais — V31 1000/10
 
-Versão completa para GitHub Pages.
+Versão completa para GitHub Pages, mantendo AR, Athos 3D real (`athos.glb`) e todos os modos principais.
 
 ## Arquivos principais
 
-- `index.html` — estrutura do jogo, lobby, HUD, controles e modais.
-- `style.css` — visual voxel, layout mobile, paisagem e controles.
-- `app.js` — motor do jogo com Three.js, fases, colisão, inimigos, cristais, portais, quiz e fala.
-- `athos.glb` — personagem 3D real do Athos.
-- `manifest.webmanifest` — instalação como app.
-- `sw.js` — service worker leve sem cache agressivo.
-- `icons/` — ícones do app.
-- `assets/moldes/` — moldes/imagens para impressão.
+- `index.html`
+- `style.css`
+- `app.js`
+- `athos.glb`
+- `manifest.webmanifest`
+- `sw.js`
+- `.nojekyll`
+- `icons/`
+- `assets/moldes/`
 
-## Como subir
+## O que foi corrigido da V30
 
-1. Extraia este ZIP.
-2. Envie o conteúdo da pasta `athos-guardiao-v30-comercial` para a raiz do repositório.
-3. Confirme que `index.html`, `app.js`, `style.css` e `athos.glb` estão na raiz.
-4. Ative o GitHub Pages.
-5. Abra no celular pelo link HTTPS.
+- O jogo agora inicializa o Three.js **depois** de abrir a tela de jogo, evitando canvas 1x1.
+- Mantém o `athos.glb` real; não troca o personagem por imagem 2D.
+- Mantém o `model-viewer` e o botão de AR Nativo.
+- Mantém o modo Brincar Livre / AR por câmera.
+- Adiciona botões visíveis de profundidade: `▲ Fundo`, `▼ Voltar`, `◀ Esq`, `▶ Dir`.
+- Mantém joystick virtual para movimento diagonal fluido.
+- Adiciona botão `N Normal` para voltar de mini/gigante.
+- Pulo com direção ficou mais forte para atravessar buraco e cair em caixa/plataforma.
+- Combo ao derrotar inimigos aumenta XP e desbloqueia medalha.
+- Cenários ganharam mais camadas visuais, laterais, portais, árvores, pilares, estrelas, lava, beams e textura de pista.
+- Materiais 3D migrados para `MeshStandardMaterial` com iluminação mais rica.
+- Quiz expandido com 60+ perguntas locais.
+- Athos responde mais assuntos por palavra-chave.
 
 ## Como testar
 
-1. Abra o jogo no celular.
-2. Toque em **Jogar Fases 3D**.
-3. Use o joystick da esquerda para ir para o fundo, voltar e mudar de lado.
-4. Use **A** para pular, **B** para poder, **Y** para abaixar e **X** para tamanho.
-5. Pule em cima de caixas e plataformas.
-6. Colete cristais, derrote inimigos e entre no portal.
-7. Teste também **Brincar Livre / AR por câmera** e **AR Nativo** no lobby.
+1. Suba o conteúdo desta pasta na raiz do GitHub Pages.
+2. Abra no PC ou celular.
+3. Toque em `Jogar Fases 3D`.
+4. Use joystick ou botões:
+   - `▲ Fundo`: ir para o fundo da fase.
+   - `▼ Voltar`: voltar para o começo.
+   - `◀/▶`: lateral.
+   - `A`: pular.
+   - `B`: poder.
+   - `Y`: abaixar.
+   - `X`: mini/normal/gigante.
+   - `N`: normal direto.
+5. Rode o script F12 se quiser validar botões e canvas.
 
-## O que entrou na V30
+## Observação
 
-- Controle por joystick virtual.
-- Pulo com buffer e coyote time.
-- Câmera suave seguindo Athos em profundidade.
-- Caixas e plataformas sólidas.
-- Fases longas com profundidade.
-- Inimigos com tipos diferentes.
-- Poder de fogo com projéteis.
-- Cristais, portais, checkpoints, túneis e portões.
-- Quiz integrado.
-- Fala local com respostas por palavra-chave.
-- Modo hub, fases, brincar livre e AR nativo.
-- Progresso local com XP, fases e medalhas.
-
-## Limitações honestas
-
-- O AR Nativo depende do navegador e do celular. Em alguns aparelhos, o visualizador AR nativo não aceita controles dentro dele.
-- O jogo principal com controles roda no modo Three.js dentro da página.
-- A rotação de tela depende da configuração do celular; o navegador tenta adaptar e solicitar paisagem, mas não consegue forçar se o sistema bloquear.
+O aviso “Multiple instances of Three.js” pode aparecer por causa do `model-viewer` + Three.js na mesma página. Ele é aviso de biblioteca, não erro fatal do jogo.

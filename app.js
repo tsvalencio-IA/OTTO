@@ -17,7 +17,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v30_progress';
+  const STORAGE_KEY = 'athos_guardiao_v31_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -69,14 +70,67 @@
   ];
 
   const quizData = [
-    { q:'Para onde o joystick para cima leva o Athos?', opts:['Para o fundo da fase','Para o menu','Para desligar o jogo'], ans:0 },
-    { q:'Como derrotar inimigo espinhoso?', opts:['Pular em cima','Usar poder B','Ficar parado'], ans:1 },
-    { q:'Qual botão faz o Athos pular?', opts:['A','Y','Sair'], ans:0 },
-    { q:'Como passar por túnel baixo?', opts:['Segurar Y ou ficar mini','Ficar gigante','Fechar o portal'], ans:0 },
-    { q:'O que abre o portal?', opts:['Cumprir objetivos','Só andar sem coletar nada','Perder toda vida'], ans:0 },
-    { q:'Qual botão muda mini/normal/gigante?', opts:['X','B','Pausa'], ans:0 },
-    { q:'Quem é o parceiro do Athos?', opts:['Otto','Um zumbi','Um carro'], ans:0 },
-    { q:'Qual poder o Athos usa?', opts:['Fogo pixelado','Água invisível','Gelo de chocolate'], ans:0 }
+    { q:'Para onde o joystick para cima leva o Athos?', opts:['Para o fundo da fase', 'Para o menu', 'Para desligar o jogo'], ans:0 },
+    { q:'Como derrotar inimigo espinhoso?', opts:['Usar poder B', 'Pular em cima', 'Ficar parado'], ans:0 },
+    { q:'Qual botão faz o Athos pular?', opts:['A', 'Y', 'Sair'], ans:0 },
+    { q:'Como passar por túnel baixo?', opts:['Segurar Y ou ficar mini', 'Ficar gigante', 'Fechar o portal'], ans:0 },
+    { q:'O que abre o portal?', opts:['Cumprir objetivos', 'Só andar sem coletar nada', 'Perder toda vida'], ans:0 },
+    { q:'Qual botão muda mini, normal e gigante?', opts:['X', 'B', 'Pausa'], ans:0 },
+    { q:'Quem é o parceiro do Athos?', opts:['Otto', 'Um zumbi', 'Um carro'], ans:0 },
+    { q:'Qual poder o Athos usa?', opts:['Fogo pixelado', 'Água invisível', 'Gelo de chocolate'], ans:0 },
+    { q:'O que o botão B faz?', opts:['Lança poder de fogo', 'Abre o navegador', 'Apaga o jogo'], ans:0 },
+    { q:'Para onde o botão ▼ Voltar leva?', opts:['Para o começo da pista', 'Para o céu', 'Para o quiz'], ans:0 },
+    { q:'Qual inimigo não deve ser pisado?', opts:['Espinhoso', 'Cubo comum', 'Cristal'], ans:0 },
+    { q:'O que acontece quando pega cristal?', opts:['Ganha XP e avança objetivo', 'Perde vida', 'Fecha a fase'], ans:0 },
+    { q:'O que o checkpoint faz?', opts:['Ajuda a voltar mais perto depois de cair', 'Zera os pontos', 'Remove o Athos'], ans:0 },
+    { q:'Qual mundo tem lava?', opts:['Vulcão Pixel', 'Floresta Voxel', 'Campo dos Blocos'], ans:0 },
+    { q:'Qual mundo tem portais finais?', opts:['Arena dos Portais', 'Caixa de Entrada', 'Tela de login'], ans:0 },
+    { q:'Qual mundo combina com árvores?', opts:['Floresta Voxel', 'Espaço Cubo', 'Vulcão Pixel'], ans:0 },
+    { q:'Qual mundo combina com estrelas?', opts:['Espaço Cubo', 'Castelo de Pedra', 'Mundo Real'], ans:0 },
+    { q:'Qual ação ajuda a abrir portão pesado?', opts:['Ficar gigante', 'Ficar invisível', 'Fechar o celular'], ans:0 },
+    { q:'Qual ação ajuda em caminho apertado?', opts:['Ficar mini', 'Ficar gigante', 'Parar'], ans:0 },
+    { q:'Para cair em cima de uma caixa, o que ajuda?', opts:['Pular com direção', 'Apertar reset', 'Abrir AR nativo'], ans:0 },
+    { q:'O que o AR Nativo faz?', opts:['Abre o visualizador do celular', 'Substitui o jogo', 'Remove o 3D'], ans:0 },
+    { q:'O jogo principal com controles roda em quê?', opts:['Three.js', 'Bloco de notas', 'Calculadora'], ans:0 },
+    { q:'O Athos 3D vem de qual arquivo?', opts:['athos.glb', 'foto.jpg', 'musica.mp3'], ans:0 },
+    { q:'Qual botão fala com Athos?', opts:['💬 Falar', '⏹ Sair', 'Reset'], ans:0 },
+    { q:'Qual botão abre desafio de pergunta?', opts:['Quiz', 'Poder', 'Voltar'], ans:0 },
+    { q:'Quando o portal está bloqueado, o que falta?', opts:['Objetivos da fase', 'Aumentar volume', 'Trocar aba'], ans:0 },
+    { q:'Qual é a cor principal do Athos?', opts:['Preto', 'Azul claro', 'Rosa'], ans:0 },
+    { q:'Quais cores aparecem no fogo do Athos?', opts:['Amarelo, laranja e vermelho', 'Verde, azul e roxo', 'Branco e cinza'], ans:0 },
+    { q:'O que o Otto precisa fazer para ganhar medalhas?', opts:['Completar mundos', 'Fechar o jogo', 'Não jogar'], ans:0 },
+    { q:'Qual dificuldade é mais tranquila?', opts:['Fácil', 'Difícil', 'Chefe final'], ans:0 },
+    { q:'Qual dificuldade dá mais bônus de XP?', opts:['Difícil', 'Fácil', 'Nenhuma'], ans:0 },
+    { q:'O que faz a vida diminuir?', opts:['Lava, buraco ou inimigo', 'Pegar cristal', 'Entrar no portal liberado'], ans:0 },
+    { q:'Como derrotar inimigo comum sem poder?', opts:['Pular em cima', 'Ficar parado', 'Abrir menu'], ans:0 },
+    { q:'Como atacar inimigo voador?', opts:['Usar poder B', 'Agachar no chão', 'Resetar'], ans:0 },
+    { q:'Qual adversário tem mais vida?', opts:['Mini-boss/Guardião', 'Cristal', 'Árvore'], ans:0 },
+    { q:'O que o botão R faz?', opts:['Girar', 'Pausar', 'Apagar'], ans:0 },
+    { q:'O que o botão I faz?', opts:['Interagir', 'Invadir sistema', 'Ir para fora do site'], ans:0 },
+    { q:'No Hub dos Portais, o que você encontra?', opts:['Portais para mundos', 'Loja de carros', 'Lista de emails'], ans:0 },
+    { q:'Qual é o objetivo dos cristais?', opts:['Liberar progresso e dar XP', 'Virar obstáculo', 'Travar o jogo'], ans:0 },
+    { q:'Quando aparece altar roxo, o que pode liberar?', opts:['Quiz do portal', 'Câmera traseira', 'Volume'], ans:0 },
+    { q:'O que o modo Brincar Livre permite?', opts:['Testar controles e câmera sem pressão', 'Apagar fases', 'Remover AR'], ans:0 },
+    { q:'Qual controle é melhor para andar em diagonal?', opts:['Joystick', 'Botão Sair', 'Botão Reset'], ans:0 },
+    { q:'O que a seta ▲ Fundo representa?', opts:['Profundidade da tela', 'Volume do som', 'Zoom do navegador'], ans:0 },
+    { q:'O que a seta ◀ representa?', opts:['Mover para a esquerda da pista', 'Pular', 'Falar'], ans:0 },
+    { q:'O que a seta ▶ representa?', opts:['Mover para a direita da pista', 'Abaixar', 'Sair'], ans:0 },
+    { q:'Qual mundo tem castelo e golem?', opts:['Castelo de Pedra', 'Campo dos Blocos', 'Mundo Real'], ans:0 },
+    { q:'Qual mundo é melhor para testar câmera?', opts:['Mundo Real AR', 'Espaço Cubo', 'Arena Final'], ans:0 },
+    { q:'Qual frase combina com Athos?', opts:['Guardião dos Portais', 'Rei dos Sorvetes', 'Piloto de avião'], ans:0 },
+    { q:'Por que o portal fica verde?', opts:['Porque foi liberado', 'Porque perdeu tudo', 'Porque o celular travou'], ans:0 },
+    { q:'O que acontece ao vencer a fase?', opts:['Ganha XP, medalha e próxima fase', 'Perde todos os arquivos', 'Fecha o site'], ans:0 },
+    { q:'Qual botão pausa o jogo?', opts:['⏸ Pausa', 'A Pular', 'B Poder'], ans:0 },
+    { q:'Se a câmera não abrir, o que acontece?', opts:['O jogo usa cenário 3D', 'O jogo apaga o Athos', 'O celular quebra'], ans:0 },
+    { q:'O que significa XP?', opts:['Pontos de experiência', 'Erro fatal', 'Arquivo de imagem'], ans:0 },
+    { q:'Qual é o melhor jeito de atravessar buraco?', opts:['Pular com direção', 'Abaixar dentro dele', 'Ficar parado'], ans:0 },
+    { q:'O que o Athos usa para quebrar bloco escuro?', opts:['Poder de fogo', 'Pergunta de texto', 'Botão de sair'], ans:0 },
+    { q:'Qual modo é só para ver o boneco no mundo real do aparelho?', opts:['AR Nativo', 'Resetar progresso', 'Coleção'], ans:0 },
+    { q:'Qual modo é para jogar fases completas?', opts:['Jogar Fases 3D', 'Falar com Athos', 'Abrir moldes'], ans:0 },
+    { q:'Qual item mostra conquistas?', opts:['Coleção do Otto', 'Câmera Feed', 'Service Worker'], ans:0 },
+    { q:'O que o mini ajuda a fazer?', opts:['Passar por lugar baixo', 'Ficar preso no portal', 'Perder cristal'], ans:0 },
+    { q:'O que o gigante ajuda a fazer?', opts:['Enfrentar portões e desafios grandes', 'Entrar em buraco pequeno', 'Sumir'], ans:0 },
+    { q:'Qual é a missão do Athos?', opts:['Proteger portais com o Otto', 'Fugir do jogo', 'Trocar o navegador'], ans:0 }
   ];
 
   const answerRows = [
@@ -87,7 +141,16 @@
     { keys:['portal','missao'], ans:'Os portais abrem quando você coleta cristais, derrota adversários e completa o desafio do mundo.' },
     { keys:['mini','pequeno'], ans:'Modo mini ajuda a passar em túneis e caminhos apertados.' },
     { keys:['gigante','grande'], ans:'Modo gigante ajuda a abrir portões e enfrentar desafios maiores.' },
-    { keys:['medo','dificil'], ans:'Não precisa ter medo. Todo guardião cai, tenta de novo e fica melhor.' }
+    { keys:['medo','dificil'], ans:'Não precisa ter medo. Todo guardião cai, tenta de novo e fica melhor.' },
+    { keys:['arena','final'], ans:'A Arena dos Portais é o desafio final: misture pulo, poder, tamanho, cristais e estratégia para liberar o portal.' },
+    { keys:['castelo','golem'], ans:'No Castelo de Pedra existem portões e golems. Use tamanho gigante e poder de fogo para vencer.' },
+    { keys:['floresta','arvore'], ans:'A Floresta Voxel tem plataformas, túneis e caminhos escondidos. O modo mini ajuda muito.' },
+    { keys:['vulcao','lava'], ans:'No Vulcão Pixel, a lava tira vida. Pule com direção e use o poder para derrotar espinhos.' },
+    { keys:['espaco','estrela'], ans:'No Espaço Cubo, as plataformas flutuam e o quiz do portal libera energia para avançar.' },
+    { keys:['cristal','xp','ponto'], ans:'Cristais dão XP e contam para liberar o portal. Pegue todos para ganhar mais recompensa.' },
+    { keys:['inimigo','adversario','monstro'], ans:'Cada inimigo tem uma fraqueza. Comum pode ser pisado, voador pede poder, espinhoso não deve ser pisado.' },
+    { keys:['checkpoint','salvar'], ans:'Checkpoint ajuda o Athos a voltar mais perto quando cai em lava, buraco ou inimigo.' },
+    { keys:['ar','realidade aumentada','camera'], ans:'O AR Nativo abre o visualizador do aparelho. O modo Brincar Livre usa câmera com controles dentro da página.' },
   ];
 
   const progress = loadProgress();
@@ -97,6 +160,7 @@
   let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [];
   let input = { x:0, z:0, crouch:false };
   let keyboard = { left:false, right:false, forward:false, back:false };
+  let moveHold = { left:false, right:false, forward:false, back:false };
   let joy = { active:false, pointerId:null, cx:0, cy:0, max:42, x:0, z:0 };
   let p = defaultPlayer();
   let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0;
@@ -106,8 +170,16 @@
   }
 
   function loadProgress(){
-    try { return { xp:0, best:0, medals:{}, level:0, difficulty:'easy', unlocked:['field','real'], tests:[], ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; }
-    catch { return { xp:0, best:0, medals:{}, level:0, difficulty:'easy', unlocked:['field','real'], tests:[] }; }
+    const base = { xp:0, best:0, medals:{}, level:0, difficulty:'easy', unlocked:['field','real'], tests:[], quizRight:0, quizAnswered:0, perfectRuns:0 };
+    try {
+      const current = localStorage.getItem(STORAGE_KEY);
+      if (current) return { ...base, ...JSON.parse(current) };
+      for (const key of LEGACY_STORAGE_KEYS) {
+        const old = localStorage.getItem(key);
+        if (old) return { ...base, ...JSON.parse(old), migratedFrom:key };
+      }
+      return base;
+    } catch { return base; }
   }
   function saveProgress(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(progress)); updateLobbyStats(); }
   function addXP(amount){ progress.xp = Math.max(0, progress.xp + Math.round(amount * DIFFICULTY[progress.difficulty].bonus)); progress.best = Math.max(progress.best || 0, progress.xp); saveProgress(); updateHud(); }
@@ -182,8 +254,11 @@
     renderer.setSize(Math.max(1, rect.width), Math.max(1, rect.height));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.physicallyCorrectLights = true;
     els.stage.innerHTML = ''; els.stage.appendChild(renderer.domElement);
-    ambientLight = new THREE.AmbientLight(0xffffff, .7); scene.add(ambientLight);
+    ambientLight = new THREE.AmbientLight(0xffffff, .55); scene.add(ambientLight);
+    scene.add(new THREE.HemisphereLight(0xdbeafe,0x221000,.62));
     sunLight = new THREE.DirectionalLight(0xffffff, 1.0); sunLight.position.set(8,18,10); sunLight.castShadow = true; sunLight.shadow.mapSize.set(1024,1024); scene.add(sunLight);
     root = new THREE.Group(); scene.add(root);
     levelGroup = new THREE.Group(); root.add(levelGroup);
@@ -228,16 +303,18 @@
     }, undefined, () => { els.modelStatus.textContent = 'Fallback voxel ativo; athos.glb não carregou.'; });
   }
 
-  function mat(color, emissive=0x000000){ return new THREE.MeshLambertMaterial({ color, emissive }); }
+  function mat(color, emissive=0x000000){ return new THREE.MeshStandardMaterial({ color, emissive, roughness:.78, metalness:.05 }); }
   function box(w,h,d,color){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(color)); m.castShadow=true; m.receiveShadow=true; return m; }
 
   function start(modeName){
-    if (!initThree()) return;
     mode = modeName; paused = false; playing = true;
-    if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:150, crystals:0, enemies:0, objective:'Explore o hub, veja os portais e escolha uma fase pelo menu de mundos.' };
-    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:240, crystals:8, enemies:5, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
+    if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub, veja os portais e escolha uma fase pelo menu de mundos.' };
+    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
     else { currentLevelIndex = Math.min(progress.level || 0, LEVELS.length - 1); currentLevel = LEVELS[currentLevelIndex]; }
     showScreen('game');
+    if (!initThree()) { showScreen('lobby'); playing = false; return; }
+    resize();
+    window.setTimeout(resize, 80);
     buildLevel(currentLevel);
     requestFullscreenLandscape();
     toast(currentLevel.title, 'good');
@@ -282,34 +359,45 @@
 
   function createTrack(length){
     const cfg = WORLD[currentLevel.world] || WORLD.field;
-    const base = box(16,.45,length+34,cfg.ground); base.position.set(0,-.25,-length/2+6); levelGroup.add(base);
-    const grid = new THREE.GridHelper(Math.max(90,length+34), Math.max(20, Math.round((length+34)/4)), cfg.grid, cfg.grid); grid.position.set(0,.02,-length/2+6); grid.material.transparent=true; grid.material.opacity=.42; levelGroup.add(grid);
-    for (let z=8; z>-length-10; z-=8) {
-      const stripe = box(.08,.08,1.2,cfg.grid); stripe.position.set(0,.08,z); levelGroup.add(stripe);
+    const base = box(18,.45,length+44,cfg.ground); base.position.set(0,-.25,-length/2+4); levelGroup.add(base);
+    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.46; levelGroup.add(grid);
+    for (let z=8; z>-length-12; z-=8) {
+      const stripe = box(.08,.08,1.25,cfg.grid); stripe.position.set(0,.09,z); levelGroup.add(stripe);
+      if (Math.abs(z)%32===0) { const mark=box(1.3,.09,.18,cfg.accent); mark.position.set(-6.8,.12,z); levelGroup.add(mark); const mark2=box(1.3,.09,.18,cfg.accent); mark2.position.set(6.8,.12,z); levelGroup.add(mark2); }
     }
     for (let z=4; z>-length; z-=12) {
-      const l = box(.45,.55,3,cfg.grid); l.position.set(-8.2,.28,z); levelGroup.add(l);
-      const r = box(.45,.55,3,cfg.grid); r.position.set(8.2,.28,z); levelGroup.add(r);
+      const l = box(.5,.65,3.2,cfg.grid); l.position.set(-8.7,.32,z); levelGroup.add(l);
+      const r = box(.5,.65,3.2,cfg.grid); r.position.set(8.7,.32,z); levelGroup.add(r);
+    }
+    for (let z=-20; z>-length; z-=36) {
+      const railL=box(.22,.28,12,cfg.accent); railL.position.set(-8.9,.55,z); levelGroup.add(railL);
+      const railR=box(.22,.28,12,cfg.accent); railR.position.set(8.9,.55,z); levelGroup.add(railR);
     }
   }
 
   function createDecor(world,length){
     const cfg = WORLD[world] || WORLD.field;
-    for (let z=-8; z>-length; z-=18) {
-      const side = (Math.floor(Math.abs(z)/18) % 2) ? -1 : 1;
+    // Camadas laterais e fundo para sensação de mundo vivo sem assets externos.
+    for (let z=-8; z>-length; z-=14) {
+      const side = (Math.floor(Math.abs(z)/14) % 2) ? -1 : 1;
       if (world === 'forest' || world === 'field' || world === 'real') {
-        const trunk = box(.8,2.4,.8,0x7c3f1d); trunk.position.set(side*11,1.2,z); levelGroup.add(trunk);
-        const leaf = box(3,2.4,3,world==='forest'?0x14532d:0x22c55e); leaf.position.set(side*11,3.2,z); levelGroup.add(leaf);
+        const trunk = box(.9,2.6,.9,0x7c3f1d); trunk.position.set(side*(10.5+Math.random()*1.2),1.3,z); levelGroup.add(trunk);
+        const leaf = box(3.2,2.5,3.2,world==='forest'?0x14532d:0x22c55e); leaf.position.set(trunk.position.x,3.25,z); levelGroup.add(leaf);
+        if (Math.abs(z)%42===0) { const cloud=box(4,.5,1.6,0xe0f2fe); cloud.position.set(-side*7,9+Math.random()*3,z-8); levelGroup.add(cloud); }
       } else if (world === 'fire') {
-        const rock = box(2,1.2+Math.random()*1.6,2,0x160909); rock.position.set(side*11,rock.geometry.parameters.height/2,z); levelGroup.add(rock);
-        const lava = box(2.4,.2,2.4,0xff5a1e); lava.position.set(side*12,.12,z-5); levelGroup.add(lava);
+        const rock = box(2,1.2+Math.random()*1.9,2,0x160909); rock.position.set(side*11,rock.geometry.parameters.height/2,z); levelGroup.add(rock);
+        const lava = box(2.6,.22,2.6,0xff5a1e); lava.position.set(side*12,.12,z-5); levelGroup.add(lava);
+        const ember = box(.35,.35,.35,0xffd000); ember.position.set(-side*(6+Math.random()*4),2+Math.random()*4,z-2); levelGroup.add(ember);
       } else if (world === 'castle') {
-        const pilar = box(2.2,5,2.2,0x6b7280); pilar.position.set(side*11,2.5,z); levelGroup.add(pilar);
-        const fire = box(.55,.55,.55,0xf97316); fire.position.set(side*11,5.4,z); levelGroup.add(fire);
+        const pilar = box(2.2,5.2,2.2,0x6b7280); pilar.position.set(side*11,2.6,z); levelGroup.add(pilar);
+        const cap=box(2.8,.6,2.8,0x94a3b8); cap.position.set(side*11,5.45,z); levelGroup.add(cap);
+        const fire = box(.55,.55,.55,0xf97316); fire.position.set(side*11,6.05,z); levelGroup.add(fire);
       } else if (world === 'space') {
-        const star = box(.35,.35,.35,Math.random()>.5?0xffffff:cfg.accent); star.position.set((Math.random()-.5)*40,6+Math.random()*18,z); levelGroup.add(star);
-      } else {
-        const ob = box(1.6,1.6,1.6,cfg.accent); ob.position.set(side*11,1,z); levelGroup.add(ob);
+        const star = box(.35,.35,.35,Math.random()>.5?0xffffff:cfg.accent); star.position.set((Math.random()-.5)*42,6+Math.random()*18,z); levelGroup.add(star);
+        if (Math.abs(z)%56===0) { const planet=box(2.2,2.2,2.2,0x8b5cf6); planet.position.set(side*13,8,z-10); planet.rotation.set(.5,.7,.2); levelGroup.add(planet); }
+      } else if (world === 'arena' || world === 'hub') {
+        const ob = box(1.8,1.8,1.8,cfg.accent); ob.position.set(side*11,1,z); ob.rotation.set(.3,.5,.1); levelGroup.add(ob);
+        if (Math.abs(z)%42===0) { const beam=box(.35,7,.35,cfg.accent); beam.position.set(-side*12,3.5,z-7); levelGroup.add(beam); }
       }
     }
   }
@@ -357,6 +445,9 @@
       const z = -34 - i * ((len-70) / Math.max(1,(level.enemies||4)-1));
       addEnemy(enemyTypes[i % enemyTypes.length], lanes[(i+2)%3], z);
     }
+    // Plataformas bônus e cristais secretos para deixar a fase menos beta/demo
+    [-42,-132,-222,-312].filter(z => Math.abs(z)<len-24).forEach((z,i)=>{ addPlatform(i%2?-7:7,2.6,z-6,2.4,.8,2.4,0x0ea5e9); addCrystal(i%2?-7:7,3.7,z-6); });
+    [-88,-178,-268].filter(z => Math.abs(z)<len-34).forEach((z,i)=> addEnemy(i%2?'flyer':'walker', i%2?7:-7, z));
     if (level.quizGate) addQuizAltar(0, -Math.min(len-56, 210));
   }
 
@@ -395,8 +486,8 @@
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
   function updateInput(){
-    const kx = (keyboard.right?1:0) - (keyboard.left?1:0);
-    const kz = (keyboard.forward?1:0) - (keyboard.back?1:0);
+    const kx = (keyboard.right?1:0) - (keyboard.left?1:0) + (moveHold.right?1:0) - (moveHold.left?1:0);
+    const kz = (keyboard.forward?1:0) - (keyboard.back?1:0) + (moveHold.forward?1:0) - (moveHold.back?1:0);
     input.x = clamp(joy.x + kx, -1, 1);
     input.z = clamp(joy.z + kz, -1, 1);
   }
@@ -428,7 +519,7 @@
     if (p.y < -10) damagePlayer(1,'Caiu no buraco!');
   }
   function canJump(){ return p.grounded || (now() - lastGroundedAt < 160 * DIFFICULTY[progress.difficulty].forgiveness); }
-  function doJump(){ p.vy = DIFFICULTY[progress.difficulty].jump + (input.z > .35 ? .8 : 0); p.grounded=false; p.z += input.z > .25 ? -0.35 : 0; p.x += input.x * .25; toast('Pulo!', 'good'); beep(520,70,'square'); }
+  function doJump(){ p.vy = DIFFICULTY[progress.difficulty].jump + (input.z > .35 ? 1.15 : 0); p.grounded=false; p.z += input.z > .25 ? -0.75 : 0; p.x += input.x * .40; toast(input.z > .25 ? 'Pulo para o fundo!' : 'Pulo!', 'good'); beep(520,70,'square'); }
   function jump(){ if (!playing || paused) return; jumpBufferedUntil = now() + 170; if (canJump()) { doJump(); jumpBufferedUntil = 0; } }
 
   function findGround(x,z){
@@ -457,7 +548,7 @@
   }
   function touchEnemy(e){ const r = p.radius*p.scale + e.size*.58; return Math.abs(p.x-e.x)<r && Math.abs(p.z-e.z)<r && p.y < e.y+e.size*1.05 && p.y+p.height*p.scale > e.y-e.size*.55; }
   function resolveEnemy(e){ const stomp = p.vy < -1 && p.y > e.y + e.size*.18 && e.type !== 'spiky' && e.type !== 'flyer'; if (stomp) { damageEnemy(e, e.type==='boss'?1:99); p.vy=8.5; toast('Pisou no inimigo!', 'good'); beep(640,80); } else damagePlayer(DIFFICULTY[progress.difficulty].damage, e.type==='spiky'?'Espinho! Use B Poder.':'Inimigo acertou!'); }
-  function damageEnemy(e,dmg){ e.hp -= dmg; addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; addXP(e.type==='boss'?55:e.type==='golem'?22:14); toast(e.type==='boss'?'Guardião derrotado!':'Inimigo derrotado!', 'good'); beep(760,100); } }
+  function damageEnemy(e,dmg){ e.hp -= dmg; addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); toast(e.type==='boss'?`Guardião derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); } }
 
   function power(){
     if (!playing || paused) return;
@@ -515,6 +606,7 @@
     setTimeout(() => { currentLevelIndex = progress.level; currentLevel = LEVELS[currentLevelIndex]; buildLevel(currentLevel); speak(currentLevel.objective); }, 1800);
   }
   function damagePlayer(amount,msg){
+    p.combo = 0;
     const t=now(); if (t < p.invUntil && amount < 999) return; p.invUntil = t + 1250;
     runtime.hearts -= amount; toast(msg,'bad'); flash(); vibrate(70); beep(110,120,'sawtooth');
     if (runtime.hearts <= 0) { runtime.hearts = DIFFICULTY[progress.difficulty].hearts; progress.xp = Math.max(0, progress.xp-20); saveProgress(); resetPlayer(); speak('Tente de novo, Otto. Você voltou ao checkpoint.'); }
@@ -590,13 +682,14 @@
   }
   function setupInputs(){
     setupJoystick();
+    $$('[data-move]').forEach(btn=>{ const key=btn.dataset.move; const on=(e)=>{ e.preventDefault(); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; }; const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; }; btn.addEventListener('pointerdown',on); ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,off)); });
     $$('[data-hold]').forEach(btn=>{ const key=btn.dataset.hold; btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); }); ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); })); });
     $$('[data-action]').forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); handleAction(btn.dataset.action); }));
     $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
     window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
   }
-  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); }
+  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); }
   function setupUI(){
     els.playBtn.onclick=()=>start('missions'); els.hubBtn.onclick=()=>start('hub'); els.freeBtn.onclick=()=>start('free'); els.quizBtn.onclick=()=>openQuiz(false); els.askBtn.onclick=openAsk; els.collectionBtn.onclick=openCollection;
     els.resetBtn.onclick=()=>{ if(confirm('Resetar XP, fases e medalhas?')){ localStorage.removeItem(STORAGE_KEY); location.reload(); } };

@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
-  <title>Athos: Guardião dos Portais V30</title>
+  <title>Athos: Guardião dos Portais V31</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=30" />
+  <link rel="stylesheet" href="./style.css?v=31" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -25,9 +25,9 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V30 • Guardião dos Portais</p>
-            <h1>Athos Adventure 3D</h1>
-            <p class="subtitle">Controle por joystick, fases longas, caixas sólidas, inimigos, portais, AR e mundo voxel próprio.</p>
+            <p class="eyebrow">V31 • Guardião dos Portais</p>
+            <h1>Athos Adventure 3D+</h1>
+            <p class="subtitle">Jogo 3D voxel com joystick, profundidade real, caixas sólidas, inimigos, portais, AR, quiz expandido e desafios vivos.</p>
           </div>
         </header>
 
@@ -90,7 +90,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V30</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V31</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -127,7 +127,13 @@
         <div class="left-zone">
           <div id="joystick" class="joystick" aria-label="Joystick virtual">
             <div class="joy-ring"><span id="joyKnob" class="joy-knob"></span></div>
-            <small>andar</small>
+            <small>joystick 3D</small>
+          </div>
+          <div class="direction-buttons" aria-label="Movimento por botões">
+            <button class="move-btn" data-move="forward" type="button">▲<span>Fundo</span></button>
+            <button class="move-btn" data-move="left" type="button">◀<span>Esq</span></button>
+            <button class="move-btn" data-move="right" type="button">▶<span>Dir</span></button>
+            <button class="move-btn" data-move="back" type="button">▼<span>Voltar</span></button>
           </div>
         </div>
 
@@ -147,6 +153,7 @@
             <button class="action-btn b" data-action="power" type="button">B<span>Poder</span></button>
             <button class="action-btn y" data-hold="crouch" type="button">Y<span>Abaixar</span></button>
             <button class="action-btn x" data-action="size" type="button">X<span>Tamanho</span></button>
+            <button class="action-btn" data-action="normal" type="button">N<span>Normal</span></button>
             <button class="action-btn" data-action="spin" type="button">R<span>Girar</span></button>
             <button class="action-btn" data-action="interact" type="button">I<span>Interagir</span></button>
             <button class="action-btn" data-action="quiz" type="button">🧠<span>Quiz</span></button>
@@ -169,6 +176,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=30"></script>
+  <script src="./app.js?v=31"></script>
 </body>
 </html>
