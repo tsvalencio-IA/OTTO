@@ -1,13 +1,13 @@
 {
-  "name": "Athos: Guardião dos Portais V34 FINAL",
-  "short_name": "Athos V34",
-  "start_url": "./index.html?v=34",
+  "name": "Athos: Guardião dos Portais V35 Render Premium",
+  "short_name": "Athos V35",
+  "start_url": "./index.html?v=35-render-premium",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Jogo 3D voxel/AR do Athos com fases, joystick, portais, quiz, medalhas e realidade aumentada.",
+  "description": "Jogo 3D voxel/AR do Athos com render premium, fases, joystick, portais, quiz, medalhas e realidade aumentada.",
   "icons": [
     { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

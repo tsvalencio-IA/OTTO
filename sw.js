@@ -1,6 +1,6 @@
-// Athos V34 FINAL — Service Worker leve para GitHub Pages.
+// Athos V35 RENDER PREMIUM — Service Worker leve para GitHub Pages.
 // Objetivo: evitar cache fantasma durante desenvolvimento e manter o app sempre fresco.
-const CACHE_VERSION = 'athos-v34-final-no-cache';
+const CACHE_VERSION = 'athos-v35-render-premium-no-cache';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();

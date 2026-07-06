@@ -1,50 +1,55 @@
-# Athos: Guardião dos Portais — V34 FINAL
+# Athos: Guardião dos Portais V35 — Render Premium
 
 **Powered by thIAguinho Soluções Digitais**
 
-Esta versão foi consolidada a partir de três bases: **OTTO-main**, **V32 validada por F12** e **V33 Codex**. O objetivo foi entregar uma versão completa e saneada para subir definitivamente no GitHub Pages, sem remover AR, sem remover 3D e sem trocar o Athos por imagem 2D.
+Esta versão foi feita para corrigir o problema apontado: a V34 passou nos testes técnicos, mas o visual ficou pobre/simplificado. A V35 preserva a base funcional e melhora o render sem remover AR, 3D ou mecânicas.
 
 ## O que foi mantido
 
-- `athos.glb` na raiz.
-- `model-viewer` para visualização 3D e AR Nativo.
-- Three.js + GLTFLoader para o jogo 3D.
+- `athos.glb` intacto.
+- `model-viewer` e AR Nativo.
 - Brincar Livre / AR por câmera.
-- Joystick virtual.
-- Botões de profundidade: ▲ Fundo, ▼ Voltar, ◀ Esq, ▶ Dir.
-- Botões de ação: A Pular, B Poder, Y Abaixar, X Tamanho, N Normal, R Girar, I Interagir, Quiz, Falar, Pausa e Sair.
-- Quiz expandido com mais de 80 perguntas.
-- Falar com Athos local, sem API paga.
-- Fases, cristais, inimigos, portais, medalhas, XP e progresso localStorage.
-- Moldes/imagens e ícones em pastas reais para GitHub Pages.
+- Three.js com jogo 3D.
+- Joystick, setas de profundidade e botões A/B/Y/X/N.
+- Quiz com 80+ perguntas.
+- Falar com Athos.
+- Cristais, inimigos, portais, fases, checkpoints, medalhas e progresso.
 
-## Correções importantes
+## O que foi melhorado visualmente
 
-- Botão **B Poder** ficou inequívoco: `id="powerBtn"` e `data-action="power"`.
-- Botões de cenário usam `data-world`, sem conflitar com ações.
-- Canvas do Three.js tem fallback contra 1x1 e redimensiona em `resize/orientationchange`.
-- Manifest atualizado para V34 FINAL.
-- Service Worker leve, sem cache agressivo de `index.html`, `app.js` e `style.css`.
-- ZIP gerado com pastas reais `icons/`, `assets/moldes/` e `moldes/`, sem barras invertidas no nome.
-- Script F12 forte incluído em `F12_TESTE_ATHOS_V34_FINAL.js`.
+- Iluminação com tone mapping ACES.
+- Luz ambiente, hemisférica, luz principal e luz de recorte.
+- Céu/atmosfera por mundo.
+- Chão com tiles voxel por faixa, não só plano liso.
+- Marcadores de profundidade e arcos laterais.
+- Árvores/castelo/vulcão/espaço/arena com set pieces mais ricos.
+- Portais com glow, disco interno, torus animado e point light.
+- Cristais com glow e luz própria.
+- Lava com emissão e brilho.
+- Inimigos com olhos, asas, espinhos, braços/coroa conforme tipo.
+- Interface com acabamento mais premium e menos “demo cinza”.
 
-## Como subir no GitHub Pages
+## Como subir
 
-1. Extraia o ZIP.
-2. Entre na pasta `athos-guardiao-v34-final`.
-3. Envie **o conteúdo dessa pasta** para a raiz do repositório.
-4. Confirme que `index.html`, `app.js`, `style.css` e `athos.glb` estão na raiz.
-5. Aguarde o deploy do GitHub Pages.
-6. Abra a página no celular.
+Suba todos os arquivos e pastas para a raiz do repositório `OTTO`, mantendo:
 
-## Como testar
+```text
+index.html
+app.js
+style.css
+athos.glb
+manifest.webmanifest
+sw.js
+.nojekyll
+icons/
+assets/
+moldes/
+```
 
-No PC, abra a página publicada, aperte **F12 > Console**, cole o conteúdo de:
+## Teste
 
-`F12_TESTE_ATHOS_V34_FINAL.js`
-
-O teste verifica arquivos, AR, 3D, canvas, botões, B Poder, joystick, quiz, fala, localStorage e ausência de erros JS.
+Depois do GitHub Pages atualizar, abra o jogo, pressione F12 > Console e rode `F12_TESTE_ATHOS_V35_RENDER_PREMIUM.js`.
 
 ## Observação honesta
 
-Esta é uma versão completa e muito superior às anteriores, mas jogo comercial de verdade sempre exige teste físico no celular, ajuste fino de câmera/física e balanceamento. Esta entrega está pronta para subir, testar e evoluir de forma controlada.
+Esta versão corrige o foco visual/render. O teste técnico não mede beleza; por isso a validação visual precisa ser feita abrindo a fase no navegador/celular.
