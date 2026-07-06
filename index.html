@@ -10,7 +10,7 @@
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=31" />
+  <link rel="stylesheet" href="./style.css?v=32" />
 
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -25,9 +25,13 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V31 • Guardião dos Portais</p>
+            <p class="eyebrow">V32 • Guardião dos Portais</p>
             <h1>Athos Adventure 3D+</h1>
             <p class="subtitle">Jogo 3D voxel com joystick, profundidade real, caixas sólidas, inimigos, portais, AR, quiz expandido e desafios vivos.</p>
+            <div class="hero-actions">
+              <button id="heroPlayBtn" class="pixel-btn primary huge play-alias" data-play="missions" data-test="play-missions" aria-label="Jogar Fases 3D iniciar missões" type="button">🎮 JOGAR FASES 3D</button>
+              <button id="heroFreeBtn" class="pixel-btn huge" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 BRINCAR LIVRE AR</button>
+            </div>
           </div>
         </header>
 
@@ -55,8 +59,9 @@
               exposure="1"
               environment-image="neutral"
               camera-orbit="25deg 68deg 3.8m">
-              <button class="pixel-btn ar-native-btn" type="button" slot="ar-button">📱 Abrir Athos em AR Real</button>
+              <button id="insideArNativeBtn" class="pixel-btn ar-native-btn" type="button" slot="ar-button" aria-label="AR Nativo realidade aumentada">📱 Abrir Athos em AR Real</button>
             </model-viewer>
+            <button id="arNativeExternalBtn" class="pixel-btn primary ar-external-btn" type="button" data-test="ar-native" aria-label="AR Nativo abrir realidade aumentada">📱 AR Nativo / Realidade Aumentada</button>
           </section>
 
           <aside class="panel menu-panel" aria-label="Menu principal">
@@ -75,11 +80,11 @@
             </select>
 
             <div class="main-actions">
-              <button id="playBtn" class="pixel-btn primary big" type="button">🎮 Jogar Fases 3D</button>
-              <button id="hubBtn" class="pixel-btn big" type="button">🌀 Hub dos Portais</button>
-              <button id="freeBtn" class="pixel-btn big" type="button">📷 Brincar Livre / AR por câmera</button>
-              <button id="quizBtn" class="pixel-btn big" type="button">🧠 Quiz do Athos</button>
-              <button id="askBtn" class="pixel-btn big" type="button">💬 Falar com Athos</button>
+              <button id="playBtn" class="pixel-btn primary big play-alias" data-play="missions" data-test="play-missions" aria-label="Jogar Fases 3D iniciar missões" type="button">🎮 JOGAR FASES 3D — INICIAR</button>
+              <button id="hubBtn" class="pixel-btn big play-alias" data-play="hub" data-test="play-hub" aria-label="Hub dos Portais explorar mundos" type="button">🌀 Hub dos Portais</button>
+              <button id="freeBtn" class="pixel-btn big play-alias" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 Brincar Livre / AR por câmera</button>
+              <button id="quizBtn" class="pixel-btn big" data-test="quiz-open" aria-label="Quiz do Athos abrir desafio" type="button">🧠 Quiz do Athos</button>
+              <button id="askBtn" class="pixel-btn big" data-test="ask-open" aria-label="Falar com Athos perguntar" type="button">💬 Falar com Athos</button>
               <button id="collectionBtn" class="pixel-btn big" type="button">🏅 Coleção do Otto</button>
               <button id="resetBtn" class="pixel-btn danger big" type="button">🔄 Resetar progresso</button>
             </div>
@@ -90,7 +95,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V31</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V32</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -169,13 +174,13 @@
       <div class="modal-card panel">
         <div class="modal-top">
           <h2 id="modalTitle">Modal</h2>
-          <button id="modalClose" class="pixel-btn danger" type="button">X</button>
+          <button id="modalClose" class="pixel-btn danger modal-close-main" type="button" aria-label="X Fechar modal">X Fechar</button>
         </div>
         <div id="modalBody" class="modal-body"></div>
       </div>
     </div>
   </div>
 
-  <script src="./app.js?v=31"></script>
+  <script src="./app.js?v=32"></script>
 </body>
 </html>

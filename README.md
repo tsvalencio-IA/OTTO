@@ -1,6 +1,16 @@
-# Athos: Guardião dos Portais — V31 1000/10
+# Athos Guardião dos Portais — V32 1000/10
 
-Versão completa para GitHub Pages, mantendo AR, Athos 3D real (`athos.glb`) e todos os modos principais.
+Versão de correção e polimento em cima da V31.
+
+## O que foi corrigido
+
+- Botão **JOGAR FASES 3D** agora aparece também no topo do lobby como botão grande e explícito.
+- Botão de AR Nativo externo adicionado abaixo do model-viewer, sem remover o AR interno.
+- Modal de quiz/fala agora esconde os controles do jogo por baixo para evitar clique errado no botão **▼ Voltar**.
+- Botão de fechar modal agora está como **X Fechar**.
+- Alternativas do quiz agora recebem `data-test="quiz-option"` e `aria-label`, ficando mais fáceis de testar.
+- `app.js` validado com `node --check`.
+- Mantido `athos.glb`, `model-viewer`, Three.js, AR nativo, Brincar Livre por câmera, fases, inimigos, cristais, portais e controles.
 
 ## Arquivos principais
 
@@ -14,38 +24,19 @@ Versão completa para GitHub Pages, mantendo AR, Athos 3D real (`athos.glb`) e t
 - `icons/`
 - `assets/moldes/`
 
-## O que foi corrigido da V30
+## Como subir
 
-- O jogo agora inicializa o Three.js **depois** de abrir a tela de jogo, evitando canvas 1x1.
-- Mantém o `athos.glb` real; não troca o personagem por imagem 2D.
-- Mantém o `model-viewer` e o botão de AR Nativo.
-- Mantém o modo Brincar Livre / AR por câmera.
-- Adiciona botões visíveis de profundidade: `▲ Fundo`, `▼ Voltar`, `◀ Esq`, `▶ Dir`.
-- Mantém joystick virtual para movimento diagonal fluido.
-- Adiciona botão `N Normal` para voltar de mini/gigante.
-- Pulo com direção ficou mais forte para atravessar buraco e cair em caixa/plataforma.
-- Combo ao derrotar inimigos aumenta XP e desbloqueia medalha.
-- Cenários ganharam mais camadas visuais, laterais, portais, árvores, pilares, estrelas, lava, beams e textura de pista.
-- Materiais 3D migrados para `MeshStandardMaterial` com iluminação mais rica.
-- Quiz expandido com 60+ perguntas locais.
-- Athos responde mais assuntos por palavra-chave.
+Envie o conteúdo desta pasta para a raiz do GitHub Pages. Confirme que `index.html`, `style.css`, `app.js` e `athos.glb` estão juntos na raiz.
 
 ## Como testar
 
-1. Suba o conteúdo desta pasta na raiz do GitHub Pages.
-2. Abra no PC ou celular.
-3. Toque em `Jogar Fases 3D`.
-4. Use joystick ou botões:
-   - `▲ Fundo`: ir para o fundo da fase.
-   - `▼ Voltar`: voltar para o começo.
-   - `◀/▶`: lateral.
-   - `A`: pular.
-   - `B`: poder.
-   - `Y`: abaixar.
-   - `X`: mini/normal/gigante.
-   - `N`: normal direto.
-5. Rode o script F12 se quiser validar botões e canvas.
+1. Abra no navegador pelo link HTTPS do GitHub Pages.
+2. Clique em **JOGAR FASES 3D**.
+3. Teste joystick, ▲ Fundo, ▼ Voltar, ◀ Esq, ▶ Dir, A Pular, B Poder, Y Abaixar, X Tamanho, N Normal.
+4. Teste Quiz e Falar com Athos.
+5. Teste Brincar Livre / AR por câmera no celular.
+6. Teste AR Nativo pelo botão externo ou pelo botão do model-viewer.
 
 ## Observação
 
-O aviso “Multiple instances of Three.js” pode aparecer por causa do `model-viewer` + Three.js na mesma página. Ele é aviso de biblioteca, não erro fatal do jogo.
+O AR Nativo depende do visualizador do celular. O jogo completo com botões fica no modo Three.js e Brincar Livre / AR por câmera.

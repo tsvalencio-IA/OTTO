@@ -6,9 +6,9 @@
   const now = () => performance.now();
 
   const els = {
-    lobby: $('#lobby'), game: $('#game'), stage: $('#threeStage'), cameraFeed: $('#cameraFeed'), flash: $('#screenFlash'),
+    app: $('#app'), lobby: $('#lobby'), game: $('#game'), stage: $('#threeStage'), cameraFeed: $('#cameraFeed'), flash: $('#screenFlash'),
     nativeViewer: $('#nativeViewer'), modelStatus: $('#modelStatus'), difficultySelect: $('#difficultySelect'),
-    playBtn: $('#playBtn'), hubBtn: $('#hubBtn'), freeBtn: $('#freeBtn'), quizBtn: $('#quizBtn'), askBtn: $('#askBtn'), collectionBtn: $('#collectionBtn'), resetBtn: $('#resetBtn'),
+    playBtn: $('#playBtn'), heroPlayBtn: $('#heroPlayBtn'), heroFreeBtn: $('#heroFreeBtn'), hubBtn: $('#hubBtn'), freeBtn: $('#freeBtn'), quizBtn: $('#quizBtn'), askBtn: $('#askBtn'), collectionBtn: $('#collectionBtn'), resetBtn: $('#resetBtn'), arNativeExternalBtn: $('#arNativeExternalBtn'),
     statXP: $('#statXP'), statLevel: $('#statLevel'), statMedals: $('#statMedals'), statBest: $('#statBest'),
     hudHearts: $('#hudHearts'), hudXP: $('#hudXP'), hudCrystals: $('#hudCrystals'), hudEnemies: $('#hudEnemies'), hudTime: $('#hudTime'),
     worldName: $('#worldName'), objectiveText: $('#objectiveText'), objectiveProgress: $('#objectiveProgress'), toast: $('#toast'),
@@ -17,8 +17,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v31_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v32_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -644,7 +644,7 @@
     els.modalTitle.textContent = 'Quiz dos Portais';
     els.modalBody.innerHTML = `<div class="answer"><b>${escapeHtml(q.q)}</b></div><div class="modal-list"></div>`;
     const list = els.modalBody.querySelector('.modal-list');
-    q.opts.forEach((opt,i)=>{ const b=document.createElement('button'); b.className='pixel-btn choice'; b.type='button'; b.textContent=opt; b.onclick=()=>{ if(i===q.ans){ b.classList.add('correct'); addXP(12); if(runtime) runtime.quizSolved=true; toast('Resposta certa!', 'good'); speak('Resposta certa!'); setTimeout(closeModal,650); } else { b.classList.add('wrong'); toast('Quase! Tente outra.', 'bad'); } updateHud(); }; list.appendChild(b); });
+    q.opts.forEach((opt,i)=>{ const b=document.createElement('button'); b.className='pixel-btn choice'; b.type='button'; b.dataset.test='quiz-option'; b.setAttribute('aria-label', `Opção do quiz: ${opt}`); b.textContent=opt; b.onclick=()=>{ if(i===q.ans){ b.classList.add('correct'); addXP(12); if(runtime) runtime.quizSolved=true; toast('Resposta certa!', 'good'); speak('Resposta certa!'); setTimeout(closeModal,650); } else { b.classList.add('wrong'); toast('Quase! Tente outra.', 'bad'); } updateHud(); }; list.appendChild(b); });
     showModal();
   }
   function openAsk(){
@@ -664,8 +664,8 @@
     els.modalBody.innerHTML = `<div class="collection-grid">${medals.map(m=>`<div class="medal ${progress.medals[m]?'unlocked':''}"><b>${progress.medals[m]?'🏅':'🔒'} ${m}</b><span>${progress.medals[m]?'Desbloqueada':'Bloqueada'}</span></div>`).join('')}</div><div class="answer">XP: ${progress.xp} • Recorde: ${progress.best}</div>`;
     showModal();
   }
-  function showModal(){ els.modal.hidden = false; }
-  function closeModal(){ els.modal.hidden = true; }
+  function showModal(){ els.modal.hidden = false; els.app && els.app.classList.add('modal-active'); }
+  function closeModal(){ els.modal.hidden = true; els.app && els.app.classList.remove('modal-active'); }
 
   async function startCamera(){ if(cameraStream || !navigator.mediaDevices) return; try{ cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}); els.cameraFeed.srcObject=cameraStream; await els.cameraFeed.play().catch(()=>{}); } catch { toast('Câmera bloqueada. Usando cenário 3D.', 'warn'); } }
   function stopCamera(){ if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } els.cameraFeed.srcObject=null; }
@@ -691,10 +691,24 @@
   }
   function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); }
   function setupUI(){
-    els.playBtn.onclick=()=>start('missions'); els.hubBtn.onclick=()=>start('hub'); els.freeBtn.onclick=()=>start('free'); els.quizBtn.onclick=()=>openQuiz(false); els.askBtn.onclick=openAsk; els.collectionBtn.onclick=openCollection;
-    els.resetBtn.onclick=()=>{ if(confirm('Resetar XP, fases e medalhas?')){ localStorage.removeItem(STORAGE_KEY); location.reload(); } };
-    els.exitBtn.onclick=exitGame; els.modalClose.onclick=closeModal; els.modal.addEventListener('click',(e)=>{ if(e.target===els.modal) closeModal(); });
-    els.difficultySelect.onchange=()=>{ progress.difficulty=els.difficultySelect.value; saveProgress(); toast(`Dificuldade: ${DIFFICULTY[progress.difficulty].name}`,'good'); };
+    const bindStart = (el, target) => { if (!el) return; el.onclick = () => { closeModal(); start(target || el.dataset.play || 'missions'); }; };
+    [els.playBtn, els.heroPlayBtn].forEach(el => bindStart(el, 'missions'));
+    [els.freeBtn, els.heroFreeBtn].forEach(el => bindStart(el, 'free'));
+    bindStart(els.hubBtn, 'hub');
+    $$('.play-alias[data-play]').forEach(el => bindStart(el, el.dataset.play));
+    if (els.quizBtn) els.quizBtn.onclick=()=>openQuiz(false);
+    if (els.askBtn) els.askBtn.onclick=openAsk;
+    if (els.collectionBtn) els.collectionBtn.onclick=openCollection;
+    if (els.resetBtn) els.resetBtn.onclick=()=>{ if(confirm('Resetar XP, fases e medalhas?')){ localStorage.removeItem(STORAGE_KEY); location.reload(); } };
+    if (els.exitBtn) els.exitBtn.onclick=exitGame;
+    if (els.modalClose) els.modalClose.onclick=closeModal;
+    if (els.modal) els.modal.addEventListener('click',(e)=>{ if(e.target===els.modal) closeModal(); });
+    if (els.difficultySelect) els.difficultySelect.onchange=()=>{ progress.difficulty=els.difficultySelect.value; saveProgress(); toast(`Dificuldade: ${DIFFICULTY[progress.difficulty].name}`,'good'); };
+    const openNativeAR = () => {
+      if (!els.nativeViewer || typeof els.nativeViewer.activateAR !== 'function') { toast('AR nativo indisponível neste navegador. Use Brincar Livre AR.', 'warn'); return; }
+      try { const r = els.nativeViewer.activateAR(); if (r && typeof r.catch === 'function') r.catch(()=>toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn')); } catch { toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn'); }
+    };
+    if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=openNativeAR;
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function clearLegacyCaches(){ if('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>r.unregister().catch(()=>{}))).catch(()=>{}); if('caches' in window) caches.keys().then(keys=>keys.forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{}); }
