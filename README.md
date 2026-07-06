@@ -1,42 +1,50 @@
-# Athos Guardião dos Portais — V32 1000/10
+# Athos: Guardião dos Portais — V34 FINAL
 
-Versão de correção e polimento em cima da V31.
+**Powered by thIAguinho Soluções Digitais**
 
-## O que foi corrigido
+Esta versão foi consolidada a partir de três bases: **OTTO-main**, **V32 validada por F12** e **V33 Codex**. O objetivo foi entregar uma versão completa e saneada para subir definitivamente no GitHub Pages, sem remover AR, sem remover 3D e sem trocar o Athos por imagem 2D.
 
-- Botão **JOGAR FASES 3D** agora aparece também no topo do lobby como botão grande e explícito.
-- Botão de AR Nativo externo adicionado abaixo do model-viewer, sem remover o AR interno.
-- Modal de quiz/fala agora esconde os controles do jogo por baixo para evitar clique errado no botão **▼ Voltar**.
-- Botão de fechar modal agora está como **X Fechar**.
-- Alternativas do quiz agora recebem `data-test="quiz-option"` e `aria-label`, ficando mais fáceis de testar.
-- `app.js` validado com `node --check`.
-- Mantido `athos.glb`, `model-viewer`, Three.js, AR nativo, Brincar Livre por câmera, fases, inimigos, cristais, portais e controles.
+## O que foi mantido
 
-## Arquivos principais
+- `athos.glb` na raiz.
+- `model-viewer` para visualização 3D e AR Nativo.
+- Three.js + GLTFLoader para o jogo 3D.
+- Brincar Livre / AR por câmera.
+- Joystick virtual.
+- Botões de profundidade: ▲ Fundo, ▼ Voltar, ◀ Esq, ▶ Dir.
+- Botões de ação: A Pular, B Poder, Y Abaixar, X Tamanho, N Normal, R Girar, I Interagir, Quiz, Falar, Pausa e Sair.
+- Quiz expandido com mais de 80 perguntas.
+- Falar com Athos local, sem API paga.
+- Fases, cristais, inimigos, portais, medalhas, XP e progresso localStorage.
+- Moldes/imagens e ícones em pastas reais para GitHub Pages.
 
-- `index.html`
-- `style.css`
-- `app.js`
-- `athos.glb`
-- `manifest.webmanifest`
-- `sw.js`
-- `.nojekyll`
-- `icons/`
-- `assets/moldes/`
+## Correções importantes
 
-## Como subir
+- Botão **B Poder** ficou inequívoco: `id="powerBtn"` e `data-action="power"`.
+- Botões de cenário usam `data-world`, sem conflitar com ações.
+- Canvas do Three.js tem fallback contra 1x1 e redimensiona em `resize/orientationchange`.
+- Manifest atualizado para V34 FINAL.
+- Service Worker leve, sem cache agressivo de `index.html`, `app.js` e `style.css`.
+- ZIP gerado com pastas reais `icons/`, `assets/moldes/` e `moldes/`, sem barras invertidas no nome.
+- Script F12 forte incluído em `F12_TESTE_ATHOS_V34_FINAL.js`.
 
-Envie o conteúdo desta pasta para a raiz do GitHub Pages. Confirme que `index.html`, `style.css`, `app.js` e `athos.glb` estão juntos na raiz.
+## Como subir no GitHub Pages
+
+1. Extraia o ZIP.
+2. Entre na pasta `athos-guardiao-v34-final`.
+3. Envie **o conteúdo dessa pasta** para a raiz do repositório.
+4. Confirme que `index.html`, `app.js`, `style.css` e `athos.glb` estão na raiz.
+5. Aguarde o deploy do GitHub Pages.
+6. Abra a página no celular.
 
 ## Como testar
 
-1. Abra no navegador pelo link HTTPS do GitHub Pages.
-2. Clique em **JOGAR FASES 3D**.
-3. Teste joystick, ▲ Fundo, ▼ Voltar, ◀ Esq, ▶ Dir, A Pular, B Poder, Y Abaixar, X Tamanho, N Normal.
-4. Teste Quiz e Falar com Athos.
-5. Teste Brincar Livre / AR por câmera no celular.
-6. Teste AR Nativo pelo botão externo ou pelo botão do model-viewer.
+No PC, abra a página publicada, aperte **F12 > Console**, cole o conteúdo de:
 
-## Observação
+`F12_TESTE_ATHOS_V34_FINAL.js`
 
-O AR Nativo depende do visualizador do celular. O jogo completo com botões fica no modo Three.js e Brincar Livre / AR por câmera.
+O teste verifica arquivos, AR, 3D, canvas, botões, B Poder, joystick, quiz, fala, localStorage e ausência de erros JS.
+
+## Observação honesta
+
+Esta é uma versão completa e muito superior às anteriores, mas jogo comercial de verdade sempre exige teste físico no celular, ajuste fino de câmera/física e balanceamento. Esta entrega está pronta para subir, testar e evoluir de forma controlada.

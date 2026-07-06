@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
-  <title>Athos: Guardião dos Portais V31</title>
+  <title>Athos: Guardião dos Portais V34 FINAL</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=32" />
+  <link rel="stylesheet" href="./style.css?v=34" />
 
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
   <div id="app" class="app">
@@ -25,7 +22,7 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V32 • Guardião dos Portais</p>
+            <p class="eyebrow">V34 FINAL • Guardião dos Portais</p>
             <h1>Athos Adventure 3D+</h1>
             <p class="subtitle">Jogo 3D voxel com joystick, profundidade real, caixas sólidas, inimigos, portais, AR, quiz expandido e desafios vivos.</p>
             <div class="hero-actions">
@@ -95,7 +92,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V32</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V34 FINAL</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -135,10 +132,10 @@
             <small>joystick 3D</small>
           </div>
           <div class="direction-buttons" aria-label="Movimento por botões">
-            <button class="move-btn" data-move="forward" type="button">▲<span>Fundo</span></button>
-            <button class="move-btn" data-move="left" type="button">◀<span>Esq</span></button>
-            <button class="move-btn" data-move="right" type="button">▶<span>Dir</span></button>
-            <button class="move-btn" data-move="back" type="button">▼<span>Voltar</span></button>
+            <button id="moveForwardBtn" class="move-btn" data-move="forward" data-action="forward" aria-label="▲ Fundo" type="button">▲<span>Fundo</span></button>
+            <button id="moveLeftBtn" class="move-btn" data-move="left" data-action="left" aria-label="◀ Esq" type="button">◀<span>Esq</span></button>
+            <button id="moveRightBtn" class="move-btn" data-move="right" data-action="right" aria-label="▶ Dir" type="button">▶<span>Dir</span></button>
+            <button id="moveBackBtn" class="move-btn" data-move="back" data-action="back" aria-label="▼ Voltar" type="button">▼<span>Voltar</span></button>
           </div>
         </div>
 
@@ -154,17 +151,17 @@
           </div>
 
           <div class="action-grid">
-            <button class="action-btn a" data-action="jump" type="button">A<span>Pular</span></button>
-            <button class="action-btn b" data-action="power" type="button">B<span>Poder</span></button>
-            <button class="action-btn y" data-hold="crouch" type="button">Y<span>Abaixar</span></button>
-            <button class="action-btn x" data-action="size" type="button">X<span>Tamanho</span></button>
-            <button class="action-btn" data-action="normal" type="button">N<span>Normal</span></button>
+            <button id="jumpBtn" class="action-btn a" data-action="jump" aria-label="A Pular" type="button">A<span>Pular</span></button>
+            <button id="powerBtn" class="action-btn b" data-action="power" aria-label="B Poder" type="button">B<span>Poder</span></button>
+            <button id="crouchBtn" class="action-btn y" data-action="crouch" data-hold="crouch" aria-label="Y Abaixar" type="button">Y<span>Abaixar</span></button>
+            <button id="sizeBtn" class="action-btn x" data-action="size" aria-label="X Tamanho/Girar" type="button">X<span>Tamanho</span></button>
+            <button id="normalBtn" class="action-btn" data-action="normal" aria-label="N Normal" type="button">N<span>Normal</span></button>
             <button class="action-btn" data-action="spin" type="button">R<span>Girar</span></button>
             <button class="action-btn" data-action="interact" type="button">I<span>Interagir</span></button>
             <button class="action-btn" data-action="quiz" type="button">🧠<span>Quiz</span></button>
             <button class="action-btn" data-action="ask" type="button">💬<span>Falar</span></button>
-            <button id="pauseBtn" class="action-btn warn" data-action="pause" type="button">⏸<span>Pausa</span></button>
-            <button id="exitBtn" class="action-btn danger" type="button">⏹<span>Sair</span></button>
+            <button id="pauseBtn" class="action-btn warn" data-action="pause" aria-label="Pausa" type="button">⏸<span>Pausa</span></button>
+            <button id="exitBtn" class="action-btn danger" data-action="exit" aria-label="Sair" type="button">⏹<span>Sair</span></button>
           </div>
         </div>
       </div>
@@ -181,6 +178,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=32"></script>
+  <script src="./app.js?v=34"></script>
 </body>
 </html>

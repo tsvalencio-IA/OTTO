@@ -1,6 +1,10 @@
 (() => {
   'use strict';
 
+  window.__athosErrors = window.__athosErrors || [];
+  window.addEventListener('error', event => window.__athosErrors.push(event.message || 'Erro JS'));
+  window.addEventListener('unhandledrejection', event => window.__athosErrors.push(String(event.reason || 'Promise rejeitada')));
+
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
   const now = () => performance.now();
@@ -13,12 +17,12 @@
     hudHearts: $('#hudHearts'), hudXP: $('#hudXP'), hudCrystals: $('#hudCrystals'), hudEnemies: $('#hudEnemies'), hudTime: $('#hudTime'),
     worldName: $('#worldName'), objectiveText: $('#objectiveText'), objectiveProgress: $('#objectiveProgress'), toast: $('#toast'),
     tutorialBox: $('#tutorialBox'), tutorialTitle: $('#tutorialTitle'), tutorialText: $('#tutorialText'), miniPlayer: $('#miniPlayer'), miniPortal: $('#miniPortal'),
-    joystick: $('#joystick'), joyKnob: $('#joyKnob'), pauseBtn: $('#pauseBtn'), exitBtn: $('#exitBtn'),
+    joystick: $('#joystick'), joyKnob: $('#joyKnob'), pauseBtn: $('#pauseBtn'), exitBtn: $('#exitBtn'), powerBtn: $('#powerBtn'),
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v32_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v34_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -28,6 +32,11 @@
     space: { name:'Espaço Cubo', sky:0x050517, fog:0x08081e, ground:0x20124d, grid:0x8b5cf6, accent:0x38bdf8, light:0xffffff },
     arena: { name:'Arena dos Portais', sky:0x111827, fog:0x111827, ground:0x2f2f46, grid:0x00e5ff, accent:0xff2e63, light:0xfff8db },
     real: { name:'Mundo Real AR', sky:null, fog:null, ground:0x0f172a, grid:0x38bdf8, accent:0xfacc15, light:0xffffff }
+  };
+  const EXTERNAL = {
+    modelViewer:'https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js',
+    three:'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+    gltfLoader:'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js'
   };
 
   const DIFFICULTY = {
@@ -43,27 +52,32 @@
       tutorial:['Use o joystick para ir para o fundo da tela.','Aperte A para pular em cima das caixas.','B lança poder nos blocos escuros e inimigos.']
     },
     {
-      id:'volcano', world:'fire', title:'Fase 2 — Vulcão Pixel', length:265, crystals:6, enemies:5, medal:'Guardião do Fogo',
+      id:'field', world:'field', title:'Fase 2 — Campo dos Blocos', length:245, crystals:6, enemies:4, medal:'Guardião do Campo',
+      objective:'Colete cristais, pule caixas sólidas, vença cubos simples e abra o portal do campo.',
+      tutorial:['Caixas são caminho, não decoração.','Pule em cima de inimigos comuns para vencer.','Complete cristais e inimigos para liberar o portal.']
+    },
+    {
+      id:'volcano', world:'fire', title:'Fase 3 — Vulcão Pixel', length:265, crystals:6, enemies:5, medal:'Mestre do Vulcão',
       objective:'Desvie da lava, pule os buracos, use B nos espinhos e libere o portal do vulcão.',
       tutorial:['Lava e buracos tiram vida.','Pule segurando o joystick para dar impulso.','Espinhos não podem ser pisados: use poder.']
     },
     {
-      id:'forest', world:'forest', title:'Fase 3 — Floresta Voxel', length:295, crystals:7, enemies:6, medal:'Explorador dos Mundos',
+      id:'forest', world:'forest', title:'Fase 4 — Floresta Voxel', length:295, crystals:7, enemies:6, medal:'Explorador da Floresta',
       objective:'Passe por túneis baixos com Y, suba plataformas e colete o cristal escondido.',
       tutorial:['Segure Y para abaixar.','X alterna mini, normal e gigante.','Mini passa melhor por túneis.']
     },
     {
-      id:'castle', world:'castle', title:'Fase 4 — Castelo de Pedra', length:325, crystals:7, enemies:7, medal:'Mestre dos Portais',
+      id:'castle', world:'castle', title:'Fase 5 — Castelo de Pedra', length:325, crystals:7, enemies:7, medal:'Cavaleiro do Castelo',
       objective:'Abra portões, derrote o golem e encontre o portal no fim do castelo.',
       tutorial:['Use X para virar gigante nos portões.','Golems têm mais vida.','Checkpoints salvam seu retorno.']
     },
     {
-      id:'space', world:'space', title:'Fase 5 — Espaço Cubo', length:350, crystals:8, enemies:7, medal:'Campeão do Quiz', quizGate:true,
+      id:'space', world:'space', title:'Fase 6 — Espaço Cubo', length:350, crystals:8, enemies:7, medal:'Viajante do Espaço', quizGate:true,
       objective:'Pule em plataformas espaciais, acerte o quiz do portal e derrote os voadores.',
       tutorial:['Plataformas flutuantes exigem pulo com direção.','O quiz libera a energia do portal.','Observe o minimapa para saber a distância.']
     },
     {
-      id:'arena', world:'arena', title:'Fase Final — Arena dos Portais', length:390, crystals:10, enemies:9, medal:'Sequência Perfeita', boss:true, quizGate:true,
+      id:'arena', world:'arena', title:'Fase 7 — Arena dos Portais', length:390, crystals:10, enemies:9, medal:'Mestre dos Portais', boss:true, quizGate:true,
       objective:'Use tudo: profundidade, caixas, pulo, poder, tamanho e estratégia para fechar o portal final.',
       tutorial:['A arena mistura todos os desafios.','O Guardião do Portal precisa de vários poderes.','Completar a arena libera medalha final.']
     }
@@ -130,7 +144,32 @@
     { q:'Qual item mostra conquistas?', opts:['Coleção do Otto', 'Câmera Feed', 'Service Worker'], ans:0 },
     { q:'O que o mini ajuda a fazer?', opts:['Passar por lugar baixo', 'Ficar preso no portal', 'Perder cristal'], ans:0 },
     { q:'O que o gigante ajuda a fazer?', opts:['Enfrentar portões e desafios grandes', 'Entrar em buraco pequeno', 'Sumir'], ans:0 },
-    { q:'Qual é a missão do Athos?', opts:['Proteger portais com o Otto', 'Fugir do jogo', 'Trocar o navegador'], ans:0 }
+    { q:'Qual é a missão do Athos?', opts:['Proteger portais com o Otto', 'Fugir do jogo', 'Trocar o navegador'], ans:0 },
+    { q:'Qual fase ensina os primeiros comandos?', opts:['Treinamento dos Portais', 'Arena final', 'Menu de reset'], ans:0, cat:'fases', diff:'facil' },
+    { q:'No Campo dos Blocos, qual desafio aparece mais?', opts:['Caixas e cubos simples', 'Naves oficiais', 'Corrida de carros'], ans:0, cat:'fases', diff:'facil' },
+    { q:'Qual mundo pede cuidado com lava?', opts:['Vulcão Pixel', 'Coleção do Otto', 'Lobby'], ans:0, cat:'mundos', diff:'facil' },
+    { q:'Qual mundo combina com túneis e árvores?', opts:['Floresta Voxel', 'Espaço Cubo', 'Vulcão Pixel'], ans:0, cat:'mundos', diff:'facil' },
+    { q:'Qual mundo tem golem e portão pesado?', opts:['Castelo de Pedra', 'Treinamento', 'Mundo real'], ans:0, cat:'inimigos', diff:'medio' },
+    { q:'Qual fase usa gravidade diferente?', opts:['Espaço Cubo', 'Campo dos Blocos', 'Lobby'], ans:0, cat:'mecanicas', diff:'medio' },
+    { q:'Qual fase mistura todos os comandos?', opts:['Arena dos Portais', 'Treinamento', 'Coleção'], ans:0, cat:'fases', diff:'medio' },
+    { q:'O que é melhor contra morcego voador?', opts:['B Poder', 'Ficar parado', 'Entrar no menu'], ans:0, cat:'inimigos', diff:'medio' },
+    { q:'Quantos danos o golem aguenta?', opts:['Três', 'Zero', 'Cem'], ans:0, cat:'inimigos', diff:'medio' },
+    { q:'Qual inimigo pode ser vencido pulando em cima?', opts:['Cubo comum', 'Espinho vivo', 'Lava'], ans:0, cat:'inimigos', diff:'facil' },
+    { q:'Quando o mini é mais útil?', opts:['Em túnel baixo', 'Contra lava larga', 'Para fechar o jogo'], ans:0, cat:'tamanho', diff:'facil' },
+    { q:'Quando o gigante é mais útil?', opts:['Para portão pesado', 'Para passar em túnel baixo', 'Para esconder cristais'], ans:0, cat:'tamanho', diff:'facil' },
+    { q:'O que coyote time ajuda?', opts:['Pular logo depois da borda', 'Apagar progresso', 'Abrir câmera'], ans:0, cat:'pulo', diff:'dificil' },
+    { q:'O que jump buffer ajuda?', opts:['Guardar o pulo apertado um pouco antes', 'Trocar de mundo sozinho', 'Diminuir o canvas'], ans:0, cat:'pulo', diff:'dificil' },
+    { q:'Qual eixo dá profundidade na fase?', opts:['Eixo Z', 'Volume do celular', 'Nome do arquivo'], ans:0, cat:'mecanicas', diff:'medio' },
+    { q:'O que o botão B não deve ser confundido com?', opts:['Botão Vulcão do cenário', 'Botão A', 'Cristal'], ans:0, cat:'controles', diff:'medio' },
+    { q:'Qual seletor correto identifica B Poder no teste?', opts:['#powerBtn ou data-action power', 'Texto do fogo', 'Cor vermelha apenas'], ans:0, cat:'testes', diff:'dificil' },
+    { q:'O que acontece se o portal ainda estiver cinza?', opts:['Faltam objetivos', 'A fase terminou', 'O Athos sumiu'], ans:0, cat:'portal', diff:'facil' },
+    { q:'Como liberar portal com quiz?', opts:['Responder certo no altar', 'Trocar favicon', 'Fechar o modal'], ans:0, cat:'quiz', diff:'medio' },
+    { q:'O que a coleção mostra?', opts:['Medalhas bloqueadas e liberadas', 'Arquivos secretos', 'Anúncios'], ans:0, cat:'progresso', diff:'facil' },
+    { q:'Onde o progresso fica salvo?', opts:['localStorage', 'Servidor pago', 'Arquivo do celular'], ans:0, cat:'progresso', diff:'medio' },
+    { q:'Qual modo usa a câmera como fundo?', opts:['Brincar Livre AR', 'Quiz', 'Coleção'], ans:0, cat:'ar', diff:'facil' },
+    { q:'Qual modo depende do visualizador do aparelho?', opts:['AR Nativo', 'Jogar Fases 3D', 'Pausa'], ans:0, cat:'ar', diff:'facil' },
+    { q:'O que deve acontecer ao derrotar inimigo?', opts:['Ganhar XP e efeito visual', 'Perder athos.glb', 'Remover controles'], ans:0, cat:'feedback', diff:'facil' },
+    { q:'Qual feedback combina com pegar cristal?', opts:['Som, vibração leve e partículas', 'Tela vazia', 'Erro de JavaScript'], ans:0, cat:'feedback', diff:'facil' }
   ];
 
   const answerRows = [
@@ -151,6 +190,16 @@
     { keys:['inimigo','adversario','monstro'], ans:'Cada inimigo tem uma fraqueza. Comum pode ser pisado, voador pede poder, espinhoso não deve ser pisado.' },
     { keys:['checkpoint','salvar'], ans:'Checkpoint ajuda o Athos a voltar mais perto quando cai em lava, buraco ou inimigo.' },
     { keys:['ar','realidade aumentada','camera'], ans:'O AR Nativo abre o visualizador do aparelho. O modo Brincar Livre usa câmera com controles dentro da página.' },
+    { keys:['pular','pulo'], ans:'Aperte A um pouco antes da borda. Eu guardo esse comando por um instante para o pulo sair mais gostoso.' },
+    { keys:['abaixar','baixo','tunel'], ans:'Segure Y para abaixar. Se o túnel for apertado demais, use X até virar mini.' },
+    { keys:['colecao','medalha','conquista'], ans:'A coleção guarda medalhas do Otto. Algumas vêm de fases, outras de quiz, combo e exploração.' },
+    { keys:['fase atual','onde estou'], ans:() => currentLevel ? `Agora estamos em ${currentLevel.title}. Objetivo: ${currentLevel.objective}` : 'Entre em Jogar Fases 3D para eu contar a missão atual.' },
+    { keys:['amizade','amigo'], ans:'Guardiões vencem melhor em dupla. Eu entro no portal, mas o Otto escolhe o caminho.' },
+    { keys:['perdi','cai','dano'], ans:'Cair faz parte. Volte pelo checkpoint, olhe a pista e pule com direção.' },
+    { keys:['morcego','voador'], ans:'Voador é melhor vencer com B Poder. Mire andando para a lateral e solte fogo.' },
+    { keys:['espinho','espinhoso'], ans:'Espinho vivo não é para pisar. Use B Poder ou desvie pela outra faixa.' },
+    { keys:['golem','pedra'], ans:'Golem aguenta três danos. Use poder, pule com calma e não fique colado nele.' },
+    { keys:['canvas','tela'], ans:'Se a tela virar, eu recalculo o canvas para o jogo continuar grande e jogável.' },
   ];
 
   const progress = loadProgress();
@@ -163,14 +212,14 @@
   let moveHold = { left:false, right:false, forward:false, back:false };
   let joy = { active:false, pointerId:null, cx:0, cy:0, max:42, x:0, z:0 };
   let p = defaultPlayer();
-  let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0;
+  let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0, powerReadyAt = 0;
 
   function defaultPlayer(){
     return { x:0, y:0, z:4, vx:0, vy:0, vz:0, grounded:true, scaleMode:'normal', scale:1, targetScale:1, height:2.4, radius:.55, spinUntil:0, invUntil:0, combo:0, facing:Math.PI };
   }
 
   function loadProgress(){
-    const base = { xp:0, best:0, medals:{}, level:0, difficulty:'easy', unlocked:['field','real'], tests:[], quizRight:0, quizAnswered:0, perfectRuns:0 };
+    const base = { xp:0, best:0, bestTime:0, medals:{}, level:0, difficulty:'easy', unlocked:['field','real'], tests:[], quizRight:0, quizAnswered:0, perfectRuns:0, totalCrystals:0, totalEnemies:0, achievements:{}, collection:{ otto:['Athos 3D'] } };
     try {
       const current = localStorage.getItem(STORAGE_KEY);
       if (current) return { ...base, ...JSON.parse(current) };
@@ -203,7 +252,8 @@
     els.hudEnemies.textContent = `${runtime.defeated}/${runtime.requiredEnemies}`;
     els.hudTime.textContent = runtime.timer ? Math.max(0, Math.ceil(runtime.timer)) : '∞';
     els.worldName.textContent = `${WORLD[currentLevel.world]?.name || 'Mundo'} • ${DIFFICULTY[progress.difficulty].name}`;
-    els.objectiveText.textContent = objectivesDone() ? 'Portal liberado! Vá até o brilho verde no fim da fase.' : currentLevel.objective;
+    const portalReady = objectivesDone();
+    els.objectiveText.textContent = portalReady ? 'Portal liberado! Vá até o brilho verde no fim da fase.' : `${currentLevel.objective} Portal: bloqueado.`;
     const done = runtime.requiredCrystals + runtime.requiredEnemies + (currentLevel.quizGate ? 1 : 0);
     const got = runtime.crystals + runtime.defeated + (runtime.quizSolved ? (currentLevel.quizGate ? 1 : 0) : 0);
     els.objectiveProgress.style.width = `${clamp(done ? (got / done) * 100 : 100, 0, 100)}%`;
@@ -241,17 +291,64 @@
     } catch {}
   }
 
-  function initThree(){
+  function loadExternalScript(src, module=false){
+    const existing = $$(`script[src="${src}"]`)[0];
+    if (existing && existing.dataset.ready === 'true') return Promise.resolve(true);
+    if (existing && existing._athosPromise) return existing._athosPromise;
+    const s = existing || document.createElement('script');
+    s.src = src;
+    s.async = true;
+    if (module) s.type = 'module';
+    s._athosPromise = new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`Tempo esgotado carregando ${src}`)), 15000);
+      s.onload = () => { clearTimeout(timer); s.dataset.ready = 'true'; resolve(true); };
+      s.onerror = () => { clearTimeout(timer); reject(new Error(`Falha ao carregar ${src}`)); };
+    });
+    if (!existing) document.head.appendChild(s);
+    return s._athosPromise;
+  }
+
+  function ensureModelViewer(){
+    if (window.customElements && customElements.get && customElements.get('model-viewer')) return Promise.resolve(true);
+    return loadExternalScript(EXTERNAL.modelViewer, true).catch(() => {
+      els.modelStatus.textContent = 'AR Nativo depende da biblioteca model-viewer. Tente pelo GitHub Pages com internet.';
+      return false;
+    });
+  }
+
+  let threeLibsPromise = null;
+  function ensureThreeLibs(){
+    if (window.THREE && THREE.GLTFLoader) return Promise.resolve(true);
+    if (!threeLibsPromise) {
+      threeLibsPromise = loadExternalScript(EXTERNAL.three)
+        .then(() => loadExternalScript(EXTERNAL.gltfLoader))
+        .then(() => !!(window.THREE && THREE.GLTFLoader))
+        .catch(() => false);
+    }
+    return threeLibsPromise;
+  }
+
+  function stageSize(){
+    const rect = els.stage.getBoundingClientRect();
+    const fallback = els.game.getBoundingClientRect();
+    return {
+      width: Math.max(100, Math.round(rect.width || fallback.width || innerWidth || 360)),
+      height: Math.max(100, Math.round(rect.height || fallback.height || innerHeight || 640))
+    };
+  }
+
+  async function initThree(){
     if (initialized) return true;
-    if (!window.THREE || !THREE.GLTFLoader) { toast('Biblioteca 3D não carregou. Confira internet no primeiro acesso.', 'bad'); return false; }
+    toast('Carregando 3D...', 'warn');
+    if (!await ensureThreeLibs()) { toast('Biblioteca 3D não carregou. Confira internet no primeiro acesso.', 'bad'); return false; }
     initialized = true;
     scene = new THREE.Scene(); clock = new THREE.Clock();
-    const rect = els.stage.getBoundingClientRect();
+    const rect = stageSize();
     camera = new THREE.PerspectiveCamera(62, Math.max(1, rect.width) / Math.max(1, rect.height), .1, 900);
     renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true, powerPreference:'high-performance' });
     renderer.domElement.id = 'three-canvas';
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setSize(Math.max(1, rect.width), Math.max(1, rect.height));
+    renderer.setSize(rect.width, rect.height);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
@@ -265,16 +362,17 @@
     player = new THREE.Group(); root.add(player);
     buildFallbackAthos(); loadAthosGLB();
     window.addEventListener('resize', resize, { passive:true });
+    window.addEventListener('orientationchange', () => setTimeout(resize, 140), { passive:true });
     animate();
     return true;
   }
 
   function resize(){
     if (!renderer || !camera) return;
-    const rect = els.stage.getBoundingClientRect();
-    camera.aspect = Math.max(1, rect.width) / Math.max(1, rect.height);
+    const rect = stageSize();
+    camera.aspect = rect.width / rect.height;
     camera.updateProjectionMatrix();
-    renderer.setSize(Math.max(1, rect.width), Math.max(1, rect.height));
+    renderer.setSize(rect.width, rect.height);
   }
 
   function buildFallbackAthos(){
@@ -306,14 +404,15 @@
   function mat(color, emissive=0x000000){ return new THREE.MeshStandardMaterial({ color, emissive, roughness:.78, metalness:.05 }); }
   function box(w,h,d,color){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), mat(color)); m.castShadow=true; m.receiveShadow=true; return m; }
 
-  function start(modeName){
+  async function start(modeName){
     mode = modeName; paused = false; playing = true;
     if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub, veja os portais e escolha uma fase pelo menu de mundos.' };
     else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
     else { currentLevelIndex = Math.min(progress.level || 0, LEVELS.length - 1); currentLevel = LEVELS[currentLevelIndex]; }
     showScreen('game');
-    if (!initThree()) { showScreen('lobby'); playing = false; return; }
+    if (!await initThree()) { showScreen('lobby'); playing = false; return; }
     resize();
+    requestAnimationFrame(resize);
     window.setTimeout(resize, 80);
     buildLevel(currentLevel);
     requestFullscreenLandscape();
@@ -548,26 +647,31 @@
   }
   function touchEnemy(e){ const r = p.radius*p.scale + e.size*.58; return Math.abs(p.x-e.x)<r && Math.abs(p.z-e.z)<r && p.y < e.y+e.size*1.05 && p.y+p.height*p.scale > e.y-e.size*.55; }
   function resolveEnemy(e){ const stomp = p.vy < -1 && p.y > e.y + e.size*.18 && e.type !== 'spiky' && e.type !== 'flyer'; if (stomp) { damageEnemy(e, e.type==='boss'?1:99); p.vy=8.5; toast('Pisou no inimigo!', 'good'); beep(640,80); } else damagePlayer(DIFFICULTY[progress.difficulty].damage, e.type==='spiky'?'Espinho! Use B Poder.':'Inimigo acertou!'); }
-  function damageEnemy(e,dmg){ e.hp -= dmg; addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); toast(e.type==='boss'?`Guardião derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); } }
+  function damageEnemy(e,dmg){ e.hp -= dmg; addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; progress.totalEnemies=(progress.totalEnemies||0)+1; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); saveProgress(); toast(e.type==='boss'?`Guardião derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); } }
 
   function power(){
     if (!playing || paused) return;
+    const t = now();
+    if (t < powerReadyAt) { toast('Poder carregando!', 'warn'); return; }
+    powerReadyAt = t + 450;
+    if (els.powerBtn) { els.powerBtn.classList.add('cooldown'); setTimeout(() => els.powerBtn.classList.remove('cooldown'), 450); }
     const m=box(.38,.38,.38,0xff7a00); m.position.set(p.x,p.y+1.25,p.z-.9); levelGroup.add(m);
     const dir = new THREE.Vector3(input.x*.25,0,-1).normalize();
     fireballs.push({mesh:m,x:m.position.x,y:m.position.y,z:m.position.z,vx:dir.x*6 + p.vx*.1,vz:dir.z*22,life:1.5});
-    addParticles(p.x,p.y+1.3,p.z,0xffa000,12); beep(210,100,'sawtooth');
+    addParticles(p.x,p.y+1.3,p.z,0xffa000,12); vibrate(35); beep(210,100,'sawtooth');
   }
   function updateFireballs(dt){
     for (let i=fireballs.length-1;i>=0;i--) {
       const f=fireballs[i]; f.life-=dt; f.x+=f.vx*dt; f.z+=f.vz*dt; f.mesh.position.set(f.x,f.y,f.z); let hit=false;
       for (const e of enemies) if (!e.dead && dist2(f.x,f.z,e.x,e.z) < 2.3) { damageEnemy(e,1); hit=true; break; }
       for (const s of platforms) if (s.breakable && s.hp>0 && Math.abs(f.x-s.x)<s.w/2+1 && Math.abs(f.z-s.z)<s.d/2+1) { s.hp--; s.mesh.material.color.setHex(s.hp<=0?0x333333:0x6b7280); if(s.hp<=0)s.mesh.visible=false; addXP(5); hit=true; break; }
+      for (const g of gates) if (!hit && !g.open && g.need==='power' && Math.abs(f.x-g.x)<g.w/2+1 && Math.abs(f.z-g.z)<g.d/2+1.2) { openGate(g, 'B Poder abriu a passagem!'); hit=true; break; }
       if (f.life<=0 || hit) { levelGroup.remove(f.mesh); fireballs.splice(i,1); }
     }
   }
 
   function checkCrystals(){
-    for (const c of crystals) if (!c.got && dist3(p.x,p.y+1,p.z,c.x,c.y,c.z) < 1.2 + p.scale*.25) { c.got=true; c.mesh.visible=false; runtime.crystals++; addXP(9); addParticles(c.x,c.y,c.z,0x22d3ee,16); toast('Cristal!', 'good'); beep(880,80); }
+    for (const c of crystals) if (!c.got && dist3(p.x,p.y+1,p.z,c.x,c.y,c.z) < 1.2 + p.scale*.25) { c.got=true; c.mesh.visible=false; runtime.crystals++; progress.totalCrystals=(progress.totalCrystals||0)+1; if(progress.totalCrystals===1)addMedal('Primeiro Cristal'); addXP(9); saveProgress(); addParticles(c.x,c.y,c.z,0x22d3ee,16); toast('Cristal!', 'good'); beep(880,80); vibrate(25); }
     for (const c of crystals) if (!c.got) c.mesh.rotation.y += .035;
   }
   function checkHazards(){ if (p.y>.55) return; for (const h of hazards) if (Math.abs(p.x-h.x)<=h.w/2 && Math.abs(p.z-h.z)<=h.d/2) damagePlayer(1,h.type==='pit'?'Buraco! Pule ou desvie.':'Lava!'); }
@@ -582,9 +686,17 @@
       else if (g.need === 'giant') { ok = p.scaleMode==='giant'; msg='Use X até ficar gigante!'; }
       else if (g.need === 'power') { ok = runtime.defeated >= 1; msg='Derrote um inimigo ou use B Poder!'; }
       else if (g.need === 'quiz') { ok = runtime.quizSolved; msg='Responda o Quiz para liberar.'; }
-      if (ok) { g.open=true; g.parts.forEach((part,i)=>{ part.position.y += i===0?4:3; }); toast(g.tunnel?'Passou pelo túnel!':'Passagem liberada!', 'good'); addXP(10); }
+      if (ok) openGate(g, g.tunnel?'Passou pelo túnel!':'Passagem liberada!');
       else { toast(msg, 'warn'); if (!g.tunnel && g.need !== 'quiz') p.z += 1.2; }
     }
+  }
+  function openGate(g, msg='Passagem liberada!'){
+    if (!g || g.open) return;
+    g.open = true;
+    g.parts.forEach((part,i)=>{ part.position.y += i===0?4:3; });
+    toast(msg, 'good');
+    addParticles(g.x || 0, 2.2, g.z || p.z, 0xfacc15, 20);
+    addXP(10);
   }
   function objectivesDone(){ return mode !== 'free' && mode !== 'hub' && runtime && runtime.crystals>=runtime.requiredCrystals && runtime.defeated>=runtime.requiredEnemies && runtime.quizSolved; }
   function checkPortal(){
@@ -601,6 +713,8 @@
   }
   function completeLevel(){
     runtime.completed = true; addXP(75); addMedal(currentLevel.medal); unlockWorld(currentLevel.world);
+    const elapsed = Math.round((now() - runtime.startedAt) / 1000);
+    if (!progress.bestTime || elapsed < progress.bestTime) progress.bestTime = elapsed;
     progress.level = Math.min(LEVELS.length - 1, currentLevelIndex + 1); saveProgress();
     toast('Portal concluído!', 'good'); speak('Portal concluído! Próxima fase liberada.');
     setTimeout(() => { currentLevelIndex = progress.level; currentLevel = LEVELS[currentLevelIndex]; buildLevel(currentLevel); speak(currentLevel.objective); }, 1800);
@@ -623,7 +737,7 @@
   }
 
   function spin(){ p.spinUntil = now()+850; addXP(1); toast('Giro!', 'good'); }
-  function cycleSize(){ p.scaleMode = p.scaleMode==='normal' ? 'mini' : p.scaleMode==='mini' ? 'giant' : 'normal'; toast(p.scaleMode==='mini'?'Mini!':p.scaleMode==='giant'?'Gigante!':'Normal!', 'good'); if(p.scaleMode==='giant') checkGates(); }
+  function cycleSize(){ p.scaleMode = p.scaleMode==='normal' ? 'mini' : p.scaleMode==='mini' ? 'giant' : 'normal'; toast(p.scaleMode==='mini'?'Mini!':p.scaleMode==='giant'?'Gigante!':'Normal!', 'good'); if(p.scaleMode==='giant'){ addMedal('Athos Gigante'); checkGates(); } }
   function interact(){
     for (const g of gates) if (g.altar && Math.abs(p.z-g.z)<5 && Math.abs(p.x-g.x)<4) { openQuiz(true); return; }
     if (mode==='hub') { const nearest = LEVELS.find(l => Math.abs(p.z + (40 + LEVELS.indexOf(l)*12)) < 8); if (nearest) { currentLevelIndex = LEVELS.indexOf(nearest); buildLevel(nearest); } }
@@ -642,9 +756,10 @@
   function openQuiz(fromGame=false){
     const q = quizData[Math.floor(Math.random()*quizData.length)];
     els.modalTitle.textContent = 'Quiz dos Portais';
-    els.modalBody.innerHTML = `<div class="answer"><b>${escapeHtml(q.q)}</b></div><div class="modal-list"></div>`;
+    els.modalBody.innerHTML = `<div class="answer"><small>${escapeHtml(q.cat || 'athos')} • ${escapeHtml(q.diff || 'facil')}</small><br><b>${escapeHtml(q.q)}</b></div><div class="modal-list"></div>`;
     const list = els.modalBody.querySelector('.modal-list');
-    q.opts.forEach((opt,i)=>{ const b=document.createElement('button'); b.className='pixel-btn choice'; b.type='button'; b.dataset.test='quiz-option'; b.setAttribute('aria-label', `Opção do quiz: ${opt}`); b.textContent=opt; b.onclick=()=>{ if(i===q.ans){ b.classList.add('correct'); addXP(12); if(runtime) runtime.quizSolved=true; toast('Resposta certa!', 'good'); speak('Resposta certa!'); setTimeout(closeModal,650); } else { b.classList.add('wrong'); toast('Quase! Tente outra.', 'bad'); } updateHud(); }; list.appendChild(b); });
+    let answered = false;
+    q.opts.forEach((opt,i)=>{ const b=document.createElement('button'); b.className='pixel-btn choice quiz-option'; b.type='button'; b.dataset.test='quiz-option'; b.dataset.answer=String(i); b.dataset.correct=String(i===q.ans); b.setAttribute('aria-label', `Opção do quiz: ${opt}`); b.textContent=opt; b.onclick=()=>{ if(answered) return; progress.quizAnswered=(progress.quizAnswered||0)+1; if(i===q.ans){ answered=true; b.classList.add('correct'); progress.quizRight=(progress.quizRight||0)+1; addXP(12); if(progress.quizRight>=5)addMedal('Campeão do Quiz'); if(runtime) runtime.quizSolved=true; saveProgress(); toast('Resposta certa!', 'good'); speak('Resposta certa!'); setTimeout(closeModal,650); } else { b.classList.add('wrong'); saveProgress(); toast('Quase! Tente outra.', 'bad'); } updateHud(); }; list.appendChild(b); });
     showModal();
   }
   function openAsk(){
@@ -657,11 +772,11 @@
     $('#askVoice').onclick=()=>{ const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ ans.textContent='Voz não suportada neste navegador. Digite a pergunta.'; return; } const rec=new SR(); rec.lang='pt-BR'; rec.onresult=(e)=>{ inp.value=e.results[0][0].transcript; ask(); }; rec.start(); };
     setTimeout(()=>inp.focus(),80);
   }
-  function answerFor(raw){ const q=normalize(raw); if(!q) return 'Pergunte sobre fogo, portal, Otto, mini, gigante ou como jogar.'; for(const row of answerRows) if(row.keys.some(k=>q.includes(k))) return row.ans; return 'No mundo dos portais, a resposta aparece explorando, coletando cristais e tentando de novo.'; }
+  function answerFor(raw){ const q=normalize(raw); if(!q) return 'Pergunte sobre fogo, portal, Otto, mini, gigante ou como jogar.'; for(const row of answerRows) if(row.keys.some(k=>q.includes(k))) return typeof row.ans === 'function' ? row.ans() : row.ans; return 'No mundo dos portais, a resposta aparece explorando, coletando cristais e tentando de novo.'; }
   function openCollection(){
-    const medals = ['Primeiro Pulo','Guardião do Fogo','Explorador dos Mundos','Mestre dos Portais','Campeão do Quiz','Sequência Perfeita'];
+    const medals = ['Primeiro Pulo','Primeiro Cristal','Guardião do Campo','Mestre do Vulcão','Explorador da Floresta','Cavaleiro do Castelo','Viajante do Espaço','Campeão do Quiz','Athos Gigante','Sequência Perfeita','Mestre dos Portais'];
     els.modalTitle.textContent = 'Coleção do Otto';
-    els.modalBody.innerHTML = `<div class="collection-grid">${medals.map(m=>`<div class="medal ${progress.medals[m]?'unlocked':''}"><b>${progress.medals[m]?'🏅':'🔒'} ${m}</b><span>${progress.medals[m]?'Desbloqueada':'Bloqueada'}</span></div>`).join('')}</div><div class="answer">XP: ${progress.xp} • Recorde: ${progress.best}</div>`;
+    els.modalBody.innerHTML = `<div class="collection-grid">${medals.map(m=>`<div class="medal ${progress.medals[m]?'unlocked':''}"><b>${progress.medals[m]?'🏅':'🔒'} ${m}</b><span>${progress.medals[m]?'Desbloqueada':'Bloqueada'}</span></div>`).join('')}</div><div class="answer">XP: ${progress.xp} • Recorde: ${progress.best} • Cristais: ${progress.totalCrystals||0} • Inimigos: ${progress.totalEnemies||0} • Melhor tempo: ${progress.bestTime||0}s</div>`;
     showModal();
   }
   function showModal(){ els.modal.hidden = false; els.app && els.app.classList.add('modal-active'); }
@@ -689,7 +804,7 @@
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
     window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
   }
-  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); }
+  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) moveHold[a]=true; else if(a==='crouch') toggleCrouch(true); else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
   function setupUI(){
     const bindStart = (el, target) => { if (!el) return; el.onclick = () => { closeModal(); start(target || el.dataset.play || 'missions'); }; };
     [els.playBtn, els.heroPlayBtn].forEach(el => bindStart(el, 'missions'));
@@ -711,7 +826,10 @@
     if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=openNativeAR;
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
-  function clearLegacyCaches(){ if('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(regs=>regs.forEach(r=>r.unregister().catch(()=>{}))).catch(()=>{}); if('caches' in window) caches.keys().then(keys=>keys.forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{}); }
+  function refreshServiceWorker(){
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=34').then(reg => reg.update()).catch(()=>{});
+    if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
+  }
 
   function clamp(n,min,max){ return Math.max(min,Math.min(max,Number(n)||0)); }
   function dist2(x1,z1,x2,z2){ return (x1-x2)*(x1-x2)+(z1-z2)*(z1-z2); }
@@ -720,5 +838,15 @@
   function normalize(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
   function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-  setupInputs(); setupUI(); updateLobbyStats(); clearLegacyCaches();
+  window.ATHOS_TEST_API = {
+    getQuizCount: () => quizData.length,
+    getLevelCount: () => LEVELS.length,
+    getStorageKey: () => STORAGE_KEY,
+    getCurrentLevel: () => currentLevel,
+    hasPowerButton: () => !!document.querySelector('#powerBtn[data-action="power"]')
+  };
+
+  setupInputs(); setupUI(); updateLobbyStats(); refreshServiceWorker();
+  if (document.readyState === 'complete') setTimeout(ensureModelViewer, 0);
+  else window.addEventListener('load', ensureModelViewer, { once:true });
 })();
