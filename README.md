@@ -1,37 +1,36 @@
-# Athos: Guardião dos Portais V35 — Render Premium
+# Athos: Guardião dos Portais V36 — Jogável
 
-**Powered by thIAguinho Soluções Digitais**
+Powered by thIAguinho Soluções Digitais
 
-Esta versão foi feita para corrigir o problema apontado: a V34 passou nos testes técnicos, mas o visual ficou pobre/simplificado. A V35 preserva a base funcional e melhora o render sem remover AR, 3D ou mecânicas.
+Esta versão corrige o problema real apontado nos prints: a V35 passava no teste técnico, mas a interface de jogo ficava ruim para jogar no celular. A V36 mantém AR, 3D, `athos.glb`, quiz, fases, portais, inimigos, medalhas e render premium, mas reorganiza a jogabilidade mobile.
 
-## O que foi mantido
+## Correções principais
 
-- `athos.glb` intacto.
-- `model-viewer` e AR Nativo.
-- Brincar Livre / AR por câmera.
-- Three.js com jogo 3D.
-- Joystick, setas de profundidade e botões A/B/Y/X/N.
-- Quiz com 80+ perguntas.
-- Falar com Athos.
-- Cristais, inimigos, portais, fases, checkpoints, medalhas e progresso.
+- Controles em modo paisagem reposicionados como gamepad real: joystick embaixo à esquerda, ações embaixo à direita e mundos compactos no topo direito.
+- Painéis grandes deixam de tampar a fase: objetivo fica compacto e reduz sozinho depois de alguns segundos.
+- Tutorial não bloqueia a tela em modo paisagem.
+- Joystick ficou mais robusto: pointermove/pointerup agora são tratados no documento, não só dentro do círculo.
+- Corrigido movimento grudado: botões de movimento não usam mais `data-action` para manter estado preso; usam `data-move` com limpeza no pointerup/cancel/blur.
+- Pulo com resposta mais visível e impulso lateral/profundidade melhor.
+- Não força lock de orientação; o layout se adapta ao celular em pé ou deitado.
+- Mantém o botão `B Poder` separado por `#powerBtn` e `data-action="power"`.
 
-## O que foi melhorado visualmente
+## Não removido
 
-- Iluminação com tone mapping ACES.
-- Luz ambiente, hemisférica, luz principal e luz de recorte.
-- Céu/atmosfera por mundo.
-- Chão com tiles voxel por faixa, não só plano liso.
-- Marcadores de profundidade e arcos laterais.
-- Árvores/castelo/vulcão/espaço/arena com set pieces mais ricos.
-- Portais com glow, disco interno, torus animado e point light.
-- Cristais com glow e luz própria.
-- Lava com emissão e brilho.
-- Inimigos com olhos, asas, espinhos, braços/coroa conforme tipo.
-- Interface com acabamento mais premium e menos “demo cinza”.
+- `athos.glb`
+- `model-viewer`
+- AR Nativo
+- Brincar Livre / AR por câmera
+- Three.js
+- Joystick
+- Botões A/B/Y/X/N/R/I/Quiz/Falar/Pausa/Sair
+- Quiz 80+
+- Falar com Athos
+- Portais, fases, inimigos, cristais, medalhas e progresso local
 
 ## Como subir
 
-Suba todos os arquivos e pastas para a raiz do repositório `OTTO`, mantendo:
+Suba o conteúdo deste ZIP na raiz do repositório `OTTO`, mantendo:
 
 ```text
 index.html
@@ -41,15 +40,18 @@ athos.glb
 manifest.webmanifest
 sw.js
 .nojekyll
+404.html
 icons/
-assets/
 moldes/
 ```
 
-## Teste
+Depois do deploy, abra o jogo no celular primeiro em modo paisagem e teste manualmente:
 
-Depois do GitHub Pages atualizar, abra o jogo, pressione F12 > Console e rode `F12_TESTE_ATHOS_V35_RENDER_PREMIUM.js`.
+1. Entrar em Jogar Fases 3D.
+2. Arrastar o joystick para frente, trás e diagonal.
+3. Apertar A parado e andando.
+4. Segurar Fundo + A.
+5. Apertar B andando.
+6. Girar o celular e verificar se os botões ficam jogáveis.
 
-## Observação honesta
-
-Esta versão corrige o foco visual/render. O teste técnico não mede beleza; por isso a validação visual precisa ser feita abrindo a fase no navegador/celular.
+Também há o script `F12_TESTE_ATHOS_V36_JOGAVEL.js` para teste técnico no console.

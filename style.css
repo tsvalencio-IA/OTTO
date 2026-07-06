@@ -52,3 +52,188 @@ body{background:#070b18 radial-gradient(circle at 18% 12%,rgba(56,189,248,.22),t
 .joy-ring{background:radial-gradient(circle,rgba(250,204,21,.16),rgba(15,23,42,.78));box-shadow:0 0 0 4px rgba(0,0,0,.35) inset,0 0 24px rgba(56,189,248,.18)}.joy-knob{background:radial-gradient(circle at 34% 24%,#fff7ad,#facc15 58%,#b45309);box-shadow:4px 4px 0 rgba(0,0,0,.4),0 0 16px rgba(250,204,21,.38)}
 .toast{background:linear-gradient(135deg,rgba(0,0,0,.9),rgba(30,41,59,.88));box-shadow:0 0 34px rgba(255,255,255,.2),0 18px 54px rgba(0,0,0,.6)}.modal{backdrop-filter:blur(6px)}.modal-card{background:linear-gradient(145deg,rgba(226,232,240,.98),rgba(148,163,184,.95))}
 @keyframes premiumGlow{from{transform:translate3d(-2%,0,0) rotate(0deg);opacity:.75}to{transform:translate3d(2%,1%,0) rotate(5deg);opacity:1}}
+
+/* V36 JOGÁVEL — correção sênior de layout mobile e controles.
+   Não remove AR, 3D, athos.glb, quiz, joystick nem botões; apenas reposiciona e limpa a UI. */
+html, body, #app, .app, .game { touch-action: none; }
+.game.active { overflow:hidden !important; }
+.game .three-stage { inset:0 !important; }
+#three-canvas { position:absolute!important; inset:0!important; width:100%!important; height:100%!important; }
+
+/* HUD legível, mas sem tampar o jogo inteiro */
+.top-hud{
+  top:calc(7px + var(--safe-top))!important;
+  left:8px!important;
+  right:8px!important;
+  gap:5px!important;
+  z-index:32!important;
+}
+.hud-box{
+  padding:5px 6px!important;
+  min-height:44px!important;
+  border-width:3px!important;
+  background:rgba(5,10,22,.74)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,255,255,.07)!important;
+}
+.hud-box small{font-size:11px!important;line-height:1.05!important}
+.hud-box b{font-size:18px!important;line-height:1!important}
+.objective-card{
+  z-index:31!important;
+  top:calc(62px + var(--safe-top))!important;
+  left:8px!important;
+  right:8px!important;
+  padding:8px 10px!important;
+  border-width:3px!important;
+  background:linear-gradient(135deg,rgba(7,12,26,.83),rgba(20,32,52,.74))!important;
+  box-shadow:0 8px 28px rgba(0,0,0,.26)!important;
+  transition:opacity .25s ease, transform .25s ease, max-height .25s ease!important;
+}
+.objective-card small{font-size:10px!important;letter-spacing:.10em!important}
+.objective-card strong{font-size:14px!important;line-height:1.12!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.objective-progress{height:5px!important;margin-top:5px!important;border-width:1px!important}
+.game.compact-hud .objective-card{opacity:.80;transform:scale(.84);transform-origin:top left;max-height:52px;overflow:hidden;pointer-events:none}
+.game.compact-hud .objective-card strong{-webkit-line-clamp:1}
+
+/* Tutorial não pode bloquear jogabilidade */
+.tutorial-box{
+  top:auto!important;
+  bottom:calc(122px + var(--safe-bottom))!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  width:min(420px,68vw)!important;
+  padding:7px 9px!important;
+  border-width:3px!important;
+  font-size:13px!important;
+  background:rgba(9,17,32,.76)!important;
+  pointer-events:none!important;
+}
+.tutorial-box b{font-size:15px!important}.tutorial-box span{font-size:12px!important}
+
+/* Base: controles como gamepad, não painel de sistema */
+.game-controls{
+  position:absolute!important;
+  inset:0!important;
+  padding:0!important;
+  display:block!important;
+  pointer-events:none!important;
+  background:transparent!important;
+  border:0!important;
+  z-index:54!important;
+}
+.left-zone,.right-zone{pointer-events:auto!important;}
+.left-zone{
+  position:absolute!important;
+  left:10px!important;
+  bottom:calc(8px + var(--safe-bottom))!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  gap:6px!important;
+}
+.right-zone{
+  position:absolute!important;
+  right:8px!important;
+  bottom:calc(8px + var(--safe-bottom))!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-end!important;
+  gap:6px!important;
+}
+.joystick{gap:2px!important;font-size:12px!important;line-height:1!important;}
+.joy-ring{width:102px!important;height:102px!important;border-width:4px!important;}
+.joy-knob{width:44px!important;height:44px!important;margin:-22px 0 0 -22px!important;border-width:4px!important;}
+.direction-buttons{margin-top:2px!important;grid-template-columns:repeat(3,34px)!important;grid-template-rows:repeat(3,28px)!important;gap:3px!important;}
+.move-btn{width:34px!important;height:28px!important;font-size:13px!important;border-width:3px!important;border-radius:6px!important;}
+.move-btn span{font-size:7px!important;}
+.world-strip{
+  position:absolute!important;
+  right:0!important;
+  bottom:100%!important;
+  margin-bottom:6px!important;
+  max-width:min(360px,calc(100vw - 190px))!important;
+  display:flex!important;
+  gap:4px!important;
+  padding:2px!important;
+  border-radius:10px!important;
+  background:rgba(3,7,18,.30)!important;
+}
+.world-chip{font-size:11px!important;padding:5px 7px!important;border-width:2px!important;border-radius:7px!important;min-height:30px!important;}
+.action-grid{
+  display:grid!important;
+  grid-template-columns:repeat(3,52px)!important;
+  gap:5px!important;
+  width:auto!important;
+}
+.action-btn{
+  width:52px!important;
+  height:47px!important;
+  border-width:3px!important;
+  border-radius:9px!important;
+  font-size:16px!important;
+  line-height:.92!important;
+  background:rgba(42,50,64,.82)!important;
+  box-shadow:0 5px 0 rgba(0,0,0,.45),0 10px 22px rgba(0,0,0,.22)!important;
+}
+.action-btn span{font-size:8px!important;margin-top:2px!important;}
+#jumpBtn{background:#2563eb!important;}
+#powerBtn{background:#dc2626!important;}
+#crouchBtn{background:#b77905!important;}
+#sizeBtn{background:#16a34a!important;}
+#pauseBtn{background:#7c3aed!important;}
+#exitBtn{background:#991b1b!important;}
+.action-btn.holding,.move-btn.holding{outline:3px solid #facc15!important;filter:brightness(1.25)!important;}
+.minimap{opacity:.85!important;right:6px!important;width:10px!important;}
+
+/* Paisagem: campo de visão livre no centro; controles embaixo, não em cima do jogo */
+@media (orientation:landscape) and (max-height:740px){
+  .top-hud{right:auto!important;width:min(430px,48vw)!important;}
+  .hud-box{flex:0 0 78px!important;min-height:40px!important;padding:4px 5px!important;}
+  .hud-box small{font-size:10px!important}.hud-box b{font-size:16px!important}
+  .objective-card{right:auto!important;width:min(455px,50vw)!important;top:calc(54px + var(--safe-top))!important;max-height:74px!important;}
+  .objective-card strong{font-size:13px!important;line-height:1.1!important;}
+  .game.compact-hud .objective-card{transform:scale(.72)!important;opacity:.62!important;}
+  .tutorial-box{display:none!important;}
+  .minimap{display:none!important;}
+  .left-zone{left:8px!important;bottom:8px!important;transform:none!important;}
+  .right-zone{right:8px!important;bottom:8px!important;}
+  .joy-ring{width:92px!important;height:92px!important;}
+  .joy-knob{width:40px!important;height:40px!important;margin:-20px 0 0 -20px!important;}
+  .joystick small{font-size:11px!important;}
+  .direction-buttons{grid-template-columns:repeat(3,30px)!important;grid-template-rows:repeat(3,25px)!important;gap:2px!important;}
+  .move-btn{width:30px!important;height:25px!important;font-size:12px!important;}
+  .move-btn span{display:none!important;}
+  .action-grid{grid-template-columns:repeat(3,48px)!important;gap:4px!important;}
+  .action-btn{width:48px!important;height:42px!important;font-size:15px!important;border-width:3px!important;}
+  .action-btn span{font-size:7px!important;}
+  .world-strip{
+    position:fixed!important;
+    top:calc(8px + var(--safe-top))!important;
+    right:8px!important;
+    bottom:auto!important;
+    max-width:calc(100vw - 470px)!important;
+    min-width:180px!important;
+    opacity:.78!important;
+    transform:none!important;
+  }
+  .world-chip{font-size:10px!important;min-height:26px!important;padding:4px 6px!important;}
+  .toast{font-size:18px!important;min-width:min(56vw,360px)!important;top:42%!important;}
+}
+
+/* Retrato: controles compactos, preservando área de jogo */
+@media (orientation:portrait){
+  .top-hud{gap:4px!important;}
+  .hud-box{padding:4px 3px!important;min-height:38px!important;}
+  .hud-box small{font-size:9px!important}.hud-box b{font-size:15px!important}
+  .objective-card{top:calc(52px + var(--safe-top))!important;max-height:86px!important;}
+  .left-zone{left:6px!important;bottom:calc(6px + var(--safe-bottom))!important;}
+  .right-zone{right:6px!important;bottom:calc(6px + var(--safe-bottom))!important;}
+  .joy-ring{width:98px!important;height:98px!important;}
+  .joy-knob{width:42px!important;height:42px!important;margin:-21px 0 0 -21px!important;}
+  .action-grid{grid-template-columns:repeat(3,48px)!important;gap:4px!important;}
+  .action-btn{width:48px!important;height:44px!important;font-size:14px!important;}
+  .action-btn span{font-size:7px!important;}
+  .world-strip{max-width:calc(100vw - 128px)!important;bottom:100%!important;right:0!important;}
+  .world-chip{font-size:10px!important;padding:4px 5px!important;}
+}

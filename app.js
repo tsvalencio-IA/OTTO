@@ -21,8 +21,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v35_premium_render_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v36_jogavel_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -455,7 +455,9 @@
 
   async function start(modeName){
     mode = modeName; paused = false; playing = true;
-    if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub, veja os portais e escolha uma fase pelo menu de mundos.' };
+    clearMovementState();
+    els.game.classList.remove('compact-hud');
+    if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub e escolha uma fase pelos portais. Para aventura real, toque em JOGAR FASES.' };
     else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
     else { currentLevelIndex = Math.min(progress.level || 0, LEVELS.length - 1); currentLevel = LEVELS[currentLevelIndex]; }
     showScreen('game');
@@ -467,6 +469,8 @@
     requestFullscreenLandscape();
     toast(currentLevel.title, 'good');
     speak(currentLevel.objective);
+    clearTimeout(start.compactTimer);
+    start.compactTimer = setTimeout(() => { if (playing && els.game.classList.contains('active')) els.game.classList.add('compact-hud'); }, 6500);
   }
 
   function exitGame(){
@@ -478,7 +482,7 @@
     return { hearts:diff.hearts, crystals:0, defeated:0, requiredCrystals:currentLevel.crystals||0, requiredEnemies:currentLevel.enemies||0, timer:(mode==='missions'?diff.timer:0), checkpoint:4, quizSolved:!currentLevel.quizGate, completed:false, tutorialStep:0, startedAt:now() };
   }
 
-  function resetPlayer(){ p = defaultPlayer(); p.z = (runtime && runtime.checkpoint) || 4; player.position.set(p.x,p.y,p.z); }
+  function resetPlayer(){ p = defaultPlayer(); p.z = (runtime && runtime.checkpoint) || 4; player.position.set(p.x,p.y,p.z); player.rotation.y = Math.PI; clearMovementState(); }
   function clearLevel(){
     if (!levelGroup) return;
     while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
@@ -941,7 +945,7 @@
     const list = currentLevel.tutorial || ['Use o joystick para andar em profundidade.','A pule nas caixas; B lança poder.'];
     let step = 0; els.tutorialBox.hidden = false;
     const render = () => { els.tutorialTitle.textContent = currentLevel.title || 'Tutorial'; els.tutorialText.textContent = list[step] || ''; };
-    render(); clearInterval(showTutorial.timer); showTutorial.timer = setInterval(() => { step++; if (step >= list.length) { els.tutorialBox.hidden = true; clearInterval(showTutorial.timer); } else render(); }, 4200);
+    render(); clearInterval(showTutorial.timer); showTutorial.timer = setInterval(() => { step++; if (step >= list.length) { els.tutorialBox.hidden = true; clearInterval(showTutorial.timer); } else render(); }, 2600);
   }
 
   function openQuiz(fromGame=false){
@@ -975,27 +979,58 @@
 
   async function startCamera(){ if(cameraStream || !navigator.mediaDevices) return; try{ cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}); els.cameraFeed.srcObject=cameraStream; await els.cameraFeed.play().catch(()=>{}); } catch { toast('Câmera bloqueada. Usando cenário 3D.', 'warn'); } }
   function stopCamera(){ if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } els.cameraFeed.srcObject=null; }
-  function requestFullscreenLandscape(){ const el=document.documentElement; if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); }
+  function requestFullscreenLandscape(){ const el=document.documentElement; if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); /* V36: não força lock de orientação; o layout se adapta ao celular em pé ou deitado. */ }
 
   function updateWorldButtons(world){ $$('.world-chip').forEach(b=>b.classList.toggle('active', b.dataset.world===world)); }
   function setupJoystick(){
     const ring = els.joystick.querySelector('.joy-ring');
-    const end = () => { joy.active=false; joy.pointerId=null; joy.x=0; joy.z=0; els.joyKnob.style.transform='translate(0px,0px)'; };
-    const move = (e) => { if(!joy.active || e.pointerId !== joy.pointerId) return; e.preventDefault(); const dx=e.clientX-joy.cx, dy=e.clientY-joy.cy; const len=Math.hypot(dx,dy); const max=joy.max; const sx=len>max?dx/len*max:dx, sy=len>max?dy/len*max:dy; els.joyKnob.style.transform=`translate(${sx}px,${sy}px)`; joy.x=clamp(dx/max,-1,1); joy.z=clamp(-dy/max,-1,1); };
-    ring.addEventListener('pointerdown',(e)=>{ e.preventDefault(); joy.active=true; joy.pointerId=e.pointerId; const r=ring.getBoundingClientRect(); joy.cx=r.left+r.width/2; joy.cy=r.top+r.height/2; ring.setPointerCapture && ring.setPointerCapture(e.pointerId); move(e); });
-    ['pointermove'].forEach(ev=>ring.addEventListener(ev,move));
-    ['pointerup','pointercancel','pointerleave'].forEach(ev=>ring.addEventListener(ev,(e)=>{ if(e.pointerId===joy.pointerId) end(); }));
+    if (!ring) return;
+    const end = (e) => {
+      if (e && joy.pointerId !== null && e.pointerId !== joy.pointerId) return;
+      joy.active=false; joy.pointerId=null; joy.x=0; joy.z=0;
+      if (els.joyKnob) els.joyKnob.style.transform='translate(0px,0px)';
+    };
+    const move = (e) => {
+      if(!joy.active || e.pointerId !== joy.pointerId) return;
+      e.preventDefault();
+      const dx=e.clientX-joy.cx, dy=e.clientY-joy.cy;
+      const len=Math.hypot(dx,dy); const max=joy.max;
+      const sx=len>max?dx/len*max:dx, sy=len>max?dy/len*max:dy;
+      if (els.joyKnob) els.joyKnob.style.transform=`translate(${sx}px,${sy}px)`;
+      const dead = .10;
+      joy.x = Math.abs(dx/max) < dead ? 0 : clamp(dx/max,-1,1);
+      joy.z = Math.abs(dy/max) < dead ? 0 : clamp(-dy/max,-1,1);
+    };
+    ring.addEventListener('pointerdown',(e)=>{
+      e.preventDefault(); e.stopPropagation();
+      joy.active=true; joy.pointerId=e.pointerId;
+      const r=ring.getBoundingClientRect(); joy.cx=r.left+r.width/2; joy.cy=r.top+r.height/2;
+      ring.setPointerCapture && ring.setPointerCapture(e.pointerId);
+      move(e);
+    }, { passive:false });
+    document.addEventListener('pointermove', move, { passive:false });
+    document.addEventListener('pointerup', end, { passive:false });
+    document.addEventListener('pointercancel', end, { passive:false });
+    window.addEventListener('blur', () => { end(); clearMovementState(); });
   }
+
+  function clearMovementState(){
+    moveHold.left = moveHold.right = moveHold.forward = moveHold.back = false;
+    keyboard.left = keyboard.right = keyboard.forward = keyboard.back = false;
+    input.crouch = false;
+    $$('.move-btn.holding,.action-btn.holding').forEach(btn => btn.classList.remove('holding'));
+  }
+
   function setupInputs(){
     setupJoystick();
-    $$('[data-move]').forEach(btn=>{ const key=btn.dataset.move; const on=(e)=>{ e.preventDefault(); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; }; const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; }; btn.addEventListener('pointerdown',on); ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,off)); });
-    $$('[data-hold]').forEach(btn=>{ const key=btn.dataset.hold; btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); }); ['pointerup','pointercancel','pointerleave'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); })); });
-    $$('[data-action]').forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); handleAction(btn.dataset.action); }));
+    $$('[data-move]').forEach(btn=>{ const key=btn.dataset.move; const on=(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; }; const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; }; btn.addEventListener('pointerdown',on,{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false})); });
+    $$('[data-hold]').forEach(btn=>{ const key=btn.dataset.hold; btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false})); });
+    $$('[data-action]').filter(btn=>!btn.dataset.move).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
     $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
     window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
   }
-  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) moveHold[a]=true; else if(a==='crouch') toggleCrouch(true); else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
+  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
   function setupUI(){
     const bindStart = (el, target) => { if (!el) return; el.onclick = () => { closeModal(); start(target || el.dataset.play || 'missions'); }; };
     [els.playBtn, els.heroPlayBtn].forEach(el => bindStart(el, 'missions'));
@@ -1018,7 +1053,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=35').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=36').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
