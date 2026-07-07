@@ -1,23 +1,40 @@
-# Athos Adventure 3D+ — V46.2 Render Premium Corrigido
+# ATHOS V47 — ZIP COMPLETO LIMPO PARA GITHUB
 
-Base: V45 estável.
+Use este pacote como ZIP completo da versão V47.
 
-Correção desta versão:
-- integra a camada `assets/render-v46` do Gemini de forma segura;
-- corrige o `safe()` do módulo para preservar `this` e não quebrar `install/rebuildWorld/dispose`;
-- mapeia os mundos do jogo (`field/fire/forest/castle/space/arena/real`) para os mundos do render V46;
-- desativa as camadas visuais experimentais antigas V442/V45 para o V46 ser a camada visual principal;
-- mantém joystick, B Poder, Quiz/Falar, data-action, data-move, data-world, model-viewer e athos.glb;
-- Real/AR não usa câmera falsa; abre AR nativo via model-viewer com `ar-placement="floor"` e `ar-scale="fixed"`;
-- se o aparelho não suportar AR nativo, o jogo não cria câmera fake.
+## O que subir no GitHub
+Suba todo o conteúdo deste ZIP na raiz do repositório `OTTO`.
 
-Abrir após subir:
+A raiz deve ficar assim:
 
-`?v=462-render-premium-ar-hotfix`
+```text
+index.html
+app.js
+style.css
+athos.glb
+manifest.webmanifest
+sw.js
+.nojekyll
+404.html
+README.md
+F12_TESTE_ATHOS_V47_FINAL_RENDER_GAMEPLAY.js
+F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js
+icons/
+assets/
+moldes/
+```
 
-Teste:
+## Testes incluídos
+Rode nesta ordem no console F12:
 
-`F12_TESTE_ATHOS_V462_AR_HOTFIX.js`
+1. `F12_TESTE_ATHOS_V47_FINAL_RENDER_GAMEPLAY.js`
+2. `F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js`
 
+## Abrir depois de subir
 
-Hotfix V46.2: o botão Real/AR não chama activateAR quando model-viewer informa que AR não está disponível, evitando o erro interno ARRenderer null.add em desktop. A câmera fake continua bloqueada.
+```text
+?v=47-final-clean-github
+```
+
+## Observação
+Este ZIP não é “somente alterados”. É o pacote completo para publicar no GitHub Pages.

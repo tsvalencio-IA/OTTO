@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
-  <title>Athos: Guardião dos Portais V46.2 RENDER PREMIUM AR HOTFIX</title>
+  <title>Athos: Guardião dos Portais V47 FINAL RENDER + GAMEPLAY</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=462-render-premium-ar-hotfix" />
-  <link rel="stylesheet" href="./assets/render-v46/v46-render-premium.css?v=462-render-premium-ar-hotfix" />
+  <link rel="stylesheet" href="./style.css?v=47-final-render-gameplay" />
+  <link rel="stylesheet" href="./assets/render-v47/v47-render-premium.css?v=47-final-render-gameplay" />
 
 </head>
 <body>
@@ -23,7 +23,7 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V46.2 • Render Premium AR Hotfix</p>
+            <p class="eyebrow">V47 • Render Premium + Motor 10/10</p>
             <h1>Athos Adventure 3D+</h1>
             <p class="subtitle">Explore mundos vivos, vença monstros e ative portais.</p>
             <div class="hero-actions">
@@ -43,6 +43,7 @@
               <em>3D + AR</em>
             </div>
 
+            <video id="viewerCameraFeed" class="viewer-camera-feed" autoplay playsinline muted></video>
             <model-viewer
               id="nativeViewer"
               class="native-viewer"
@@ -61,15 +62,19 @@
               <button id="insideArNativeBtn" class="pixel-btn ar-native-btn" type="button" slot="ar-button" aria-label="AR Nativo realidade aumentada">📱 AR</button>
             </model-viewer>
             <button id="arNativeExternalBtn" class="pixel-btn primary ar-external-btn" type="button" data-test="ar-native" aria-label="AR Nativo abrir realidade aumentada">📱 Abrir em AR</button>
-            <div class="viewer-controls-simple" aria-label="Controles simples do Athos 3D">
-              <button id="viewerRotateLeftBtn" class="viewer-mini-btn" type="button" aria-label="Girar para esquerda">↺</button>
-              <button id="viewerRotateRightBtn" class="viewer-mini-btn" type="button" aria-label="Girar para direita">↻</button>
-              <button id="viewerZoomInBtn" class="viewer-mini-btn" type="button" aria-label="Aproximar">＋</button>
-              <button id="viewerZoomOutBtn" class="viewer-mini-btn" type="button" aria-label="Afastar">－</button>
-              <button id="viewerMoveUpBtn" class="viewer-mini-btn" type="button" aria-label="Subir Athos">⬆</button>
-              <button id="viewerMoveDownBtn" class="viewer-mini-btn" type="button" aria-label="Descer Athos">⬇</button>
-              <button id="viewerBigBtn" class="viewer-mini-btn" type="button" aria-label="Tela maior">⛶</button>
-              <button id="viewerResetBtn" class="viewer-mini-btn" type="button" aria-label="Resetar posição">🔄</button>
+            <div class="viewer-controls-simple viewer-controls-pro" aria-label="Controles do Athos 3D">
+              <button id="viewerRotateLeftBtn" class="viewer-mini-btn" type="button" aria-label="Girar para esquerda">↺<small>Girar</small></button>
+              <button id="viewerRotateRightBtn" class="viewer-mini-btn" type="button" aria-label="Girar para direita">↻<small>Girar</small></button>
+              <button id="viewerZoomInBtn" class="viewer-mini-btn" type="button" aria-label="Aproximar Athos">＋<small>Perto</small></button>
+              <button id="viewerZoomOutBtn" class="viewer-mini-btn" type="button" aria-label="Afastar Athos">－<small>Longe</small></button>
+              <button id="viewerMoveUpBtn" class="viewer-mini-btn" type="button" aria-label="Mover Athos para cima na tela">⬆<small>Subir</small></button>
+              <button id="viewerMoveDownBtn" class="viewer-mini-btn" type="button" aria-label="Mover Athos para baixo na tela">⬇<small>Descer</small></button>
+              <button id="viewerMoveLeftBtn" class="viewer-mini-btn" type="button" aria-label="Mover Athos para esquerda">⬅<small>Esq</small></button>
+              <button id="viewerMoveRightBtn" class="viewer-mini-btn" type="button" aria-label="Mover Athos para direita">➡<small>Dir</small></button>
+              <button id="viewerCameraBtn" class="viewer-mini-btn camera" type="button" aria-label="Ligar câmera real na prévia 3D">📷<small>Câmera</small></button>
+              <button id="viewerArFixedBtn" class="viewer-mini-btn ar" type="button" aria-label="Abrir Athos em AR fixo no chão">📱<small>AR fixo</small></button>
+              <button id="viewerBigBtn" class="viewer-mini-btn" type="button" aria-label="Abrir tela maior">⛶<small>Tela</small></button>
+              <button id="viewerResetBtn" class="viewer-mini-btn" type="button" aria-label="Resetar posição">🔄<small>Reset</small></button>
             </div>
           </section>
 
@@ -104,7 +109,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V46.2 Render Premium AR Hotfix</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V47 Render Premium + Gameplay Engine 10</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -204,7 +209,7 @@
     </div>
   </div>
 
-  <script src="./assets/render-v46/v46-render-premium.js?v=462-render-premium-ar-hotfix"></script>
-  <script src="./app.js?v=462-render-premium-ar-hotfix"></script>
+  <script src="./assets/render-v47/v47-render-premium.js?v=47-final-render-gameplay"></script>
+  <script src="./app.js?v=47-final-render-gameplay"></script>
 </body>
 </html>

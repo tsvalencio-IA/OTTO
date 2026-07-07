@@ -1,0 +1,54 @@
+{
+  "version": "V47_RENDER_PREMIUM_FIEL_10_10",
+  "description": "Configurações Globais da Camada Visual Premium V47 - Fiel à referência Voxel",
+  "biomes": {
+    "campo": {
+      "skyColor": "#87CEEB",
+      "fogDensity": 0.015,
+      "baseTexture": "grass",
+      "particles": "dust",
+      "musicTheme": "adventure"
+    },
+    "vulcao": {
+      "skyColor": "#2b0f0f",
+      "fogDensity": 0.03,
+      "baseTexture": "lava_rock",
+      "particles": "ash",
+      "musicTheme": "tense"
+    },
+    "floresta": {
+      "skyColor": "#001a00",
+      "fogDensity": 0.025,
+      "baseTexture": "moss_stone",
+      "particles": "magic_spores",
+      "musicTheme": "mystical"
+    },
+    "espaco": {
+      "skyColor": "#00001a",
+      "fogDensity": 0.005,
+      "baseTexture": "neon_grid",
+      "particles": "stars",
+      "musicTheme": "cosmic"
+    },
+    "arena": {
+      "skyColor": "#331a00",
+      "fogDensity": 0.02,
+      "baseTexture": "cracked_stone",
+      "particles": "sparks",
+      "musicTheme": "boss"
+    },
+    "real": {
+      "skyColor": "transparent",
+      "fogDensity": 0.0,
+      "baseTexture": "none",
+      "particles": "none",
+      "musicTheme": "ar_active"
+    }
+  },
+  "performance": {
+    "maxParticles": 500,
+    "useInstancedMesh": true,
+    "shadowsEnabled": true,
+    "textureResolution": 64
+  }
+}
