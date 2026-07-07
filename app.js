@@ -1,6 +1,5 @@
 (() => {
   'use strict';
-  // V46_RENDER_PREMIUM_INTEGRADO: camada visual procedural instalada sem alterar controles/AR/lógica.
 
   window.__athosErrors = window.__athosErrors || [];
   window.addEventListener('error', event => window.__athosErrors.push(event.message || 'Erro JS'));
@@ -71,7 +70,7 @@
   const AR_SAFE = {
     lockMs: 3200,
     freezeWhenIdle: true,
-    label: 'V45_NATIVE_AR_ANCHORED_NO_FAKE_CAMERA'
+    label: 'V461_NATIVE_AR_ANCHORED_NO_FAKE_CAMERA'
   };
 
 
@@ -93,9 +92,9 @@
 
 
   const V442_RENDER = {
-    label: 'V45_TRUE_GAME_PLATFORM_RENDER',
+    label: 'V442_LEGACY_VISUAL_LAYER_DISABLED_BY_V46',
     target: 'approved_reference_voxel_portal_adventure_10_10',
-    enabled: true,
+    enabled: false,
     maxSideIslands: 28,
     clouds: 26,
     flowers: 140
@@ -103,8 +102,8 @@
 
 
   const V45_PLATFORM_RENDER = {
-    label: 'V45_TRUE_GAME_PLATFORM_10_10',
-    enabled: true,
+    label: 'V45_LEGACY_VISUAL_LAYER_DISABLED_BY_V46',
+    enabled: false,
     nativeAR: true,
     noFakeCameraAR: true,
     reference: 'approved_voxel_portal_adventure'
@@ -453,7 +452,7 @@
     buildFallbackAthos(); loadAthosGLB();
     window.addEventListener('resize', resize, { passive:true });
     window.addEventListener('orientationchange', () => setTimeout(resize, 140), { passive:true });
-    installV46Premium(currentLevel && currentLevel.world);
+    installV46Render(currentLevel?.world || 'field');
     animate();
     return true;
   }
@@ -464,6 +463,46 @@
     camera.aspect = rect.width / rect.height;
     camera.updateProjectionMatrix();
     renderer.setSize(rect.width, rect.height);
+  }
+
+
+  // V46.1: integração segura da camada de render premium enviada em assets/render-v46.
+  // Esta camada é visual e defensiva: não altera joystick, botões, B Poder, Quiz/Falar, localStorage ou model-viewer.
+  function v46Ctx(worldOverride){
+    return {
+      THREE: window.THREE,
+      scene,
+      camera,
+      renderer,
+      player,
+      currentWorld: worldOverride || currentLevel?.world || 'field',
+      level: currentLevel,
+      objects: runtime?.objects || [],
+      enemies,
+      portal: portalMesh,
+      crystals: runtime?.crystals || []
+    };
+  }
+  function installV46Render(worldOverride){
+    const mod = window.ATHOS_V46_RENDER_PREMIUM;
+    if (!mod || !window.THREE || !scene || !camera || !renderer) return false;
+    const st = typeof mod.getStatus === 'function' ? mod.getStatus() : null;
+    if (!st || !st.installed) {
+      try { mod.install(v46Ctx(worldOverride)); } catch (e) { console.warn('V46 install ignorado com segurança', e); return false; }
+    }
+    return true;
+  }
+  function rebuildV46Render(worldOverride){
+    const mod = window.ATHOS_V46_RENDER_PREMIUM;
+    if (!mod || !window.THREE || !scene || !camera || !renderer) return;
+    const w = worldOverride || currentLevel?.world || 'field';
+    if (!installV46Render(w)) return;
+    try { mod.rebuildWorld(v46Ctx(w), w); } catch (e) { console.warn('V46 rebuild ignorado com segurança', e); }
+  }
+  function updateV46Render(dt){
+    const mod = window.ATHOS_V46_RENDER_PREMIUM;
+    if (!mod || !window.THREE || !scene) return;
+    try { mod.update(v46Ctx(currentLevel?.world || 'field'), dt); } catch (e) { console.warn('V46 update ignorado com segurança', e); }
   }
 
   function buildFallbackAthos(){
@@ -623,44 +662,6 @@
     });
   }
 
-
-
-  // V46 — Render Premium integrado como camada visual independente.
-  function v46WorldName(world){
-    const map = { field:'campo', hub:'campo', fire:'vulcao', forest:'floresta', castle:'castelo', space:'espaco', arena:'arena', real:'real' };
-    return map[world] || world || 'campo';
-  }
-  function v46Ctx(world){
-    return {
-      THREE: window.THREE,
-      scene,
-      camera,
-      renderer,
-      player,
-      currentWorld: v46WorldName(world || (currentLevel && currentLevel.world) || 'field'),
-      level: currentLevel,
-      objects: { platforms, hazards, gates, solids, checkpoints },
-      enemies,
-      portal: portalMesh,
-      crystals
-    };
-  }
-  function installV46Premium(world){
-    const api = window.ATHOS_V46_RENDER_PREMIUM;
-    if (!api || !window.THREE || !scene || !renderer || !camera) return;
-    try { api.install(v46Ctx(world)); } catch (err) { console.warn('V46 install ignorado:', err); }
-  }
-  function rebuildV46Premium(world){
-    const api = window.ATHOS_V46_RENDER_PREMIUM;
-    if (!api || !window.THREE || !scene || !renderer || !camera) return;
-    try { api.rebuildWorld(v46Ctx(world), v46WorldName(world || (currentLevel && currentLevel.world) || 'field')); } catch (err) { console.warn('V46 rebuild ignorado:', err); }
-  }
-  function updateV46Premium(dt){
-    const api = window.ATHOS_V46_RENDER_PREMIUM;
-    if (!api || !window.THREE || !scene || !renderer || !camera) return;
-    try { api.update(v46Ctx(currentLevel && currentLevel.world), dt); } catch (err) { console.warn('V46 update ignorado:', err); }
-  }
-
   async function start(modeName){
     mode = modeName; paused = false; playing = true;
     hardStopAllInput('start');
@@ -708,8 +709,8 @@
     createPortal(currentLevel.length || 220);
     applyV442MinecraftAdventureRender(currentLevel, currentLevel.length || 220);
     applyV45TrueGamePlatformRender(currentLevel, currentLevel.length || 220);
+    rebuildV46Render(currentLevel.world);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
-    rebuildV46Premium(currentLevel.world);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
 
@@ -760,7 +761,7 @@
   function createTrack(length){
     const cfg = WORLD[currentLevel.world] || WORLD.field;
     const base = box(18,.45,length+44,cfg.ground); base.position.set(0,-.25,-length/2+4); levelGroup.add(base);
-    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.08; levelGroup.add(grid);
+    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.018; levelGroup.add(grid);
     for (let z=8; z>-length-12; z-=8) {
       const stripe = box(.08,.08,1.25,cfg.grid); stripe.position.set(0,.09,z); levelGroup.add(stripe);
       if (Math.abs(z)%32===0) { const mark=box(1.3,.09,.18,cfg.accent); mark.position.set(-6.8,.12,z); levelGroup.add(mark); const mark2=box(1.3,.09,.18,cfg.accent); mark2.position.set(6.8,.12,z); levelGroup.add(mark2); }
@@ -1431,11 +1432,12 @@
     const dt = Math.min(.045, clock.getDelta());
     if (mixer) mixer.update(dt);
     if (playing && !paused) update(dt);
+    updateV46Render(dt);
     if (renderer && scene && camera) renderer.render(scene,camera);
   }
 
   function update(dt){
-    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateV44EnemyProjectiles(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); updateV46Premium(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
+    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateV44EnemyProjectiles(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
   function updateInput(dt=1/60){
@@ -1980,41 +1982,80 @@
 
 
   function getARViewer(){
+    // V46.1: usa um model-viewer dedicado para AR nativo. Ele fica pronto no DOM,
+    // mas não vira câmera falsa do jogo. O objetivo é abrir Scene Viewer/WebXR ancorado no chão.
     return els.arAnchorViewer || els.nativeViewer;
   }
   function prepareARViewer(viewer){
     if (!viewer) return;
     viewer.setAttribute('src','./athos.glb');
+    viewer.setAttribute('ar','');
+    viewer.setAttribute('ar-modes','scene-viewer webxr quick-look');
     viewer.setAttribute('ar-placement','floor');
     viewer.setAttribute('ar-scale','fixed');
     viewer.setAttribute('shadow-intensity','1');
     viewer.setAttribute('exposure','1');
     viewer.setAttribute('environment-image','neutral');
+    viewer.setAttribute('interaction-prompt','none');
     try {
       viewer.setAttribute('camera-orbit', `${VIEWER_3D.orbit}deg ${VIEWER_3D.elevation}deg ${VIEWER_3D.distance.toFixed(2)}m`);
       viewer.setAttribute('camera-target', `${VIEWER_3D.targetX.toFixed(2)}m ${VIEWER_3D.targetY.toFixed(2)}m ${VIEWER_3D.targetZ.toFixed(2)}m`);
+      viewer.setAttribute('scale', `${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)}`);
+    } catch {}
+  }
+  function prepareARActivationSurface(viewer){
+    if (!viewer) return;
+    try {
+      viewer.classList.add('ar-activation-surface');
+      viewer.style.position = 'fixed';
+      viewer.style.left = '0';
+      viewer.style.top = '0';
+      viewer.style.width = '100vw';
+      viewer.style.height = '100vh';
+      viewer.style.opacity = '0.001';
+      viewer.style.pointerEvents = 'none';
+      viewer.style.zIndex = '1';
+    } catch {}
+  }
+  function restoreARActivationSurface(viewer){
+    if (!viewer) return;
+    try {
+      viewer.classList.remove('ar-activation-surface');
+      viewer.removeAttribute('style');
     } catch {}
   }
   function openNativeAR(reason='native-ar'){
     hardStopAllInput(reason);
     stopCamera();
-    if (els.game) els.game.classList.add('ar-safe-mode');
+    realBg = false;
+    if (els.game) {
+      els.game.classList.add('ar-safe-mode');
+      els.game.classList.remove('real-bg');
+    }
     arSafeUntil = now() + AR_SAFE.lockMs;
+    rebuildV46Render('real');
     const viewer = getARViewer();
     prepareARViewer(viewer);
+    prepareARActivationSurface(viewer);
     if (!viewer || typeof viewer.activateAR !== 'function') {
-      toast('AR nativo precisa de celular compatível. No jogo, Athos fica parado.', 'warn');
+      toast('AR nativo precisa de celular compatível. Câmera falsa não será usada.', 'warn');
+      restoreARActivationSurface(viewer);
       return false;
     }
     try {
       const r = viewer.activateAR();
-      toast('Abrindo AR real: posicione Athos no chão.', 'good');
+      toast('Abrindo AR nativo ancorado: posicione Athos no chão.', 'good');
+      window.setTimeout(() => restoreARActivationSurface(viewer), 4500);
       if (r && typeof r.catch === 'function') {
-        r.catch(() => toast('AR nativo não abriu neste aparelho/navegador.', 'warn'));
+        r.catch(() => {
+          toast('AR nativo não abriu neste aparelho/navegador. Câmera falsa não será usada.', 'warn');
+          restoreARActivationSurface(viewer);
+        });
       }
       return true;
     } catch (err) {
-      toast('AR nativo não abriu neste aparelho/navegador.', 'warn');
+      toast('AR nativo não abriu neste aparelho/navegador. Câmera falsa não será usada.', 'warn');
+      restoreARActivationSurface(viewer);
       return false;
     }
   }
@@ -2034,7 +2075,7 @@
       ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false}));
     });
     $$('[data-action]').filter(btn=>!btn.dataset.move && !btn.dataset.hold).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
-    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(btn.dataset.world==='real'){ updateWorldButtons('real'); rebuildV46Premium('real'); openNativeAR('world-chip-real'); return; } if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
+    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(btn.dataset.world==='real'){ updateWorldButtons('real'); openNativeAR('world-chip-real'); return; } if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
     document.addEventListener('pointerup', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     document.addEventListener('pointercancel', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
@@ -2118,8 +2159,8 @@
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: now() < arSafeUntil, label: AR_SAFE.label, nativeAR:true, fakeCamera:false }),
     getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds, v45:V45_PLATFORM_RENDER.label }),
-    getV46Render: () => (window.ATHOS_V46_RENDER_PREMIUM && window.ATHOS_V46_RENDER_PREMIUM.getStatus ? window.ATHOS_V46_RENDER_PREMIUM.getStatus() : { installed:false }),
-    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V45_TRUE_GAME_PLATFORM_10_10', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
+    getV46Render: () => (window.ATHOS_V46_RENDER_PREMIUM && window.ATHOS_V46_RENDER_PREMIUM.getStatus ? window.ATHOS_V46_RENDER_PREMIUM.getStatus() : null),
+    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V46_RENDER_PREMIUM_CORRIGIDO', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };

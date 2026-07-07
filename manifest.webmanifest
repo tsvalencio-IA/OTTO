@@ -1,13 +1,13 @@
 {
-  "name": "Athos V44 Inimigos e Boss",
-  "short_name": "Athos V44",
-  "start_url": "./index.html?v=44-inimigos-boss-real",
+  "name": "Athos V46.1 Render Premium Corrigido",
+  "short_name": "Athos V46.1",
+  "start_url": "./index.html?v=461-render-premium-corrigido",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Athos Adventure 3D+ V45 com Real visível no celular, inimigos com comportamento e boss preservando a base estável.",
+  "description": "Athos Adventure 3D+ V46.1 com render premium integrado com segurança, AR nativo sem câmera falsa e base de controles preservada.",
   "icons": [
     {
       "src": "./icons/icon-192.png",

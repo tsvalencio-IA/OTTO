@@ -1,23 +1,20 @@
-# ATHOS V46 — Render Premium 10/10 Integrado
+# Athos Adventure 3D+ — V46.1 Render Premium Corrigido
 
-Base: V45 Plataforma 10/10 + camada V46 recebida do Gemini Canvas e corrigida para integração segura.
+Base: V45 estável.
 
-Não foram alterados: athos.glb, model-viewer, joystick, B Poder, Quiz/Falar, data-action, data-move, data-world, localStorage e fluxo principal.
+Correção desta versão:
+- integra a camada `assets/render-v46` do Gemini de forma segura;
+- corrige o `safe()` do módulo para preservar `this` e não quebrar `install/rebuildWorld/dispose`;
+- mapeia os mundos do jogo (`field/fire/forest/castle/space/arena/real`) para os mundos do render V46;
+- desativa as camadas visuais experimentais antigas V442/V45 para o V46 ser a camada visual principal;
+- mantém joystick, B Poder, Quiz/Falar, data-action, data-move, data-world, model-viewer e athos.glb;
+- Real/AR não usa câmera falsa; abre AR nativo via model-viewer com `ar-placement="floor"` e `ar-scale="fixed"`;
+- se o aparelho não suportar AR nativo, o jogo não cria câmera fake.
 
-Abra com `?v=46-render-premium-integrado`.
+Abrir após subir:
 
-# Athos V45 — Plataforma 10/10 / Render real + AR nativo ancorado
+`?v=461-render-premium-corrigido`
 
-Base: V44.2 preservada, com render e AR corrigidos conforme o padrão visual aprovado.
+Teste:
 
-## O que mudou
-- Transformação visual do jogo real para o padrão voxel/fantasia premium aprovado.
-- Gameplay com terreno mais rico: blocos, grama, flores, cogumelos, cristais grandes, portal-templo, ilhas laterais, inimigos mais legíveis.
-- Menu mobile reformulado com imagem/estética do padrão aprovado, sem painel espremido.
-- Câmera mais próxima e cinematográfica.
-- Botão Real agora abre AR nativo ancorado via model-viewer dedicado, sem usar câmera falsa como AR principal.
-- Mantidos: athos.glb, model-viewer, AR nativo, joystick, B Poder, data-action, data-move, data-world, quiz em rodada, inimigos/boss, progresso/localStorage.
-
-Abra com: `?v=45-plataforma-10-render-ar`
-
-Teste: `F12_TESTE_ATHOS_V45_PLATAFORMA_10_RENDER_AR.js`
+`F12_TESTE_ATHOS_V461_RENDER_PREMIUM_CORRIGIDO.js`

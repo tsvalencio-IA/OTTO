@@ -1,7 +1,7 @@
 /**
  * ATHOS ADVENTURE 3D+ | RENDER PREMIUM V46
- * Camada visual Voxel Premium independente.
- * Arquivo 100% completo, sem dependências externas.
+ * Camada visual Voxel Premium independente focada em fidelidade gráfica (Referência 10/10).
+ * Arquivo 100% completo, gerando texturas procedurais e modelos compostos in-line.
  */
 
 window.ATHOS_V46_RENDER_PREMIUM = (function() {
@@ -12,647 +12,451 @@ window.ATHOS_V46_RENDER_PREMIUM = (function() {
     let currentCtx = null;
     let updatables = [];
     let textures = {};
+    let materials = {};
     let currentWorldState = "campo";
     let arModeAtivo = false;
 
     // --- UTILITÁRIOS DEFENSIVOS ---
     function safe(fn) {
         return function(...args) {
-            try { return fn(...args); } 
-            catch (e) { console.warn("[V46 Render Premium] Aviso contornado:", e); }
+            try { return fn.apply(this, args); } 
+            catch (e) { console.warn("[V46 Render Premium] Proteção ativada:", e); }
         };
     }
 
-    // --- GERADOR DE TEXTURAS PROCEDURAIS (CANVAS) ---
+
+
+    // Mapeia os nomes reais usados no jogo Athos para os nomes do pacote visual.
+    // Isso evita o erro que fazia todos os mundos caírem no mesmo visual genérico.
+    function normalizeWorldName(worldName) {
+        const w = String(worldName || 'campo').toLowerCase();
+        const map = {
+            field: 'campo',
+            training: 'campo',
+            hub: 'campo',
+            campo: 'campo',
+            fire: 'vulcao',
+            volcano: 'vulcao',
+            vulcao: 'vulcao',
+            vulcão: 'vulcao',
+            forest: 'floresta',
+            floresta: 'floresta',
+            castle: 'castelo',
+            castelo: 'castelo',
+            space: 'espaco',
+            espaço: 'espaco',
+            espaco: 'espaco',
+            arena: 'arena',
+            real: 'real'
+        };
+        return map[w] || w || 'campo';
+    }
+
+    // --- GERADOR DE TEXTURAS PROCEDURAIS (PIXEL ART STYLE) ---
     const TextureGen = {
-        createNoise: function(THREE, baseColor, noiseColor, density = 0.2, size = 128) {
-            if (!THREE) return null;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = baseColor;
-            ctx.fillRect(0, 0, size, size);
-            
-            for (let i = 0; i < (size * size * density); i++) {
-                ctx.fillStyle = noiseColor;
-                ctx.fillRect(Math.random() * size, Math.random() * size, 2, 2);
-            }
-            
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.magFilter = THREE.NearestFilter; // Estilo Voxel/Pixel
-            texture.minFilter = THREE.NearestFilter;
-            return texture;
-        },
-        createGradient: function(THREE, colorTop, colorBottom, size = 64) {
-            if (!THREE) return null;
+        generateCanvas: function(size, fn) {
             const canvas = document.createElement('canvas');
             canvas.width = size; canvas.height = size;
             const ctx = canvas.getContext('2d');
-            const grd = ctx.createLinearGradient(0, 0, 0, size);
-            grd.addColorStop(0, colorTop);
-            grd.addColorStop(1, colorBottom);
-            ctx.fillStyle = grd;
-            ctx.fillRect(0, 0, size, size);
-            const texture = new THREE.CanvasTexture(canvas);
-            texture.magFilter = THREE.NearestFilter;
-            return texture;
+            fn(ctx, size);
+            return canvas;
         },
-        initTextures: function(THREE) {
-            if(Object.keys(textures).length > 0) return;
-            textures.grassTop = this.createNoise(THREE, '#4CAF50', '#388E3C', 0.15);
-            textures.dirt = this.createNoise(THREE, '#795548', '#5D4037', 0.2);
-            textures.stone = this.createNoise(THREE, '#9E9E9E', '#757575', 0.2);
-            textures.wood = this.createNoise(THREE, '#8D6E63', '#5D4037', 0.3);
-            textures.lava = this.createNoise(THREE, '#FF5722', '#FF9800', 0.1);
-            textures.water = this.createNoise(THREE, '#29B6F6', '#03A9F4', 0.05);
-            textures.sand = this.createNoise(THREE, '#FFE082', '#FFCA28', 0.1);
-            textures.darkStone = this.createNoise(THREE, '#424242', '#212121', 0.15);
-            textures.mossyStone = this.createNoise(THREE, '#9E9E9E', '#4CAF50', 0.1);
+        createVoxelTexture: function(THREE, type) {
+            const size = 64;
+            let canvas;
+            
+            if (type === 'grass_side') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    // Terra no fundo
+                    ctx.fillStyle = '#6D4C41'; ctx.fillRect(0, 0, s, s);
+                    for(let i=0; i<300; i++) {
+                        ctx.fillStyle = Math.random() > 0.5 ? '#5D4037' : '#795548';
+                        ctx.fillRect(Math.random()*s, Math.random()*s, 4, 4);
+                    }
+                    // Grama caindo no topo
+                    ctx.fillStyle = '#4CAF50'; ctx.fillRect(0, 0, s, s*0.3);
+                    for(let x=0; x<s; x+=4) {
+                        let h = s*0.3 + Math.random() * 8;
+                        ctx.fillStyle = '#4CAF50'; ctx.fillRect(x, 0, 4, h);
+                        ctx.fillStyle = '#388E3C'; ctx.fillRect(x, h-4, 4, 4);
+                    }
+                });
+            } else if (type === 'grass_top') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    ctx.fillStyle = '#4CAF50'; ctx.fillRect(0, 0, s, s);
+                    for(let i=0; i<400; i++) {
+                        ctx.fillStyle = Math.random() > 0.5 ? '#388E3C' : '#81C784';
+                        ctx.fillRect(Math.random()*s, Math.random()*s, 4, 4);
+                    }
+                });
+            } else if (type === 'dirt') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    ctx.fillStyle = '#6D4C41'; ctx.fillRect(0, 0, s, s);
+                    for(let i=0; i<400; i++) {
+                        ctx.fillStyle = Math.random() > 0.5 ? '#5D4037' : '#795548';
+                        ctx.fillRect(Math.random()*s, Math.random()*s, 4, 4);
+                    }
+                });
+            } else if (type === 'path') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    ctx.fillStyle = '#D7CCC8'; ctx.fillRect(0, 0, s, s); // Base clara
+                    for(let i=0; i<200; i++) {
+                        ctx.fillStyle = Math.random() > 0.5 ? '#BCAAA4' : '#EFEBE9';
+                        ctx.fillRect(Math.random()*s, Math.random()*s, 8, 8); // Blocos maiores
+                    }
+                    // Bordas sutis simulando pedras
+                    ctx.fillStyle = 'rgba(0,0,0,0.1)';
+                    ctx.fillRect(0,0,s,2); ctx.fillRect(0,0,2,s);
+                });
+            } else if (type === 'stone') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    ctx.fillStyle = '#9E9E9E'; ctx.fillRect(0, 0, s, s);
+                    for(let i=0; i<300; i++) {
+                        ctx.fillStyle = Math.random() > 0.5 ? '#757575' : '#BDBDBD';
+                        ctx.fillRect(Math.random()*s, Math.random()*s, 4, 4);
+                    }
+                    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                    ctx.fillRect(0,0,s,2); ctx.fillRect(0,0,2,s);
+                });
+            } else if (type === 'wood') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    ctx.fillStyle = '#795548'; ctx.fillRect(0, 0, s, s);
+                    for(let y=0; y<s; y+=8) {
+                        ctx.fillStyle = '#5D4037';
+                        ctx.fillRect(0, y + Math.random()*4, s, 2);
+                    }
+                });
+            } else if (type === 'lava') {
+                canvas = this.generateCanvas(size, (ctx, s) => {
+                    ctx.fillStyle = '#FF3D00'; ctx.fillRect(0, 0, s, s);
+                    for(let i=0; i<200; i++) {
+                        ctx.fillStyle = Math.random() > 0.5 ? '#FFC107' : '#DD2C00';
+                        ctx.fillRect(Math.random()*s, Math.random()*s, 8, 8);
+                    }
+                });
+            }
+
+            if (!canvas) return null;
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            return tex;
+        },
+
+        initMaterials: function(THREE) {
+            if (Object.keys(materials).length > 0) return;
+            
+            textures.grassTop = this.createVoxelTexture(THREE, 'grass_top');
+            textures.grassSide = this.createVoxelTexture(THREE, 'grass_side');
+            textures.dirt = this.createVoxelTexture(THREE, 'dirt');
+            textures.path = this.createVoxelTexture(THREE, 'path');
+            textures.stone = this.createVoxelTexture(THREE, 'stone');
+            textures.wood = this.createVoxelTexture(THREE, 'wood');
+            textures.lava = this.createVoxelTexture(THREE, 'lava');
+
+            materials.dirt = new THREE.MeshStandardMaterial({ map: textures.dirt, roughness: 1.0 });
+            materials.path = new THREE.MeshStandardMaterial({ map: textures.path, roughness: 0.9 });
+            materials.stone = new THREE.MeshStandardMaterial({ map: textures.stone, roughness: 0.8 });
+            materials.wood = new THREE.MeshStandardMaterial({ map: textures.wood, roughness: 0.9 });
+            materials.leaves = new THREE.MeshStandardMaterial({ color: 0x33691E, roughness: 1.0 });
+            materials.lava = new THREE.MeshStandardMaterial({ map: textures.lava, emissive: 0xFF3D00, emissiveIntensity: 0.8, roughness: 0.2 });
+            materials.water = new THREE.MeshStandardMaterial({ color: 0x29B6F6, transparent: true, opacity: 0.7, roughness: 0.1 });
+            materials.crystalBlue = new THREE.MeshStandardMaterial({ color: 0x00E5FF, emissive: 0x00B0FF, emissiveIntensity: 0.6, transparent: true, opacity: 0.9, roughness: 0.1, metalness: 0.5 });
+            materials.crystalPurple = new THREE.MeshStandardMaterial({ color: 0xD500F9, emissive: 0xAA00FF, emissiveIntensity: 0.6, transparent: true, opacity: 0.9, roughness: 0.1, metalness: 0.5 });
+            
+            // Material composto para bloco de grama (lados com terra, topo com grama)
+            materials.grassBlock = [
+                new THREE.MeshStandardMaterial({ map: textures.grassSide, roughness: 1.0 }), // right
+                new THREE.MeshStandardMaterial({ map: textures.grassSide, roughness: 1.0 }), // left
+                new THREE.MeshStandardMaterial({ map: textures.grassTop, roughness: 1.0 }),  // top
+                materials.dirt, // bottom
+                new THREE.MeshStandardMaterial({ map: textures.grassSide, roughness: 1.0 }), // front
+                new THREE.MeshStandardMaterial({ map: textures.grassSide, roughness: 1.0 })  // back
+            ];
         }
     };
 
-    // --- FÁBRICA DE OBJETOS VOXEL ---
-    const VoxelFactory = {
-        getMaterial: function(THREE, type) {
-            const mats = {
-                'grass': new THREE.MeshStandardMaterial({ map: textures.grassTop, roughness: 0.8 }),
-                'dirt': new THREE.MeshStandardMaterial({ map: textures.dirt, roughness: 0.9 }),
-                'stone': new THREE.MeshStandardMaterial({ map: textures.stone, roughness: 0.7 }),
-                'wood': new THREE.MeshStandardMaterial({ map: textures.wood, roughness: 0.8 }),
-                'lava': new THREE.MeshStandardMaterial({ map: textures.lava, emissive: 0xFF5722, emissiveIntensity: 0.5, roughness: 0.1 }),
-                'water': new THREE.MeshStandardMaterial({ map: textures.water, transparent: true, opacity: 0.8, roughness: 0.1 }),
-                'leaves': new THREE.MeshStandardMaterial({ color: 0x2E7D32, roughness: 0.9 }),
-                'crystalBlue': new THREE.MeshStandardMaterial({ color: 0x00E5FF, emissive: 0x00B0FF, emissiveIntensity: 0.8, transparent: true, opacity: 0.9 }),
-                'crystalPurple': new THREE.MeshStandardMaterial({ color: 0xD500F9, emissive: 0xAA00FF, emissiveIntensity: 0.8, transparent: true, opacity: 0.9 }),
-                'portalGlow': new THREE.MeshStandardMaterial({ color: 0xAA00FF, emissive: 0xAA00FF, emissiveIntensity: 1.5, transparent: true, opacity: 0.7, side: THREE.DoubleSide }),
-                'darkStone': new THREE.MeshStandardMaterial({ map: textures.darkStone, roughness: 0.8 }),
-                'sand': new THREE.MeshStandardMaterial({ map: textures.sand, roughness: 0.9 })
-            };
-            return mats[type] || mats['stone'];
-        },
-        createBlock: function(THREE, type, x, y, z, size = 1) {
-            const geo = new THREE.BoxGeometry(size, size, size);
-            const mat = this.getMaterial(THREE, type);
-            const mesh = new THREE.Mesh(geo, mat);
+    // --- CONSTRUTORES DE ENTIDADES (VOXEL ART) ---
+    const VoxelEntities = {
+        createBlock: function(THREE, mat, w, h, d, x, y, z, castShadow=true) {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
             mesh.position.set(x, y, z);
-            mesh.castShadow = true;
+            mesh.castShadow = castShadow;
             mesh.receiveShadow = true;
             return mesh;
-        }
-    };
+        },
 
-    // --- GERADORES PROCEDURAIS ESPECÍFICOS ---
-    const Builders = {
-        createVoxelTerrain: function(THREE, group, world) {
-            const gridSize = 24;
-            const blockSize = 1;
-            const yOffset = -0.5;
-
-            const instancedGeo = new THREE.BoxGeometry(blockSize, blockSize, blockSize);
-            let matType = 'grass';
-            if (world === 'vulcao') matType = 'darkStone';
-            if (world === 'espaco') matType = 'stone';
-            if (world === 'arena') matType = 'sand';
-
-            const material = VoxelFactory.getMaterial(THREE, matType);
-            const dirtMat = VoxelFactory.getMaterial(THREE, 'dirt');
+        buildTerrain: function(THREE, group, worldType) {
+            const length = 120;
+            const width = 40;
             
-            const count = gridSize * gridSize;
-            const mesh = new THREE.InstancedMesh(instancedGeo, material, count);
-            const dummy = new THREE.Object3D();
+            // Chão Base Profundo (Dirt/Stone)
+            let baseMat = materials.dirt;
+            if (worldType === 'vulcao' || worldType === 'espaco' || worldType === 'castelo') baseMat = materials.stone;
+            const base = this.createBlock(THREE, baseMat, width, 10, length, 0, -5.5, -length/2 + 10);
+            group.add(base);
 
-            let idx = 0;
-            for (let i = -gridSize/2; i < gridSize/2; i++) {
-                for (let j = -gridSize/2; j < gridSize/2; j++) {
-                    // Evitar caminho central para o terreno principal (deixar buraco para o path)
-                    if (Math.abs(i) <= 2) {
-                        dummy.position.set(i, yOffset - 0.1, j); // Abaixo do caminho
-                    } else {
-                        // Variação de altura procedual simples
-                        const h = (Math.sin(i * 0.5) * Math.cos(j * 0.5)) * 0.3;
-                        dummy.position.set(i, yOffset + h, j);
+            // Caminho Central (Paved)
+            const pathWidth = 6;
+            let pathMat = materials.path;
+            if (worldType === 'vulcao') pathMat = materials.stone;
+            for (let z = 10; z > -length; z -= 2) {
+                const pathBlock = this.createBlock(THREE, pathMat, pathWidth, 1, 2, 0, -0.4, z);
+                group.add(pathBlock);
+            }
+
+            // Blocos Laterais Ricos (Grama Elevada, Ilhas, etc)
+            for (let z = 10; z > -length; z -= 2) {
+                for (let x = -width/2; x <= width/2; x += 2) {
+                    if (Math.abs(x) <= pathWidth/2) continue; // Pula o caminho
+                    
+                    // Probabilidade de criar blocos nas laterais formando "paredões" ou desníveis
+                    let height = Math.random() > 0.8 ? 1 + Math.random() * 2 : 0;
+                    if (Math.abs(x) > pathWidth/2 + 2) height += Math.random() * 3; // Mais alto nas bordas extremas
+
+                    if (height > 0) {
+                        let blockMat = materials.grassBlock;
+                        if (worldType === 'vulcao') blockMat = materials.stone;
+                        else if (worldType === 'espaco') blockMat = materials.stone;
+
+                        const b = this.createBlock(THREE, blockMat, 2, height, 2, x, height/2 - 0.5, z);
+                        group.add(b);
+
+                        // Decorações em cima do bloco
+                        if (Math.random() > 0.85 && worldType === 'campo') {
+                            this.buildDecoration(THREE, group, x, height, z);
+                        }
                     }
-                    dummy.updateMatrix();
-                    mesh.setMatrixAt(idx++, dummy.matrix);
-                }
-            }
-            mesh.receiveShadow = true;
-            group.add(mesh);
-        },
-
-        createPath: function(THREE, group, world) {
-            const pathLength = 24;
-            const pathWidth = 4;
-            let matType = 'dirt';
-            if (world === 'vulcao') matType = 'stone';
-            if (world === 'castelo') matType = 'stone';
-            if (world === 'espaco') matType = 'darkStone';
-
-            for (let z = -pathLength/2; z < pathLength/2; z++) {
-                for (let x = -pathWidth/2; x <= pathWidth/2; x++) {
-                    const block = VoxelFactory.createBlock(THREE, matType, x, -0.4, z, 1);
-                    // Suavizar um pouco o caminho
-                    block.position.y += (Math.random() * 0.05);
-                    group.add(block);
                 }
             }
         },
 
-        createGrassBlocks: function(THREE, group) {
-            // Detalhes extras de grama
-            for(let i=0; i<30; i++) {
-                const x = (Math.random() - 0.5) * 20;
-                const z = (Math.random() - 0.5) * 20;
-                if (Math.abs(x) < 3) continue; // Pula caminho
-                const b = VoxelFactory.createBlock(THREE, 'grass', x, 0.2, z, 0.8);
-                group.add(b);
+        buildDecoration: function(THREE, group, x, y, z) {
+            const rand = Math.random();
+            if (rand < 0.3) {
+                // Flor
+                const stem = this.createBlock(THREE, new THREE.MeshStandardMaterial({color: 0x4CAF50}), 0.1, 0.4, 0.1, x, y+0.2, z);
+                const petalColor = Math.random() > 0.5 ? 0xFFEB3B : 0xFF4081;
+                const petal = this.createBlock(THREE, new THREE.MeshStandardMaterial({color: petalColor}), 0.4, 0.2, 0.4, x, y+0.5, z);
+                group.add(stem, petal);
+            } else if (rand < 0.6) {
+                // Cogumelo Vermelho Voxel
+                const stem = this.createBlock(THREE, new THREE.MeshStandardMaterial({color: 0xFFECB3}), 0.4, 0.5, 0.4, x, y+0.25, z);
+                const cap = this.createBlock(THREE, new THREE.MeshStandardMaterial({color: 0xE53935}), 1.0, 0.4, 1.0, x, y+0.7, z);
+                // Pontinhos brancos (simplificado adicionando pequenos boxes)
+                const spotMat = new THREE.MeshStandardMaterial({color: 0xFFFFFF});
+                const s1 = this.createBlock(THREE, spotMat, 0.2, 0.1, 0.2, x+0.2, y+0.9, z+0.2);
+                const s2 = this.createBlock(THREE, spotMat, 0.2, 0.1, 0.2, x-0.3, y+0.9, z-0.2);
+                group.add(stem, cap, s1, s2);
+            } else {
+                // Árvore
+                const trunk = this.createBlock(THREE, materials.wood, 0.8, 2, 0.8, x, y+1, z);
+                const leaves1 = this.createBlock(THREE, materials.leaves, 3, 2, 3, x, y+2.5, z);
+                const leaves2 = this.createBlock(THREE, materials.leaves, 2, 1.5, 2, x, y+4, z);
+                group.add(trunk, leaves1, leaves2);
             }
         },
 
-        createFlower: function(THREE, group, x, z) {
-            const fGroup = new THREE.Group();
-            const stem = VoxelFactory.createBlock(THREE, 'grass', 0, 0.2, 0, 0.2);
-            stem.scale.set(1, 2, 1);
-            const petalMat = new THREE.MeshStandardMaterial({color: Math.random() > 0.5 ? 0xFFEB3B : 0xE91E63});
-            const petal = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), petalMat);
-            petal.position.set(0, 0.5, 0);
-            fGroup.add(stem, petal);
-            fGroup.position.set(x, 0, z);
-            group.add(fGroup);
+        buildSign: function(THREE, group, x, y, z) {
+            const post = this.createBlock(THREE, materials.wood, 0.2, 1.5, 0.2, x, y+0.75, z);
+            const board = this.createBlock(THREE, materials.wood, 1.5, 0.8, 0.1, x+0.5, y+1.2, z+0.15);
+            const arrow = this.createBlock(THREE, new THREE.MeshStandardMaterial({color: 0xFFFFFF}), 0.8, 0.2, 0.12, x+0.5, y+1.2, z+0.16);
+            group.add(post, board, arrow);
         },
 
-        createMushroom: function(THREE, group, x, z) {
-            const mGroup = new THREE.Group();
-            const stemMat = new THREE.MeshStandardMaterial({color: 0xFFF8E1});
-            const capMat = new THREE.MeshStandardMaterial({color: 0xE53935});
-            const stem = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.6, 0.3), stemMat);
-            const cap = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.3, 0.8), capMat);
-            stem.position.y = 0.3;
-            cap.position.y = 0.7;
-            mGroup.add(stem, cap);
-            mGroup.position.set(x, 0, z);
-            group.add(mGroup);
-        },
-
-        createSign: function(THREE, group, x, z) {
-            const sGroup = new THREE.Group();
-            const post = VoxelFactory.createBlock(THREE, 'wood', 0, 0.5, 0, 0.2);
-            post.scale.set(1, 4, 1);
-            const board = VoxelFactory.createBlock(THREE, 'wood', 0, 1.2, 0.1, 1.2);
-            board.scale.set(1, 0.5, 0.2);
-            sGroup.add(post, board);
-            sGroup.position.set(x, 0, z);
-            // Angulação leve
-            sGroup.rotation.y = Math.random() * 0.5 - 0.25;
-            group.add(sGroup);
-        },
-
-        createChest: function(THREE, group, x, z) {
+        buildCrystal: function(THREE, group, x, y, z, type='blue') {
+            const mat = type === 'blue' ? materials.crystalBlue : materials.crystalPurple;
             const cGroup = new THREE.Group();
-            const base = VoxelFactory.createBlock(THREE, 'wood', 0, 0.4, 0, 0.8);
-            const lid = VoxelFactory.createBlock(THREE, 'wood', 0, 0.9, 0, 0.8);
-            const lockMat = new THREE.MeshStandardMaterial({color: 0xFFD700});
-            const lock = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), lockMat);
-            lock.position.set(0, 0.65, 0.45);
-            cGroup.add(base, lid, lock);
-            cGroup.position.set(x, 0, z);
-            group.add(cGroup);
-        },
-
-        createCrystal: function(THREE, group, x, z, type = 'blue') {
-            const matType = type === 'blue' ? 'crystalBlue' : 'crystalPurple';
-            const crystal = VoxelFactory.createBlock(THREE, matType, x, 0.8, z, 0.6);
-            crystal.scale.set(0.6, 2, 0.6);
             
-            // Luz do cristal
+            // Formato diamante voxel
+            const bottom = this.createBlock(THREE, mat, 0.5, 0.5, 0.5, 0, 0, 0);
+            const mid = this.createBlock(THREE, mat, 0.7, 0.8, 0.7, 0, 0.65, 0);
+            const top = this.createBlock(THREE, mat, 0.4, 0.5, 0.4, 0, 1.3, 0);
+            cGroup.add(bottom, mid, top);
+            cGroup.position.set(x, y, z);
+            
+            // Luz
             const color = type === 'blue' ? 0x00E5FF : 0xD500F9;
-            const light = new THREE.PointLight(color, 1, 3);
-            light.position.set(x, 1, z);
-            group.add(light);
-            
-            group.add(crystal);
-            updatables.push({
-                mesh: crystal,
-                type: 'crystal',
-                baseY: 0.8,
-                randomOffset: Math.random() * 10
-            });
+            const light = new THREE.PointLight(color, 1.5, 6);
+            light.position.set(0, 0.65, 0);
+            cGroup.add(light);
+
+            group.add(cGroup);
+            updatables.push({ mesh: cGroup, type: 'crystal', baseY: y });
         },
 
-        createPortalTemple: function(THREE, group, zPos) {
-            const pGroup = new THREE.Group();
-            
-            // Base
-            const base = VoxelFactory.createBlock(THREE, 'stone', 0, 0, 0, 6);
-            base.scale.set(1, 0.2, 0.5);
-            pGroup.add(base);
-
-            // Pilares
-            const pilarL = VoxelFactory.createBlock(THREE, 'stone', -2.5, 2.5, 0, 1);
-            pilarL.scale.set(1, 5, 1);
-            const pilarR = VoxelFactory.createBlock(THREE, 'stone', 2.5, 2.5, 0, 1);
-            pilarR.scale.set(1, 5, 1);
-            pGroup.add(pilarL, pilarR);
-
-            // Topo
-            const top = VoxelFactory.createBlock(THREE, 'stone', 0, 5.5, 0, 6);
-            top.scale.set(1, 1, 1);
-            pGroup.add(top);
-
-            // Portal Glow
-            const portalGeo = new THREE.PlaneGeometry(4, 4.5);
-            const portalMat = VoxelFactory.getMaterial(THREE, 'portalGlow');
-            const portalMesh = new THREE.Mesh(portalGeo, portalMat);
-            portalMesh.position.set(0, 2.8, 0);
-            pGroup.add(portalMesh);
-
-            // Luz do Portal
-            const pLight = new THREE.PointLight(0xAA00FF, 3, 10);
-            pLight.position.set(0, 3, 1);
-            pGroup.add(pLight);
-
-            pGroup.position.set(0, 0, zPos);
-            group.add(pGroup);
-
-            updatables.push({
-                mesh: portalMesh,
-                type: 'portal',
-                light: pLight
-            });
-        },
-
-        createLava: function(THREE, group) {
-            const lavaGeo = new THREE.PlaneGeometry(30, 30);
-            const lavaMat = VoxelFactory.getMaterial(THREE, 'lava');
-            const lavaMesh = new THREE.Mesh(lavaGeo, lavaMat);
-            lavaMesh.rotation.x = -Math.PI / 2;
-            lavaMesh.position.y = -1; // Abaixo do terreno
-            group.add(lavaMesh);
-            
-            // Luz emissiva global vinda da lava
-            const lavaLight = new THREE.DirectionalLight(0xFF5722, 0.5);
-            lavaLight.position.set(0, -5, 0);
-            lavaLight.target.position.set(0, 0, 0);
-            group.add(lavaLight);
-            group.add(lavaLight.target);
-        },
-
-        createWaterfall: function(THREE, group, x, z) {
-            const wGroup = new THREE.Group();
-            const waterGeo = new THREE.BoxGeometry(2, 6, 0.2);
-            const waterMat = VoxelFactory.getMaterial(THREE, 'water');
-            const waterfall = new THREE.Mesh(waterGeo, waterMat);
-            waterfall.position.set(0, 3, 0);
-            wGroup.add(waterfall);
-            
-            // Particulas da base
-            const poolGeo = new THREE.BoxGeometry(3, 0.5, 2);
-            const pool = new THREE.Mesh(poolGeo, waterMat);
-            pool.position.set(0, 0.2, 1);
-            wGroup.add(pool);
-
-            wGroup.position.set(x, 0, z);
-            group.add(wGroup);
-
-            updatables.push({ mesh: waterfall, type: 'waterfall' });
-        },
-
-        createFloatingIslands: function(THREE, group) {
-            for(let i=0; i<5; i++) {
-                const iGroup = new THREE.Group();
-                const base = VoxelFactory.createBlock(THREE, 'dirt', 0, 0, 0, 3);
-                const top = VoxelFactory.createBlock(THREE, 'grass', 0, 1.5, 0, 3);
-                iGroup.add(base, top);
-                
-                const x = (Math.random() > 0.5 ? 1 : -1) * (10 + Math.random() * 15);
-                const y = 5 + Math.random() * 10;
-                const z = -20 + Math.random() * 20;
-                
-                iGroup.position.set(x, y, z);
-                group.add(iGroup);
-                
-                updatables.push({
-                    mesh: iGroup,
-                    type: 'floating',
-                    baseY: y,
-                    randomOffset: Math.random() * 10,
-                    speed: 0.5 + Math.random() * 0.5
-                });
-            }
-        },
-
-        createClouds: function(THREE, group) {
-            const cloudMat = new THREE.MeshStandardMaterial({color: 0xFFFFFF, transparent: true, opacity: 0.8, roughness: 1});
-            for(let i=0; i<8; i++) {
-                const cGroup = new THREE.Group();
-                const b1 = new THREE.Mesh(new THREE.BoxGeometry(2,1,2), cloudMat);
-                const b2 = new THREE.Mesh(new THREE.BoxGeometry(1.5,1,1.5), cloudMat);
-                b2.position.set(1, 0, 0.5);
-                const b3 = new THREE.Mesh(new THREE.BoxGeometry(1.5,1,1.5), cloudMat);
-                b3.position.set(-1, 0.2, -0.5);
-                cGroup.add(b1, b2, b3);
-
-                cGroup.position.set(
-                    (Math.random() - 0.5) * 40,
-                    15 + Math.random() * 5,
-                    (Math.random() - 0.5) * 40
-                );
-                group.add(cGroup);
-
-                updatables.push({
-                    mesh: cGroup,
-                    type: 'cloud',
-                    speed: 0.02 + Math.random() * 0.03
-                });
-            }
-        },
-
-        createTree: function(THREE, group, x, z) {
-            const tGroup = new THREE.Group();
-            const trunk = VoxelFactory.createBlock(THREE, 'wood', 0, 1, 0, 0.6);
-            trunk.scale.set(1, 3, 1);
-            tGroup.add(trunk);
-
-            const leavesMat = VoxelFactory.getMaterial(THREE, 'leaves');
-            const lGeo = new THREE.BoxGeometry(2.5, 2.5, 2.5);
-            const leaves = new THREE.Mesh(lGeo, leavesMat);
-            leaves.position.set(0, 3, 0);
-            tGroup.add(leaves);
-
-            tGroup.position.set(x, 0, z);
-            group.add(tGroup);
-        },
-
-        createSlimeEnemy: function(THREE, group, x, z) {
+        buildSpikyEnemy: function(THREE, group, x, y, z) {
+            // Baseado na referência: Cubo verde com espinhos e olhos vermelhos
             const eGroup = new THREE.Group();
-            const bodyMat = new THREE.MeshStandardMaterial({color: 0x00FF00, transparent: true, opacity: 0.8});
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 1.2), bodyMat);
-            body.position.y = 0.6;
-            
-            const eyeMat = new THREE.MeshBasicMaterial({color: 0xFF0000});
-            const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), eyeMat);
-            eyeL.position.set(-0.3, 0.8, 0.61);
-            const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.1), eyeMat);
-            eyeR.position.set(0.3, 0.8, 0.61);
-            
-            eGroup.add(body, eyeL, eyeR);
-            eGroup.position.set(x, 0, z);
-            group.add(eGroup);
+            const bodyMat = new THREE.MeshStandardMaterial({color: 0x43A047, roughness: 0.8});
+            const spikeMat = new THREE.MeshStandardMaterial({color: 0x9E9E9E});
+            const eyeMat = new THREE.MeshBasicMaterial({color: 0xFF1744});
 
-            updatables.push({
-                mesh: eGroup,
-                type: 'enemy_bounce',
-                baseY: 0,
-                randomOffset: Math.random() * 10
-            });
+            const body = this.createBlock(THREE, bodyMat, 1.8, 1.8, 1.8, 0, 0.9, 0);
+            eGroup.add(body);
+
+            // Olhos
+            eGroup.add(this.createBlock(THREE, eyeMat, 0.3, 0.2, 0.1, -0.4, 1.0, 0.95));
+            eGroup.add(this.createBlock(THREE, eyeMat, 0.3, 0.2, 0.1, 0.4, 1.0, 0.95));
+
+            // Espinhos no topo
+            eGroup.add(this.createBlock(THREE, spikeMat, 0.2, 0.3, 0.2, -0.5, 1.9, -0.5));
+            eGroup.add(this.createBlock(THREE, spikeMat, 0.2, 0.3, 0.2, 0.5, 1.9, 0.5));
+            eGroup.add(this.createBlock(THREE, spikeMat, 0.2, 0.4, 0.2, 0, 1.95, 0));
+
+            eGroup.position.set(x, y, z);
+            group.add(eGroup);
+            updatables.push({ mesh: eGroup, type: 'enemy_bounce', baseY: y });
         },
 
-        createGolemEnemy: function(THREE, group, x, z) {
+        buildFlyingEnemy: function(THREE, group, x, y, z) {
+            // Cubo escuro/roxo flutuante
+            const eGroup = new THREE.Group();
+            const bodyMat = new THREE.MeshStandardMaterial({color: 0x212121, emissive: 0x311B92, emissiveIntensity: 0.4});
+            const eyeMat = new THREE.MeshBasicMaterial({color: 0xD500F9});
+
+            const body = this.createBlock(THREE, bodyMat, 1.2, 1.2, 1.2, 0, 0, 0);
+            const eyeL = this.createBlock(THREE, eyeMat, 0.2, 0.2, 0.1, -0.3, 0.2, 0.65);
+            const eyeR = this.createBlock(THREE, eyeMat, 0.2, 0.2, 0.1, 0.3, 0.2, 0.65);
+            
+            // Partículas orbitando (cubos menores)
+            const p1 = this.createBlock(THREE, eyeMat, 0.2, 0.2, 0.2, -1, 0, 0);
+            const p2 = this.createBlock(THREE, eyeMat, 0.2, 0.2, 0.2, 1, 0, 0);
+
+            eGroup.add(body, eyeL, eyeR, p1, p2);
+            eGroup.position.set(x, y, z);
+            group.add(eGroup);
+            updatables.push({ mesh: eGroup, type: 'enemy_fly', baseY: y, p1: p1, p2: p2 });
+        },
+
+        buildGolem: function(THREE, group, x, y, z) {
             const gGroup = new THREE.Group();
-            const mat = VoxelFactory.getMaterial(THREE, 'stone');
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.5, 1.5), mat);
-            body.position.y = 1;
-            const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), mat);
-            head.position.y = 2.2;
+            const mat = materials.stone;
+            const eyeMat = new THREE.MeshBasicMaterial({color: 0xFF1744});
+
+            const torso = this.createBlock(THREE, mat, 2, 2.5, 1.5, 0, 1.25, 0);
+            const head = this.createBlock(THREE, mat, 1, 1, 1, 0, 3, 0);
+            const armL = this.createBlock(THREE, mat, 0.8, 2.5, 0.8, -1.6, 1.5, 0);
+            const armR = this.createBlock(THREE, mat, 0.8, 2.5, 0.8, 1.6, 1.5, 0);
             
-            const eyeMat = new THREE.MeshBasicMaterial({color: 0xFF0000});
-            const eye = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.2), eyeMat);
-            eye.position.set(0, 2.3, 0.41);
-            
-            gGroup.add(body, head, eye);
-            gGroup.position.set(x, 0, z);
+            const eye1 = this.createBlock(THREE, eyeMat, 0.2, 0.15, 0.1, -0.2, 3.1, 0.55);
+            const eye2 = this.createBlock(THREE, eyeMat, 0.2, 0.15, 0.1, 0.2, 3.1, 0.55);
+
+            gGroup.add(torso, head, armL, armR, eye1, eye2);
+            gGroup.position.set(x, y, z);
             group.add(gGroup);
         },
 
-        createFlyingEnemy: function(THREE, group, x, z) {
-            const fGroup = new THREE.Group();
-            const mat = new THREE.MeshStandardMaterial({color: 0x212121, emissive: 0x4A148C, emissiveIntensity: 0.5});
-            const body = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat);
-            fGroup.add(body);
+        buildPortalTemple: function(THREE, group, zPos) {
+            const pGroup = new THREE.Group();
+            const stoneMat = materials.stone;
+            const darkStoneMat = new THREE.MeshStandardMaterial({color: 0x424242, roughness: 0.9});
+            const portalGlowMat = new THREE.MeshBasicMaterial({color: 0xD500F9, transparent: true, opacity: 0.8, side: THREE.DoubleSide});
+
+            // Escadas
+            for (let i = 0; i < 4; i++) {
+                pGroup.add(this.createBlock(THREE, stoneMat, 8 - i, 0.5, 1, 0, i*0.5, i));
+            }
+
+            const baseY = 2;
+            const baseZ = -1;
+            // Base do templo
+            pGroup.add(this.createBlock(THREE, stoneMat, 10, 1, 4, 0, baseY, baseZ));
             
-            const pLight = new THREE.PointLight(0x4A148C, 1, 4);
-            fGroup.add(pLight);
+            // Colunas
+            pGroup.add(this.createBlock(THREE, darkStoneMat, 2, 6, 2, -3, baseY + 3.5, baseZ));
+            pGroup.add(this.createBlock(THREE, darkStoneMat, 2, 6, 2, 3, baseY + 3.5, baseZ));
+            
+            // Topo
+            pGroup.add(this.createBlock(THREE, stoneMat, 10, 2, 3, 0, baseY + 7.5, baseZ));
+            pGroup.add(this.createBlock(THREE, stoneMat, 6, 1, 2, 0, baseY + 9, baseZ)); // Detalhe central
 
-            fGroup.position.set(x, 3, z);
-            group.add(fGroup);
+            // Portal Glow
+            const portalInner = this.createBlock(THREE, portalGlowMat, 4, 5, 0.2, 0, baseY + 3.5, baseZ);
+            pGroup.add(portalInner);
 
-            updatables.push({
-                mesh: fGroup,
-                type: 'enemy_fly',
-                baseY: 3,
-                randomOffset: Math.random() * 10
-            });
+            // Luz Forte
+            const light = new THREE.PointLight(0xD500F9, 5, 20);
+            light.position.set(0, baseY + 3.5, baseZ + 2);
+            pGroup.add(light);
+
+            pGroup.position.set(0, -0.5, zPos);
+            group.add(pGroup);
+            updatables.push({ mesh: portalInner, type: 'portal', light: light });
         },
 
-        createParticles: function(THREE, group, type, x, y, z) {
-            const particleCount = 20;
-            const geo = new THREE.BufferGeometry();
-            const positions = new Float32Array(particleCount * 3);
-            
-            for(let i=0; i<particleCount*3; i++) {
-                positions[i] = (Math.random() - 0.5) * 2;
-            }
-            geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            
-            let color = 0xFFFFFF;
-            if (type === 'magic') color = 0xAA00FF;
-            if (type === 'fire') color = 0xFF5722;
-            if (type === 'nature') color = 0x64DD17;
-
-            const mat = new THREE.PointsMaterial({
-                color: color,
-                size: 0.2,
-                transparent: true,
-                opacity: 0.8,
-                blending: THREE.AdditiveBlending
-            });
-
-            const particles = new THREE.Points(geo, mat);
-            particles.position.set(x, y, z);
-            group.add(particles);
-
-            updatables.push({
-                mesh: particles,
-                type: 'particle_system',
-                pType: type
-            });
+        buildWaterfall: function(THREE, group, x, y, z) {
+            const waterMat = materials.water;
+            const fall = this.createBlock(THREE, waterMat, 3, 10, 0.5, x, y + 5, z);
+            const pool = this.createBlock(THREE, waterMat, 5, 0.5, 4, x, y + 0.25, z + 2);
+            group.add(fall, pool);
+            updatables.push({ mesh: fall, type: 'waterfall' });
         }
     };
 
-    // --- CONSTRUÇÃO DE MUNDOS ---
-    const WorldScenarios = {
-        buildCampo: function(THREE, group) {
-            Builders.createVoxelTerrain(THREE, group, 'campo');
-            Builders.createPath(THREE, group, 'campo');
-            Builders.createGrassBlocks(THREE, group);
-            Builders.createClouds(THREE, group);
-            Builders.createFloatingIslands(THREE, group);
-            
-            // Decoração Lateral
-            for(let i=0; i<8; i++) {
-                const z = -10 + i * 2;
-                if(i%2 === 0) Builders.createTree(THREE, group, -4, z);
-                if(i%3 === 0) Builders.createTree(THREE, group, 4, z - 2);
-                Builders.createFlower(THREE, group, -3 - Math.random()*2, z);
-                Builders.createMushroom(THREE, group, 3 + Math.random()*2, z);
-            }
-
-            Builders.createSign(THREE, group, -2.5, 2);
-            Builders.createChest(THREE, group, 3, -5);
-            
-            // Guia de cristais
-            Builders.createCrystal(THREE, group, -2, 0, 'blue');
-            Builders.createCrystal(THREE, group, 2, -6, 'blue');
-
-            // Inimigos
-            Builders.createSlimeEnemy(THREE, group, -4, -4);
-            Builders.createSlimeEnemy(THREE, group, 4, -8);
-
-            Builders.createPortalTemple(THREE, group, -12);
-        },
-        buildVulcao: function(THREE, group) {
-            Builders.createVoxelTerrain(THREE, group, 'vulcao');
-            Builders.createPath(THREE, group, 'vulcao');
-            Builders.createLava(THREE, group);
-            
-            // Pilares de pedra
-            for(let i=0; i<5; i++) {
-                const g = Builders.createGolemEnemy(THREE, group, (Math.random()>0.5?1:-1)*(4+Math.random()*2), -2 - i*3);
-            }
-            Builders.createCrystal(THREE, group, -2, -2, 'purple');
-            Builders.createCrystal(THREE, group, 2, -8, 'purple');
-            Builders.createParticles(THREE, group, 'fire', 0, 2, -5);
-            Builders.createPortalTemple(THREE, group, -12);
-        },
-        buildFloresta: function(THREE, group) {
-            Builders.createVoxelTerrain(THREE, group, 'campo');
-            Builders.createPath(THREE, group, 'campo');
-            
-            // Densidade alta de árvores
-            for(let z=-15; z<5; z+=2) {
-                Builders.createTree(THREE, group, -3.5 - Math.random()*2, z);
-                Builders.createTree(THREE, group, 3.5 + Math.random()*2, z);
-            }
-            Builders.createParticles(THREE, group, 'nature', 0, 2, -5);
-            Builders.createPortalTemple(THREE, group, -12);
-        },
-        buildCastelo: function(THREE, group) {
-            Builders.createVoxelTerrain(THREE, group, 'espaco'); // pedra
-            Builders.createPath(THREE, group, 'castelo');
-            
-            for(let z=-12; z<2; z+=4) {
-                Builders.createGolemEnemy(THREE, group, -3, z);
-                Builders.createGolemEnemy(THREE, group, 3, z);
-            }
-            Builders.createChest(THREE, group, -2, -2);
-            Builders.createPortalTemple(THREE, group, -12);
-        },
-        buildEspaco: function(THREE, group) {
-            Builders.createPath(THREE, group, 'espaco');
-            Builders.createFloatingIslands(THREE, group);
-            
-            for(let i=0; i<4; i++) {
-                Builders.createFlyingEnemy(THREE, group, (Math.random()>0.5?3:-3), -i*4);
-                Builders.createCrystal(THREE, group, (Math.random()>0.5?2:-2), -i*3, 'purple');
-            }
-            Builders.createParticles(THREE, group, 'magic', 0, 3, -6);
-            Builders.createPortalTemple(THREE, group, -12);
-        },
-        buildArena: function(THREE, group) {
-            Builders.createVoxelTerrain(THREE, group, 'arena');
-            Builders.createPath(THREE, group, 'vulcao');
-            Builders.createGolemEnemy(THREE, group, -4, -6);
-            Builders.createSlimeEnemy(THREE, group, 4, -6);
-            Builders.createFlyingEnemy(THREE, group, 0, -8);
-            Builders.createPortalTemple(THREE, group, -12);
-        }
-    };
-
-    // --- LUZES E CÂMERA ---
+    // --- ILUMINAÇÃO PREMIUM ---
     const applyPremiumLighting = safe(function(ctx, worldName) {
         if (!ctx.THREE || !ctx.scene || !renderGroup) return;
         
-        // Remove luzes antigas do grupo premium
+        // Remove luzes antigas
         const toRemove = [];
-        renderGroup.children.forEach(c => {
-            if(c.isLight) toRemove.push(c);
-        });
+        renderGroup.children.forEach(c => { if(c.isLight) toRemove.push(c); });
         toRemove.forEach(c => renderGroup.remove(c));
 
         const THREE = ctx.THREE;
-        let ambColor = 0xFFFFFF, ambInt = 0.6;
-        let dirColor = 0xFFF9C4, dirInt = 1.0;
-        let fogColor = 0x87CEEB, fogDensity = 0.02;
-
-        switch(worldName) {
-            case 'vulcao': 
-                ambColor = 0x424242; ambInt = 0.8; dirColor = 0xFF5722; fogColor = 0x3E2723; fogDensity = 0.04; break;
-            case 'floresta': 
-                ambColor = 0x33691E; ambInt = 0.7; dirColor = 0xDCEDC8; fogColor = 0x1B5E20; fogDensity = 0.05; break;
-            case 'espaco': 
-                ambColor = 0x1A237E; ambInt = 0.5; dirColor = 0x651FFF; fogColor = 0x000000; fogDensity = 0.01; break;
-            case 'castelo': 
-                ambColor = 0x616161; ambInt = 0.6; dirColor = 0x9E9E9E; fogColor = 0x212121; fogDensity = 0.03; break;
-        }
-
-        const ambLight = new THREE.AmbientLight(ambColor, ambInt);
-        renderGroup.add(ambLight);
-
-        const dirLight = new THREE.DirectionalLight(dirColor, dirInt);
-        dirLight.position.set(10, 20, 10);
-        dirLight.castShadow = true;
-        // Ajustes de sombra mobile-friendly
-        if(dirLight.shadow) {
-            dirLight.shadow.mapSize.width = 1024;
-            dirLight.shadow.mapSize.height = 1024;
-            dirLight.shadow.camera.near = 0.5;
-            dirLight.shadow.camera.far = 50;
-            dirLight.shadow.camera.left = -15;
-            dirLight.shadow.camera.right = 15;
-            dirLight.shadow.camera.top = 15;
-            dirLight.shadow.camera.bottom = -15;
-        }
-        renderGroup.add(dirLight);
-
-        // Rim Light para destacar personagem e centro
-        const rimLight = new THREE.PointLight(0xAA00FF, 0.8, 20);
-        rimLight.position.set(-5, 5, -5);
-        renderGroup.add(rimLight);
-
-        // Fog
-        if (ctx.scene.fog === undefined || ctx.scene.fog !== null) {
-             ctx.scene.fog = new THREE.FogExp2(fogColor, fogDensity);
-        }
         
-        // Tone Mapping se disponível
+        // Luz Ambiente Suave (Hemisphere para simular rebatimento do céu e chão)
+        const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0x444444, 0.5);
+        
+        // Luz Direcional Principal (Sol Quente Cinematico)
+        const dirLight = new THREE.DirectionalLight(0xFFF3E0, 1.2);
+        dirLight.position.set(15, 25, 10);
+        dirLight.castShadow = true;
+        if(dirLight.shadow) {
+            dirLight.shadow.mapSize.width = 2048; // Alta resolução para bordas nítidas Voxel
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 100;
+            const d = 25;
+            dirLight.shadow.camera.left = -d; dirLight.shadow.camera.right = d;
+            dirLight.shadow.camera.top = d; dirLight.shadow.camera.bottom = -d;
+            dirLight.shadow.bias = -0.0005;
+        }
+
+        // Rim Light Azul/Roxa para contra-luz
+        const rimLight = new THREE.DirectionalLight(0x00E5FF, 0.4);
+        rimLight.position.set(-15, 10, -20);
+
+        renderGroup.add(hemiLight, dirLight, rimLight);
+
+        // Fog simulando profundidade
+        ctx.scene.fog = new THREE.Fog(0x87CEEB, 20, 80);
+
+        // Tone Mapping
         if (ctx.renderer) {
             ctx.renderer.shadowMap.enabled = true;
             ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             if(ctx.renderer.toneMapping !== undefined) {
                 ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                ctx.renderer.toneMappingExposure = 1.0;
+                ctx.renderer.toneMappingExposure = 1.1;
             }
         }
     });
 
     const applyPremiumCameraHints = safe(function(ctx) {
         if (!ctx.camera) return;
-        // Apenas expõe sugestões, não força a menos que seja seguro
         window.ATHOS_V46_RENDER_PREMIUM.cameraPreset = {
-            height: 5.8,
-            distance: 8.5,
-            lookAhead: 7,
-            fov: 48,
-            smoothing: 0.08
+            height: 6.0,
+            distance: 9.0,
+            lookAhead: 8,
+            fov: 45, // FOV menor deixa isométrico/cinemático
+            smoothing: 0.1
         };
-        
-        // Tweak defensivo sutil no FOV para aspecto mais cinemático, se não quebrar o jogo
-        if(ctx.camera.fov && ctx.camera.fov > 60) {
-            ctx.camera.fov = 50;
-            if(typeof ctx.camera.updateProjectionMatrix === 'function') {
-                ctx.camera.updateProjectionMatrix();
-            }
+        if(ctx.camera.fov) {
+            ctx.camera.fov = 48;
+            if(ctx.camera.updateProjectionMatrix) ctx.camera.updateProjectionMatrix();
         }
     });
 
@@ -662,32 +466,19 @@ window.ATHOS_V46_RENDER_PREMIUM = (function() {
         
         install: safe(function(ctx) {
             if(isInstalled) return;
-            if (!ctx || !ctx.THREE || !ctx.scene) {
-                console.warn("[V46 Render Premium] Falha na instalação: ctx, THREE ou scene ausentes.");
-                return;
-            }
+            if (!ctx || !ctx.THREE || !ctx.scene) return;
             currentCtx = ctx;
             
-            // Inicializa Texturas Globais
-            TextureGen.initTextures(ctx.THREE);
+            TextureGen.initMaterials(ctx.THREE);
 
-            // Cria Grupo
             renderGroup = new ctx.THREE.Group();
             renderGroup.name = "V46_RENDER_PREMIUM_GROUP";
             ctx.scene.add(renderGroup);
 
-            // Aplica Injeção de UI (CSS cuidará do visual dinamicamente via arquivo externo, mas garantimos classes)
             document.body.classList.add('v46-premium-active');
-
             isInstalled = true;
-            console.log(`[V46 Render Premium] ${VERSION} Instalado com sucesso.`);
             
-            // Força primeiro build se mundo conhecido
-            if (ctx.currentWorld) {
-                this.rebuildWorld(ctx, ctx.currentWorld);
-            } else {
-                this.rebuildWorld(ctx, 'campo');
-            }
+            this.rebuildWorld(ctx, ctx.currentWorld || 'campo');
         }),
 
         update: safe(function(ctx, dt) {
@@ -699,58 +490,38 @@ window.ATHOS_V46_RENDER_PREMIUM = (function() {
                 if (!item.mesh) return;
                 
                 if (item.type === 'crystal') {
-                    item.mesh.rotation.y += delta * 1.5;
-                    item.mesh.position.y = item.baseY + Math.sin(time * 2 + item.randomOffset) * 0.2;
+                    item.mesh.rotation.y += delta * 1.0;
+                    item.mesh.position.y = item.baseY + Math.sin(time * 2) * 0.15;
                 }
                 else if (item.type === 'portal') {
-                    // Pulsar textura ou glow
-                    if (item.mesh.material && item.mesh.material.emissiveIntensity !== undefined) {
-                        item.mesh.material.emissiveIntensity = 1.0 + Math.sin(time * 3) * 0.5;
-                    }
-                }
-                else if (item.type === 'floating') {
-                    item.mesh.position.y = item.baseY + Math.sin(time * item.speed + item.randomOffset) * 1.5;
-                }
-                else if (item.type === 'cloud') {
-                    item.mesh.position.x += item.speed;
-                    if (item.mesh.position.x > 30) item.mesh.position.x = -30;
+                    item.mesh.material.opacity = 0.7 + Math.sin(time * 4) * 0.3;
+                    if(item.light) item.light.intensity = 4 + Math.sin(time * 4) * 2;
                 }
                 else if (item.type === 'waterfall') {
                     if(item.mesh.material && item.mesh.material.map) {
-                        item.mesh.material.map.offset.y -= delta * 0.5;
+                        item.mesh.material.map.offset.y -= delta * 1.0; // Desliza a textura UV
                     }
                 }
                 else if (item.type === 'enemy_bounce') {
-                    item.mesh.position.y = item.baseY + Math.abs(Math.sin(time * 4 + item.randomOffset)) * 0.8;
+                    // Pulo seco estilo voxel
+                    item.mesh.position.y = item.baseY + Math.abs(Math.sin(time * 3)) * 1.2;
                 }
                 else if (item.type === 'enemy_fly') {
-                    item.mesh.position.y = item.baseY + Math.sin(time * 2 + item.randomOffset) * 1;
-                    item.mesh.rotation.y += delta * 0.5;
-                    item.mesh.rotation.z = Math.sin(time * 3) * 0.2;
-                }
-                else if (item.type === 'particle_system') {
-                    item.mesh.rotation.y += delta * 0.2;
-                    const pos = item.mesh.geometry.attributes.position;
-                    for(let i=0; i<pos.count; i++) {
-                        let y = pos.getY(i);
-                        y += delta * (item.pType === 'fire' ? 2 : 1);
-                        if (y > 3) y = -1;
-                        pos.setY(i, y);
-                    }
-                    pos.needsUpdate = true;
+                    item.mesh.position.y = item.baseY + Math.sin(time * 2) * 0.5;
+                    item.mesh.rotation.y += delta * 0.8;
+                    if(item.p1) { item.p1.rotation.x += delta; item.p1.rotation.y += delta; }
+                    if(item.p2) { item.p2.rotation.x -= delta; item.p2.rotation.y -= delta; }
                 }
             });
         }),
 
         rebuildWorld: safe(function(ctx, worldName) {
             if (!isInstalled || !renderGroup || !ctx.THREE) return;
+            currentWorldState = normalizeWorldName(worldName || 'campo');
             
-            currentWorldState = worldName || 'campo';
-            
-            // Modo Real / AR seguro
             if (currentWorldState.toLowerCase() === 'real') {
                 arModeAtivo = true;
-                this.disposeVisualsOnly(); // Limpa render 3D, mantem classe UI
+                this.disposeVisualsOnly();
                 if (ctx.scene.fog) ctx.scene.fog = null;
                 return;
             }
@@ -758,32 +529,46 @@ window.ATHOS_V46_RENDER_PREMIUM = (function() {
             arModeAtivo = false;
             this.disposeVisualsOnly();
             
-            // Seleciona construtor
-            let builder = WorldScenarios.buildCampo;
-            if (currentWorldState === 'vulcao') builder = WorldScenarios.buildVulcao;
-            else if (currentWorldState === 'floresta') builder = WorldScenarios.buildFloresta;
-            else if (currentWorldState === 'castelo') builder = WorldScenarios.buildCastelo;
-            else if (currentWorldState === 'espaco') builder = WorldScenarios.buildEspaco;
-            else if (currentWorldState === 'arena') builder = WorldScenarios.buildArena;
+            // Popula o cenário baseado na referência 10/10
+            VoxelEntities.buildTerrain(ctx.THREE, renderGroup, currentWorldState);
+            
+            // Set Pieces (Baseados na imagem)
+            VoxelEntities.buildSign(ctx.THREE, renderGroup, -3.5, 0, -2);
+            VoxelEntities.buildWaterfall(ctx.THREE, renderGroup, -12, 0, -15);
+            VoxelEntities.buildCrystal(ctx.THREE, renderGroup, 0, 0.5, -4, 'blue');
+            VoxelEntities.buildCrystal(ctx.THREE, renderGroup, 2, 0.5, -12, 'blue');
+            VoxelEntities.buildCrystal(ctx.THREE, renderGroup, -1.5, 0.5, -18, 'blue');
+            
+            VoxelEntities.buildSpikyEnemy(ctx.THREE, renderGroup, 3.5, 0, -6);
+            VoxelEntities.buildFlyingEnemy(ctx.THREE, renderGroup, -2.5, 2.5, -10);
+            VoxelEntities.buildGolem(ctx.THREE, renderGroup, -5, 4, -18); // Golem no penhasco
 
-            // Constrói cenário
-            builder(ctx.THREE, renderGroup);
+            VoxelEntities.buildPortalTemple(ctx.THREE, renderGroup, -30);
 
-            // Aplica Luz e Câmera
             applyPremiumLighting(ctx, currentWorldState);
             applyPremiumCameraHints(ctx);
         }),
 
         disposeVisualsOnly: safe(function() {
             if (!renderGroup) return;
+            function disposeNode(node) {
+                if (!node) return;
+                if (node.children && node.children.length) {
+                    [...node.children].forEach(disposeNode);
+                }
+                if (node.geometry && typeof node.geometry.dispose === 'function') node.geometry.dispose();
+                if (node.material) {
+                    const mats = Array.isArray(node.material) ? node.material : [node.material];
+                    mats.forEach(m => {
+                        if (m && m.map && typeof m.map.dispose === 'function') m.map.dispose();
+                        if (m && typeof m.dispose === 'function') m.dispose();
+                    });
+                }
+            }
             while(renderGroup.children.length > 0) {
                 const child = renderGroup.children[0];
                 renderGroup.remove(child);
-                if (child.geometry) child.geometry.dispose();
-                if (child.material) {
-                    if (Array.isArray(child.material)) child.material.forEach(m => m.dispose());
-                    else child.material.dispose();
-                }
+                disposeNode(child);
             }
             updatables = [];
         }),
@@ -797,7 +582,6 @@ window.ATHOS_V46_RENDER_PREMIUM = (function() {
             renderGroup = null;
             document.body.classList.remove('v46-premium-active');
             isInstalled = false;
-            console.log(`[V46 Render Premium] Desinstalado.`);
         }),
 
         getStatus: function() {
@@ -808,8 +592,8 @@ window.ATHOS_V46_RENDER_PREMIUM = (function() {
                 objects: renderGroup ? renderGroup.children.length : 0,
                 animations: updatables.length,
                 portalTemple: true,
-                premiumHud: true,
-                arTouched: false // CRÍTICO: Não mexe no AR nativo do Model-Viewer
+                premiumHud: document.body.classList.contains('v46-premium-active'),
+                arTouched: false
             };
         }
     };

@@ -1,23 +1,21 @@
-# ATHOS V46 — Render Premium 10/10 Integrado
+# Athos Adventure 3D+ | Integração Camada Render V46 Premium (10/10)
 
-Arquivos da camada V46 integrados sem mexer em IDs, joystick, B Poder, Quiz/Falar, athos.glb, model-viewer, localStorage, manifest ou fluxo principal.
+Esta versão eleva o aspecto visual do jogo substituindo o protótipo vazio pela estética rica da imagem de referência (Grama detalhada, inimigos em posições estratégicas, luzes emissivas, cogumelos, cristais luminosos e UI translúcida). 
 
-## Arquivos adicionados
+Tudo é construído em código (texturas via Canvas e modelos via `THREE.Group`), **preservando absolutamente todas as funções, botões, colisão e lógica de controles.**
 
-- assets/render-v46/v46-render-premium.js
-- assets/render-v46/v46-render-premium.css
-- assets/render-v46/v46-render-config.json
-- assets/render-v46/README-INTEGRACAO.md
+## 📂 Arquivos Criados
+1. `assets/render-v46/v46-render-premium.js` (Lógica 3D Voxel e Texturas In-line)
+2. `assets/render-v46/v46-render-premium.css` (Skin Visual Premium UI Glassmorphism)
+3. `assets/render-v46/v46-render-config.json` (Configurações alvo)
+4. `assets/render-v46/README-INTEGRACAO.md` (Este guia)
 
-## Integração feita
+---
 
-- CSS V46 importado depois do style.css.
-- JS V46 importado antes do app.js.
-- install(ctx) chamado após criação da scene Three.js.
-- update(ctx, dt) chamado no loop do jogo.
-- rebuildWorld(ctx, worldName) chamado a cada build/troca de mundo.
-- Mundo real/AR mapeado para `real`, limpando a camada V46 sem usar câmera fake.
+## 🛠️ Como Integrar no seu Projeto Atual
 
-## Teste
-
-Abra com `?v=46-render-premium-integrado` e rode `F12_TESTE_ATHOS_V46_RENDER_PREMIUM_INTEGRADO.js`.
+### Passo 1: Incluir os Arquivos no `index.html`
+Coloque o CSS **depois** do seu CSS original:
+```html
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="assets/render-v46/v46-render-premium.css">

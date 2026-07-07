@@ -1,6 +1,6 @@
-// Athos V44.1 MINECRAFT CLEAN — Service Worker leve para GitHub Pages.
+// Athos V46.1 RENDER PREMIUM CORRIGIDO — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v46-render-premium-integrado';
+const CACHE_VERSION = 'athos-v461-render-premium-corrigido';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
