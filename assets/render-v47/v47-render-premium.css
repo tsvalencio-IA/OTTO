@@ -207,3 +207,211 @@ body.v47-premium-active .game.active .joy-knob{
   body.v47-premium-active .game.active .world-strip{gap:4px!important;}
   body.v47-premium-active .game.active .world-chip{font-size:10px!important;height:30px!important;min-height:30px!important;}
 }
+
+
+/* =====================================================================
+   V47.2 — ALVO REAL: tela jogável, sem painel preto, controles livres.
+   Referência: joystick limpo + 3 botões principais; demais funções ficam menores.
+   ===================================================================== */
+body.v47-premium-active .game.active .three-stage,
+body.v47-premium-active .game.active .camera-feed{
+  bottom:0!important;
+}
+body.v47-premium-active .game.active .game-controls{
+  position:fixed!important;
+  left:0!important;right:0!important;bottom:0!important;
+  height:calc(206px + var(--safe-bottom))!important;
+  padding:0!important;
+  background:linear-gradient(180deg,rgba(2,6,23,0) 0%,rgba(2,6,23,.38) 36%,rgba(2,6,23,.76) 100%)!important;
+  pointer-events:none!important;
+  z-index:80!important;
+}
+body.v47-premium-active .game.active .world-strip{
+  position:fixed!important;
+  left:10px!important;right:10px!important;
+  bottom:calc(158px + var(--safe-bottom))!important;
+  height:34px!important;
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  gap:5px!important;
+  padding:4px!important;
+  pointer-events:auto!important;
+  opacity:.96!important;
+  max-width:none!important;
+}
+body.v47-premium-active .game.active .world-chip{
+  height:30px!important;min-height:30px!important;
+  font-size:10px!important;
+  padding:1px 2px!important;
+  border-radius:11px!important;
+}
+body.v47-premium-active .game.active .left-zone{
+  position:fixed!important;
+  left:12px!important;
+  bottom:calc(8px + var(--safe-bottom))!important;
+  width:156px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  gap:4px!important;
+  pointer-events:auto!important;
+  z-index:88!important;
+}
+body.v47-premium-active .game.active .joy-ring{
+  width:118px!important;height:118px!important;
+  border:3px solid rgba(255,255,255,.72)!important;
+  background:rgba(15,23,42,.30)!important;
+}
+body.v47-premium-active .game.active .joy-knob{
+  width:50px!important;height:50px!important;margin:-25px 0 0 -25px!important;
+}
+body.v47-premium-active .game.active .joystick small{display:none!important;}
+body.v47-premium-active .game.active .direction-buttons{
+  transform:scale(.72)!important;
+  transform-origin:top center!important;
+  opacity:.68!important;
+  margin-top:-4px!important;
+}
+body.v47-premium-active .game.active .right-zone{
+  position:fixed!important;
+  right:12px!important;
+  bottom:calc(16px + var(--safe-bottom))!important;
+  width:206px!important;
+  height:146px!important;
+  pointer-events:auto!important;
+  z-index:90!important;
+}
+body.v47-premium-active .game.active .action-grid{
+  position:relative!important;
+  display:block!important;
+  width:206px!important;
+  height:146px!important;
+  margin:0!important;
+  gap:0!important;
+}
+body.v47-premium-active .game.active .action-btn{
+  position:absolute!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:50%!important;
+  touch-action:manipulation!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  font-size:0!important;
+}
+/* três ações de jogo grandes, como o alvo visual */
+body.v47-premium-active .game.active #powerBtn{right:70px!important;bottom:72px!important;width:66px!important;height:66px!important;min-width:66px!important;min-height:66px!important;max-width:66px!important;max-height:66px!important;}
+body.v47-premium-active .game.active [data-action="interact"]{right:70px!important;bottom:0!important;width:66px!important;height:66px!important;min-width:66px!important;min-height:66px!important;max-width:66px!important;max-height:66px!important;}
+body.v47-premium-active .game.active #jumpBtn{right:0!important;bottom:0!important;width:66px!important;height:66px!important;min-width:66px!important;min-height:66px!important;max-width:66px!important;max-height:66px!important;}
+/* auxiliares preservados, menores, sem tomar a tela */
+body.v47-premium-active .game.active #crouchBtn{right:0!important;bottom:72px!important;width:50px!important;height:50px!important;min-width:50px!important;min-height:50px!important;max-width:50px!important;max-height:50px!important;}
+body.v47-premium-active .game.active #sizeBtn{left:0!important;top:0!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;opacity:.82!important;}
+body.v47-premium-active .game.active #normalBtn{left:42px!important;top:0!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;opacity:.82!important;}
+body.v47-premium-active .game.active [data-action="spin"]{left:84px!important;top:0!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;opacity:.82!important;}
+body.v47-premium-active .game.active #pauseBtn{left:0!important;bottom:52px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important;opacity:.86!important;}
+body.v47-premium-active .game.active #exitBtn{left:0!important;bottom:0!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important;opacity:.86!important;}
+body.v47-premium-active .game.active .action-btn::before{line-height:1!important;text-shadow:0 3px 0 rgba(0,0,0,.45)!important;}
+body.v47-premium-active .game.active #powerBtn::before{content:"🔥"!important;font-size:31px!important;}
+body.v47-premium-active .game.active [data-action="interact"]::before{content:"⚔"!important;font-size:29px!important;}
+body.v47-premium-active .game.active #jumpBtn::before{content:"⬆"!important;font-size:32px!important;}
+body.v47-premium-active .game.active #crouchBtn::before{content:"▾"!important;font-size:27px!important;}
+body.v47-premium-active .game.active #sizeBtn::before{content:"⬡"!important;font-size:20px!important;}
+body.v47-premium-active .game.active #normalBtn::before{content:"N"!important;font-size:18px!important;}
+body.v47-premium-active .game.active [data-action="spin"]::before{content:"↻"!important;font-size:22px!important;}
+body.v47-premium-active .game.active #pauseBtn::before{content:"Ⅱ"!important;font-size:20px!important;}
+body.v47-premium-active .game.active #exitBtn::before{content:"■"!important;font-size:18px!important;}
+body.v47-premium-active .game.active .action-btn span{display:none!important;}
+body.v47-premium-active .game.active .objective-card{
+  max-width:min(500px,calc(100vw - 26px))!important;
+  padding:9px 12px!important;
+  opacity:.92!important;
+}
+body.v47-premium-active .game.active.compact-hud .objective-card{opacity:.16!important;}
+@media(orientation:portrait) and (max-width:390px){
+  body.v47-premium-active .game.active .right-zone{right:6px!important;transform:scale(.92)!important;transform-origin:bottom right!important;}
+  body.v47-premium-active .game.active .left-zone{left:6px!important;transform:scale(.92)!important;transform-origin:bottom left!important;}
+  body.v47-premium-active .game.active .world-chip{font-size:9px!important;}
+}
+@media(orientation:landscape) and (max-height:740px){
+  body.v47-premium-active .game.active .three-stage{bottom:0!important;}
+  body.v47-premium-active .game.active .game-controls{height:122px!important;background:linear-gradient(0deg,rgba(2,6,23,.72),rgba(2,6,23,0))!important;}
+  body.v47-premium-active .game.active .world-strip{left:170px!important;right:330px!important;bottom:8px!important;height:30px!important;}
+  body.v47-premium-active .game.active .left-zone{left:10px!important;bottom:8px!important;transform:scale(.74)!important;transform-origin:bottom left!important;}
+  body.v47-premium-active .game.active .right-zone{right:10px!important;bottom:8px!important;transform:scale(.72)!important;transform-origin:bottom right!important;}
+}
+
+/* =====================================================================
+   V47.3 — HOTFIX REAL: shader seguro + controles jogáveis no celular.
+   Evita sobreposição entre joystick, faixa de mundos e botões.
+   ===================================================================== */
+body.v47-premium-active .game.active .game-controls{
+  height:calc(252px + var(--safe-bottom))!important;
+  background:linear-gradient(180deg,rgba(2,6,23,0) 0%,rgba(2,6,23,.22) 42%,rgba(2,6,23,.62) 100%)!important;
+}
+body.v47-premium-active .game.active .game-controls > .world-strip{
+  position:fixed!important;
+  left:9px!important;right:9px!important;
+  bottom:calc(210px + var(--safe-bottom))!important;
+  height:34px!important;
+  max-width:none!important;
+  z-index:92!important;
+  pointer-events:auto!important;
+}
+body.v47-premium-active .game.active .left-zone{
+  left:12px!important;
+  bottom:calc(8px + var(--safe-bottom))!important;
+  width:138px!important;
+  max-width:138px!important;
+  z-index:93!important;
+}
+body.v47-premium-active .game.active .joy-ring{
+  width:108px!important;height:108px!important;
+  max-width:108px!important;max-height:108px!important;
+}
+body.v47-premium-active .game.active .joy-knob{
+  width:46px!important;height:46px!important;margin:-23px 0 0 -23px!important;
+}
+body.v47-premium-active .game.active .direction-buttons{
+  transform:scale(.62)!important;
+  transform-origin:top center!important;
+  margin-top:-8px!important;
+  opacity:.62!important;
+}
+body.v47-premium-active .game.active .right-zone{
+  right:12px!important;
+  bottom:calc(10px + var(--safe-bottom))!important;
+  width:190px!important;
+  height:142px!important;
+  z-index:94!important;
+}
+body.v47-premium-active .game.active .action-grid{
+  width:190px!important;
+  height:142px!important;
+}
+body.v47-premium-active .game.active #powerBtn{right:64px!important;bottom:72px!important;width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;max-width:58px!important;max-height:58px!important;}
+body.v47-premium-active .game.active [data-action="interact"]{right:64px!important;bottom:0!important;width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;max-width:58px!important;max-height:58px!important;}
+body.v47-premium-active .game.active #jumpBtn{right:0!important;bottom:0!important;width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;max-width:58px!important;max-height:58px!important;}
+body.v47-premium-active .game.active #crouchBtn{right:0!important;bottom:72px!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important;}
+body.v47-premium-active .game.active #sizeBtn{left:0!important;top:0!important;width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;max-width:30px!important;max-height:30px!important;opacity:.70!important;}
+body.v47-premium-active .game.active #normalBtn{left:35px!important;top:0!important;width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;max-width:30px!important;max-height:30px!important;opacity:.70!important;}
+body.v47-premium-active .game.active [data-action="spin"]{left:70px!important;top:0!important;width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;max-width:30px!important;max-height:30px!important;opacity:.70!important;}
+body.v47-premium-active .game.active #pauseBtn{left:0!important;bottom:42px!important;width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;max-width:34px!important;max-height:34px!important;opacity:.78!important;}
+body.v47-premium-active .game.active #exitBtn{left:0!important;bottom:0!important;width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;max-width:34px!important;max-height:34px!important;opacity:.78!important;}
+body.v47-premium-active .game.active #powerBtn::before{font-size:28px!important;}
+body.v47-premium-active .game.active [data-action="interact"]::before{font-size:26px!important;}
+body.v47-premium-active .game.active #jumpBtn::before{font-size:29px!important;}
+body.v47-premium-active .game.active #crouchBtn::before{font-size:24px!important;}
+@media(orientation:portrait) and (max-width:390px){
+  body.v47-premium-active .game.active .game-controls > .world-strip{bottom:calc(196px + var(--safe-bottom))!important;height:32px!important;}
+  body.v47-premium-active .game.active .left-zone{left:7px!important;transform:none!important;width:126px!important;max-width:126px!important;}
+  body.v47-premium-active .game.active .right-zone{right:7px!important;transform:none!important;width:178px!important;}
+  body.v47-premium-active .game.active .joy-ring{width:98px!important;height:98px!important;}
+  body.v47-premium-active .game.active .joy-knob{width:42px!important;height:42px!important;margin:-21px 0 0 -21px!important;}
+}
+@media(orientation:landscape) and (max-height:740px){
+  body.v47-premium-active .game.active .game-controls{height:126px!important;}
+  body.v47-premium-active .game.active .game-controls > .world-strip{left:142px!important;right:292px!important;bottom:10px!important;height:30px!important;}
+  body.v47-premium-active .game.active .left-zone{left:8px!important;bottom:7px!important;width:120px!important;transform:scale(.70)!important;transform-origin:bottom left!important;}
+  body.v47-premium-active .game.active .right-zone{right:8px!important;bottom:7px!important;transform:scale(.68)!important;transform-origin:bottom right!important;}
+}

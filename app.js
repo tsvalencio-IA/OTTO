@@ -69,11 +69,11 @@
   };
 
   const GAMEPLAY_CAMERA = {
-    cameraFollowDistance: 14.8,
-    cameraHeight: 5.1,
-    cameraLookAhead: 18.5,
-    cameraSmoothing: 4.8,
-    cameraJumpOffset: .82
+    cameraFollowDistance: 8.8,
+    cameraHeight: 5.6,
+    cameraLookAhead: 8.8,
+    cameraSmoothing: 5.6,
+    cameraJumpOffset: .72
   };
 
   const INPUT_DEBOUNCE_MS = {
@@ -86,7 +86,7 @@
   const AR_SAFE = {
     lockMs: 3200,
     freezeWhenIdle: true,
-    label: 'V47_FINAL_RENDER_GAMEPLAY_AR_GUARDED'
+    label: 'V47_2_RENDER_TARGET_GAMEPLAY_AR_GUARDED'
   };
 
 
@@ -108,9 +108,9 @@
 
 
   const V442_RENDER = {
-    label: 'V442_LEGACY_VISUAL_LAYER_DISABLED_BY_V47',
+    label: 'V472_TARGET_VISUAL_LAYER_ACTIVE',
     target: 'approved_reference_voxel_portal_adventure_10_10',
-    enabled: false,
+    enabled: true,
     maxSideIslands: 28,
     clouds: 26,
     flowers: 140
@@ -118,8 +118,8 @@
 
 
   const V45_PLATFORM_RENDER = {
-    label: 'V45_LEGACY_VISUAL_LAYER_DISABLED_BY_V47',
-    enabled: false,
+    label: 'V472_TARGET_PLATFORM_RENDER_ACTIVE',
+    enabled: true,
     nativeAR: true,
     noFakeCameraAR: true,
     reference: 'approved_voxel_portal_adventure'
@@ -745,7 +745,7 @@
     realBg = world === 'real'; els.game.classList.toggle('real-bg', realBg);
     if (skyMesh && scene) { scene.remove(skyMesh); skyMesh = null; }
     scene.background = realBg ? null : new THREE.Color(world === 'space' ? 0x020617 : shadeColor(cfg.sky || 0x101827, world === 'fire' ? -18 : -4));
-    const fogDensity = world === 'space' ? .0048 : world === 'fire' ? .0105 : world === 'castle' ? .008 : .0072;
+    const fogDensity = world === 'space' ? .0028 : world === 'fire' ? .0048 : world === 'castle' ? .0036 : .0024;
     scene.fog = realBg ? null : new THREE.FogExp2(cfg.fog || cfg.sky, fogDensity);
     ambientLight.color.setHex(cfg.light); ambientLight.intensity = realBg ? 1.0 : world === 'space' ? .38 : world === 'fire' ? .34 : .48;
     sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
@@ -1901,7 +1901,7 @@
     const followDistance = GAMEPLAY_CAMERA.cameraFollowDistance + (landscape ? -1.4 : 0) + speedForward * 2.0;
     const cameraHeight = GAMEPLAY_CAMERA.cameraHeight + (landscape ? -.45 : .18) + speedForward * .36 + jumpLift;
     const lookAhead = GAMEPLAY_CAMERA.cameraLookAhead + (landscape ? -2.0 : 0) + speedForward * 2.2;
-    const desiredFov = (landscape ? 62 : 58) + speedForward * 2.0;
+    const desiredFov = (landscape ? 54 : 49) + speedForward * 1.4;
     camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 3.0);
     camera.updateProjectionMatrix();
 
@@ -2478,7 +2478,7 @@
     getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds, v45:V45_PLATFORM_RENDER.label }),
     getV47Render: () => (window.ATHOS_V47_RENDER_PREMIUM && window.ATHOS_V47_RENDER_PREMIUM.getStatus ? window.ATHOS_V47_RENDER_PREMIUM.getStatus() : null),
     getV46Render: () => (window.ATHOS_V47_RENDER_PREMIUM && window.ATHOS_V47_RENDER_PREMIUM.getStatus ? window.ATHOS_V47_RENDER_PREMIUM.getStatus() : null),
-    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V47_FINAL_RENDER_GAMEPLAY', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
+    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V47_2_RENDER_TARGET_GAMEPLAY', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api'),
     resetAllInputs: () => resetAllInputs('test-api'),

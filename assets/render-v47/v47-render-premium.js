@@ -4,7 +4,7 @@
 (function(){
   'use strict';
 
-  const VERSION = 'V47_1_RENDER_PREMIUM_FIEL_FIX_10_10';
+  const VERSION = 'V47_3_RENDER_ALVO_SHADER_SAFE_CONTROLES_10_10';
   let installed = false;
   let group = null;
   let THREE_REF = null;
@@ -32,8 +32,9 @@
     arena:{ sky:0x251000, fog:0x3b1d00, top:0x7c3f18, side:0x3c1f0d, path:0x8b5a2b, stone:0x6b5a49, accent:0xff2e63, magic:0xff7a18, enemy:0x111827, flower:0xffcc33, glow:0xff2e63 }
   };
 
-  function norm(world){ return WORLD_MAP[String(world||'campo').toLowerCase()] || 'campo'; }
-  function safe(fn){ return function(){ try { return fn.apply(this, arguments); } catch(e){ console.warn('[V47.1 Render] protegido:', e); return null; } }; }
+  function normalizeWorldName(world){ return WORLD_MAP[String(world||'campo').toLowerCase()] || 'campo'; }
+  function norm(world){ return normalizeWorldName(world); }
+  function safe(fn){ return function(){ try { return fn.apply(this, arguments); } catch(e){ console.warn('[V47.3 Render] protegido:', e); return null; } }; }
   function isObj3D(o){ return !!o && (o.isObject3D || typeof o.add === 'function' || typeof o.traverse === 'function' || o.position); }
   function meshOf(item){ return item && (item.mesh || item.object || item.group || item.model || item); }
   function addTo(parent, child){ if(parent && child && typeof parent.add === 'function') parent.add(child); return child; }
@@ -72,34 +73,45 @@
     geos.crystal = new THREE.OctahedronGeometry(.52,0);
     geos.plane = new THREE.PlaneGeometry(1,1);
     geos.circle = new THREE.CircleGeometry(1,24);
-    const grassTop = tex(THREE, '#55c85a', '#2f8f3b', 'grassTop');
-    const grassSide = tex(THREE, '#55c85a', '#6b4226', 'grassSide');
-    const dirt = tex(THREE, '#7b4b27', '#4f2d17', 'dirt');
-    const path = tex(THREE, '#c99857', '#e2c188', 'path');
-    const stone = tex(THREE, '#808994', '#5f6670', 'stone');
-    const wood = tex(THREE, '#6a3f22', '#3d2514', 'wood');
-    const lava = tex(THREE, '#ff3b00', '#ffc400', 'lava');
-    const portal = tex(THREE, '#8b00ff', '#ff00ff', 'portal');
-    mats.grass = [
-      new THREE.MeshStandardMaterial({map:grassSide, roughness:.86}), new THREE.MeshStandardMaterial({map:grassSide, roughness:.86}),
-      new THREE.MeshStandardMaterial({map:grassTop, roughness:.82}), new THREE.MeshStandardMaterial({map:dirt, roughness:.96}),
-      new THREE.MeshStandardMaterial({map:grassSide, roughness:.86}), new THREE.MeshStandardMaterial({map:grassSide, roughness:.86})
-    ];
-    mats.dirt = new THREE.MeshStandardMaterial({map:dirt, roughness:.92});
-    mats.path = new THREE.MeshStandardMaterial({map:path, roughness:.88});
-    mats.stone = new THREE.MeshStandardMaterial({map:stone, roughness:.74});
-    mats.wood = new THREE.MeshStandardMaterial({map:wood, roughness:.88});
-    mats.lava = new THREE.MeshStandardMaterial({map:lava, emissive:0xff3b00, emissiveIntensity:.95, roughness:.25});
-    mats.water = new THREE.MeshStandardMaterial({color:0x18bdff, transparent:true, opacity:.72, roughness:.12, emissive:0x006dff, emissiveIntensity:.15});
-    mats.leaf = new THREE.MeshStandardMaterial({color:pal.top, roughness:.95});
-    mats.flower = new THREE.MeshStandardMaterial({color:pal.flower, emissive:pal.flower, emissiveIntensity:.06, roughness:.7});
-    mats.enemy = new THREE.MeshStandardMaterial({color:pal.enemy, roughness:.78});
-    mats.enemyDark = new THREE.MeshStandardMaterial({color:0x151923, emissive:pal.magic, emissiveIntensity:.22, roughness:.72});
-    mats.eye = new THREE.MeshBasicMaterial({color:0xff001e});
-    mats.crystalBlue = new THREE.MeshStandardMaterial({color:0x50e6ff, emissive:0x0bb8ff, emissiveIntensity:.85, transparent:true, opacity:.94, roughness:.08, metalness:.25});
-    mats.crystalPurple = new THREE.MeshStandardMaterial({color:0xf032ff, emissive:0x9f00ff, emissiveIntensity:.95, transparent:true, opacity:.92, roughness:.08, metalness:.22});
-    mats.portal = new THREE.MeshBasicMaterial({map:portal, transparent:true, opacity:.92, side:THREE.DoubleSide, blending:THREE.AdditiveBlending});
-    mats.shadow = new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.18, depthWrite:false});
+
+    // V47.3 SHADER SAFE:
+    // A V47.1/V47.2 podia estourar MAX_TEXTURE_IMAGE_UNITS em celulares/Chrome
+    // porque usava vários CanvasTexture em materiais multi-face. Aqui o render
+    // fica voxel/premium por geometria, cores, emissive e luz — sem sampler pesado.
+    const mat = (color, opt={}) => new THREE.MeshStandardMaterial({
+      color,
+      roughness: opt.roughness ?? .82,
+      metalness: opt.metalness ?? 0,
+      emissive: opt.emissive ?? 0x000000,
+      emissiveIntensity: opt.emissiveIntensity ?? 0,
+      transparent: !!opt.transparent,
+      opacity: opt.opacity ?? 1,
+      depthWrite: opt.depthWrite ?? true
+    });
+    const basic = (color,opt={}) => new THREE.MeshBasicMaterial({
+      color,
+      transparent: !!opt.transparent,
+      opacity: opt.opacity ?? 1,
+      side: opt.side ?? THREE.FrontSide,
+      blending: opt.blending
+    });
+
+    mats.grass = mat(pal.top, {roughness:.92});
+    mats.dirt = mat(pal.side, {roughness:.96});
+    mats.path = mat(pal.path, {roughness:.90});
+    mats.stone = mat(pal.stone, {roughness:.84});
+    mats.wood = mat(0x6a3f22, {roughness:.90});
+    mats.lava = mat(0xff4a00, {roughness:.30, emissive:0xff3b00, emissiveIntensity:1.05});
+    mats.water = mat(0x18bdff, {transparent:true, opacity:.70, roughness:.12, emissive:0x006dff, emissiveIntensity:.18});
+    mats.leaf = mat(pal.top, {roughness:.96});
+    mats.flower = mat(pal.flower, {roughness:.70, emissive:pal.flower, emissiveIntensity:.10});
+    mats.enemy = mat(pal.enemy, {roughness:.78});
+    mats.enemyDark = mat(0x151923, {roughness:.72, emissive:pal.magic, emissiveIntensity:.24});
+    mats.eye = basic(0xff001e);
+    mats.crystalBlue = mat(0x50e6ff, {emissive:0x0bb8ff, emissiveIntensity:1.05, transparent:true, opacity:.95, roughness:.08, metalness:.18});
+    mats.crystalPurple = mat(0xf032ff, {emissive:0x9f00ff, emissiveIntensity:1.05, transparent:true, opacity:.93, roughness:.08, metalness:.18});
+    mats.portal = basic(pal.magic, {transparent:true, opacity:.82, side:THREE.DoubleSide, blending:THREE.AdditiveBlending});
+    mats.shadow = basic(0x000000, {transparent:true, opacity:.18});
   }
 
   function block(THREE, mat, x,y,z, sx=1,sy=1,sz=1){
@@ -181,15 +193,15 @@
     // base path like reference: central dirt/stone road, grass blocks and cliffs on sides.
     const pathMat = world==='castelo'||world==='espaco'||world==='vulcao' ? mats.stone : mats.path;
     for(let z=10; z>-len; z-=2){
-      block(THREE,pathMat,0,-.32,z,5.6,.64,2.02);
+      block(THREE,pathMat,0,.10,z,5.15,.22,2.02);
       if(world!=='espaco'){
-        block(THREE,mats.grass,-5.2,-.36,z,3.8,.72,2.0);
-        block(THREE,mats.grass,5.2,-.36,z,3.8,.72,2.0);
+        block(THREE,mats.grass,-5.15,.16,z,3.75,.42,2.0);
+        block(THREE,mats.grass,5.15,.16,z,3.75,.42,2.0);
       } else {
-        if(Math.abs(z/8|0)%2===0){ block(THREE,mats.stone,-5.2,-.36,z,3.0,.54,1.6); block(THREE,mats.stone,5.2,-.36,z,3.0,.54,1.6); }
+        if(Math.abs(z/8|0)%2===0){ block(THREE,mats.stone,-5.15,.14,z,3.0,.36,1.6); block(THREE,mats.stone,5.15,.14,z,3.0,.36,1.6); }
       }
       if(Math.abs(z)%12===0){
-        block(THREE,mats.grass,-9.2,.08,z,2.4,1.2,2.6); block(THREE,mats.grass,9.2,.08,z,2.4,1.2,2.6);
+        block(THREE,mats.grass,-9.0,.55,z,2.8,1.4,2.8); block(THREE,mats.grass,9.0,.55,z,2.8,1.4,2.8);
       }
     }
     // lateral rich clutter, but not on path.
@@ -214,7 +226,29 @@
     if(world==='arena') enemySkin(THREE,'boss',0,0,-118);
     waterfall(THREE,-12.5,-48);
     if(world!=='vulcao') lavaSet(THREE,13.4,-78);
-    portalTemple(THREE,pal,-Math.min(len-28,320));
+    portalTemple(THREE,pal,-Math.min(118, Math.max(82, len*.48)));
+
+    // V47.2 target-reference pass: densidade próxima ao jogador, como a imagem aprovada.
+    for(let z=2; z>-118; z-=6){
+      const k=Math.floor(Math.abs(z)/6);
+      const lx=-3.6-(k%3)*.42, rx=3.6+(k%3)*.42;
+      if(world!=='vulcao' && world!=='espaco'){
+        if(k%2===0) flower(THREE,lx,z+.6,pal);
+        if(k%3===0) flower(THREE,rx,z-.6,pal);
+        if(k%5===0) mushroom(THREE,rx+.75,z+.2);
+      }
+      if(k%4===1){ crystal(THREE, (k%2?1:-1)*1.55, 1.05, z-2.2, k>10); }
+      if(k%6===2){ sign(THREE, (k%2? -1:1)*3.95, z-1.6); }
+      if(k%7===3){ block(THREE,mats.wood,(k%2?1:-1)*4.6,.72,z-2.6,1.25,1.25,1.25); }
+    }
+    // penhascos laterais mais altos e visíveis perto da câmera.
+    for(let i=0;i<10;i++){
+      const z=-12-i*10; const side=i%2?1:-1; const x=side*(8.2+(i%3)*1.1); const y=.9+(i%4)*.32;
+      block(THREE,mats.dirt,x,y*.55,z,3.4,1.1+y*.25,3.2);
+      block(THREE,mats.grass,x,y+1.02,z,3.55,.34,3.35);
+      if(i%2===0) tree(THREE,x,y?z:z,pal,true);
+      if(i%3===0) crystal(THREE,x+side*.9,y+1.5,z+.8,true);
+    }
     // distant floating islands/clouds.
     const dummy = new THREE.Object3D();
     const islandMesh = new THREE.InstancedMesh(geos.box, mats.dirt, 22);
@@ -240,7 +274,7 @@
         const s = enemySkin(THREE, e.type || 'walker', 0, -9999, 0); // create in group, then reparent pieces safely by following host instead of modifying host hierarchy
         updatables.push(()=>{ if(host.position){ s.position.copy(host.position); s.position.y = (host.position.y||0) - ((e.size||1)/2); s.rotation.y = host.rotation?.y || 0; } });
         stats.attached++;
-      }catch(err){ console.warn('[V47.1 Render] enemy skin ignorada', err); }
+      }catch(err){ console.warn('[V47.3 Render] enemy skin ignorada', err); }
     });
   }
 
@@ -260,8 +294,8 @@
       init(THREE,pal);
       group = new THREE.Group(); group.name = 'V47_RENDER_PREMIUM_GROUP'; ctx.scene.add(group);
       stats = {objects:0, decorative:0, attached:0, updatables:0};
-      try { if(ctx.scene) { ctx.scene.background = new THREE.Color(pal.sky); ctx.scene.fog = new THREE.FogExp2(pal.fog, currentWorld==='espaco'?.005:currentWorld==='vulcao'?.018:.010); } } catch{}
-      try { if(ctx.renderer && ctx.renderer.shadowMap){ ctx.renderer.shadowMap.enabled = true; ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap; } if(ctx.renderer && ctx.renderer.toneMapping !== undefined){ ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping; ctx.renderer.toneMappingExposure = currentWorld==='vulcao'?1.18:1.08; } } catch{}
+      try { if(ctx.scene) { ctx.scene.background = new THREE.Color(pal.sky); ctx.scene.fog = new THREE.FogExp2(pal.fog, currentWorld==='espaco'?.0012:currentWorld==='vulcao'?.0030:.0009); } } catch{}
+      try { if(ctx.renderer && ctx.renderer.shadowMap){ ctx.renderer.shadowMap.enabled = true; ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap; } if(ctx.renderer && ctx.renderer.toneMapping !== undefined){ ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping; ctx.renderer.toneMappingExposure = currentWorld==='vulcao'?1.12:1.02; } } catch{}
       addLight(THREE,'point',pal.glow,.8,22,-8,8,-30);
       addLight(THREE,'point',pal.magic,1.5,30,8,8,-110);
       const hemi = new THREE.HemisphereLight(0xffffff, pal.side, currentWorld==='espaco'?.48:.72); group.add(hemi); stats.objects++;

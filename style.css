@@ -763,3 +763,5 @@ body.viewer-fullscreen-open{overflow:hidden!important;touch-action:none!importan
   .viewer-panel.viewer-fullscreen .viewer-controls-pro{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}
   .viewer-panel.viewer-fullscreen .viewer-controls-pro .viewer-mini-btn{min-height:46px!important}
 }
+
+/* V47.3 cache marker: shader-safe render and playable controls. */

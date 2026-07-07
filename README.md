@@ -1,30 +1,25 @@
-# Athos Adventure 3D+ — V47.1 Render Fix + Gameplay
+# Athos Adventure 3D+ — V47.3 Render Alvo + Controles Jogáveis
 
-Pacote completo limpo para GitHub Pages.
+ZIP completo e limpo para subir direto no GitHub Pages.
 
-## Como usar
+Arquivos de teste mantidos:
 
-Suba todos os arquivos da raiz deste ZIP no repositório GitHub Pages.
+- `F12_TESTE_ATHOS_V472_RENDER_CONTROLES.js`
+- `F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js`
 
-Abra com:
+Abrir depois do deploy com:
 
-```text
-?v=471-render-fix-gameplay
-```
+`?v=473-render-alvo-controles`
 
-## Testes incluídos
+Correções desta versão:
 
-1. `F12_TESTE_ATHOS_V47_FINAL_RENDER_GAMEPLAY.js`
-2. `F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js`
+- canvas do jogo volta a ocupar a tela inteira por trás dos controles;
+- remove a sensação de painel preto embaixo;
+- joystick fica clicável e separado da faixa de mundos;
+- botões principais ficam no padrão do alvo: poder, ação/espada e pulo;
+- botões auxiliares continuam existentes, mas menores;
+- render V47.3 aproxima mais do alvo visual com caminho, ilhas, cristais, portal e decoração mais perto da câmera;
+- câmera de gameplay fica mais próxima/cinematográfica;
+- motor Codex e AR/model-viewer preservados.
 
-## Correção principal V47.1
-
-A V47 anterior carregava, mas o render premium falhava durante `rebuildWorld` porque a camada Gemini esperava inimigos como `Object3D`, enquanto o motor do jogo usa inimigos como objetos `{ mesh, type, hp... }`.
-
-Nesta V47.1:
-
-- `v47-render-premium.js` aceita inimigos do motor real;
-- `app.js` passa `platforms`, `enemies`, `portalMesh` e `crystals` reais para o contexto V47;
-- o render premium cria cenário rico mesmo se algum item do motor não puder ser reskinado;
-- mundo Real não cria cenário/câmera fake;
-- joystick, B Poder, Quiz/Falar, AR Nativo e model-viewer foram preservados.
+Powered by thIAguinho Soluções Digitais.
