@@ -1,6 +1,6 @@
-// Athos V36 JOGÁVEL — Service Worker leve para GitHub Pages.
-// Network-first para evitar cache fantasma de versões antigas durante os testes.
-const CACHE_VERSION = 'athos-v36-jogavel-no-cache';
+// Athos V37 AUDITORIA TOTAL — Service Worker leve para GitHub Pages.
+// Network-first para impedir cache fantasma durante correções e testes.
+const CACHE_VERSION = 'athos-v37-auditoria-total-no-cache';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

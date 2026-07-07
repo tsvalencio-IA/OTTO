@@ -1,13 +1,13 @@
 {
-  "name": "Athos: Guardião dos Portais V36 Jogável",
-  "short_name": "Athos V36",
-  "start_url": "./index.html?v=36-jogavel",
+  "name": "Athos: Guardião dos Portais V37 Auditoria Total",
+  "short_name": "Athos V37",
+  "start_url": "./index.html?v=37-auditoria-total",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Jogo 3D voxel/AR do Athos com layout jogável no celular, joystick robusto, portais, quiz, medalhas e realidade aumentada.",
+  "description": "Jogo 3D voxel/AR do Athos com auditoria total de telas, botões, joystick, AR, portais, quiz, medalhas e controles mobile.",
   "icons": [
     { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }

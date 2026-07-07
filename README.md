@@ -1,19 +1,19 @@
-# Athos: Guardião dos Portais V36 — Jogável
+# Athos: Guardião dos Portais V37 — Auditoria Total
 
 Powered by thIAguinho Soluções Digitais
 
-Esta versão corrige o problema real apontado nos prints: a V35 passava no teste técnico, mas a interface de jogo ficava ruim para jogar no celular. A V36 mantém AR, 3D, `athos.glb`, quiz, fases, portais, inimigos, medalhas e render premium, mas reorganiza a jogabilidade mobile.
+Esta versão foi feita após a reclamação de que a V36 ainda escorregava sozinha no modo AR/3D e que os controles não estavam confiáveis. A V37 não é uma versão de visual novo: é uma versão de auditoria total de fluxo, telas, botões, inputs e estado interno.
 
-## Correções principais
+## Correções principais da V37
 
-- Controles em modo paisagem reposicionados como gamepad real: joystick embaixo à esquerda, ações embaixo à direita e mundos compactos no topo direito.
-- Painéis grandes deixam de tampar a fase: objetivo fica compacto e reduz sozinho depois de alguns segundos.
-- Tutorial não bloqueia a tela em modo paisagem.
-- Joystick ficou mais robusto: pointermove/pointerup agora são tratados no documento, não só dentro do círculo.
-- Corrigido movimento grudado: botões de movimento não usam mais `data-action` para manter estado preso; usam `data-move` com limpeza no pointerup/cancel/blur.
-- Pulo com resposta mais visível e impulso lateral/profundidade melhor.
-- Não força lock de orientação; o layout se adapta ao celular em pé ou deitado.
-- Mantém o botão `B Poder` separado por `#powerBtn` e `data-action="power"`.
+- Zera totalmente joystick, setas, teclado, crouch e estados visuais ao entrar no jogo, sair, abrir/fechar modal, trocar mundo, perder foco da página e sair do jogo.
+- Zera `joy.x`, `joy.z`, `joy.pointerId` e o botão visual do joystick; isso corrige o boneco andando/escorregando sozinho.
+- Zera velocidade horizontal `p.vx` e `p.vz` quando é troca de modo/mundo/modal/saída.
+- Aceleração e desaceleração do Athos foram ajustadas: sem input, o personagem para rapidamente em vez de continuar deslizando.
+- Botões de movimento agora ficam só com `data-move`; eles não competem com `data-action`.
+- AR Nativo, Brincar Livre AR, 3D, `athos.glb`, model-viewer, Three.js, quiz e fases foram mantidos.
+- Fullscreen/lock de orientação não é mais forçado, porque isso atrapalhava layout e toque em alguns Androids.
+- Layout mobile recebeu camada final: controles fixos embaixo, mundo compacto, objetivo sem bloquear e tutorial escondido durante gameplay.
 
 ## Não removido
 
@@ -45,13 +45,19 @@ icons/
 moldes/
 ```
 
-Depois do deploy, abra o jogo no celular primeiro em modo paisagem e teste manualmente:
+## Teste manual obrigatório
 
-1. Entrar em Jogar Fases 3D.
-2. Arrastar o joystick para frente, trás e diagonal.
-3. Apertar A parado e andando.
-4. Segurar Fundo + A.
-5. Apertar B andando.
-6. Girar o celular e verificar se os botões ficam jogáveis.
+1. Abrir o jogo no celular.
+2. Entrar em Jogar Fases 3D.
+3. Sem tocar em nada, confirmar que Athos fica parado.
+4. Usar joystick para frente, trás, esquerda, direita e diagonal.
+5. Soltar o joystick e confirmar que Athos para.
+6. Apertar A parado e andando.
+7. Apertar B parado e andando.
+8. Abrir Quiz e fechar; depois confirmar que Athos não anda sozinho.
+9. Abrir Falar com Athos e fechar; depois confirmar que Athos não anda sozinho.
+10. Trocar para Campo/Vulcão/Floresta/Real; depois confirmar que Athos não anda sozinho.
+11. Testar Brincar Livre AR/câmera.
+12. Testar AR Nativo.
 
-Também há o script `F12_TESTE_ATHOS_V36_JOGAVEL.js` para teste técnico no console.
+Script técnico: `F12_TESTE_ATHOS_V37_AUDITORIA_TOTAL.js`.

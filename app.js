@@ -21,8 +21,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v36_jogavel_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v37_auditoria_total_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -455,7 +455,7 @@
 
   async function start(modeName){
     mode = modeName; paused = false; playing = true;
-    clearMovementState();
+    hardStopAllInput('start');
     els.game.classList.remove('compact-hud');
     if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub e escolha uma fase pelos portais. Para aventura real, toque em JOGAR FASES.' };
     else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
@@ -474,7 +474,7 @@
   }
 
   function exitGame(){
-    playing = false; paused = false; stopCamera(); showScreen('lobby'); updateLobbyStats();
+    playing = false; paused = false; hardStopAllInput('exit'); stopCamera(); showScreen('lobby'); updateLobbyStats();
   }
 
   function newRuntime(){
@@ -769,9 +769,14 @@
     const mag = Math.hypot(input.x, input.z);
     const nx = mag > 1 ? input.x / mag : input.x; const nz = mag > 1 ? input.z / mag : input.z;
     const speed = diff.speed * (input.crouch ? .48 : 1) * (p.scaleMode==='giant' ? .86 : p.scaleMode==='mini' ? 1.08 : 1);
-    const targetVx = nx * speed; const targetVz = -nz * speed;
-    p.vx += (targetVx - p.vx) * Math.min(1, dt*12);
-    p.vz += (targetVz - p.vz) * Math.min(1, dt*12);
+    const noInput = mag < 0.06;
+    const targetVx = noInput ? 0 : nx * speed;
+    const targetVz = noInput ? 0 : -nz * speed;
+    const response = noInput ? 28 : 14;
+    p.vx += (targetVx - p.vx) * Math.min(1, dt*response);
+    p.vz += (targetVz - p.vz) * Math.min(1, dt*response);
+    if (noInput && Math.abs(p.vx) < 0.035) p.vx = 0;
+    if (noInput && Math.abs(p.vz) < 0.035) p.vz = 0;
     p.x += p.vx * dt; p.z += p.vz * dt;
     p.x = clamp(p.x, -6.4, 6.4); p.z = clamp(p.z, -currentLevel.length - 14, 8);
     if (!p.grounded) p.vy -= diff.gravity * dt;
@@ -974,12 +979,12 @@
     els.modalBody.innerHTML = `<div class="collection-grid">${medals.map(m=>`<div class="medal ${progress.medals[m]?'unlocked':''}"><b>${progress.medals[m]?'🏅':'🔒'} ${m}</b><span>${progress.medals[m]?'Desbloqueada':'Bloqueada'}</span></div>`).join('')}</div><div class="answer">XP: ${progress.xp} • Recorde: ${progress.best} • Cristais: ${progress.totalCrystals||0} • Inimigos: ${progress.totalEnemies||0} • Melhor tempo: ${progress.bestTime||0}s</div>`;
     showModal();
   }
-  function showModal(){ els.modal.hidden = false; els.app && els.app.classList.add('modal-active'); }
-  function closeModal(){ els.modal.hidden = true; els.app && els.app.classList.remove('modal-active'); }
+  function showModal(){ hardStopAllInput('modal'); els.modal.hidden = false; els.app && els.app.classList.add('modal-active'); }
+  function closeModal(){ hardStopAllInput('modal-close'); els.modal.hidden = true; els.app && els.app.classList.remove('modal-active'); }
 
   async function startCamera(){ if(cameraStream || !navigator.mediaDevices) return; try{ cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false}); els.cameraFeed.srcObject=cameraStream; await els.cameraFeed.play().catch(()=>{}); } catch { toast('Câmera bloqueada. Usando cenário 3D.', 'warn'); } }
   function stopCamera(){ if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } els.cameraFeed.srcObject=null; }
-  function requestFullscreenLandscape(){ const el=document.documentElement; if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); /* V36: não força lock de orientação; o layout se adapta ao celular em pé ou deitado. */ }
+  function requestFullscreenLandscape(){ /* V37: não força fullscreen nem trava orientação. O fullscreen quebrava layout/inputs em alguns Androids. */ }
 
   function updateWorldButtons(world){ $$('.world-chip').forEach(b=>b.classList.toggle('active', b.dataset.world===world)); }
   function setupJoystick(){
@@ -1011,14 +1016,31 @@
     document.addEventListener('pointermove', move, { passive:false });
     document.addEventListener('pointerup', end, { passive:false });
     document.addEventListener('pointercancel', end, { passive:false });
-    window.addEventListener('blur', () => { end(); clearMovementState(); });
+    window.addEventListener('blur', () => { hardStopAllInput('blur'); });
+    window.addEventListener('pagehide', () => { hardStopAllInput('pagehide'); });
   }
 
   function clearMovementState(){
     moveHold.left = moveHold.right = moveHold.forward = moveHold.back = false;
     keyboard.left = keyboard.right = keyboard.forward = keyboard.back = false;
+    input.x = 0;
+    input.z = 0;
     input.crouch = false;
+    joy.active = false;
+    joy.pointerId = null;
+    joy.x = 0;
+    joy.z = 0;
+    if (els.joyKnob) els.joyKnob.style.transform = 'translate(0px,0px)';
     $$('.move-btn.holding,.action-btn.holding').forEach(btn => btn.classList.remove('holding'));
+  }
+
+  function hardStopAllInput(reason='manual'){
+    clearMovementState();
+    if (p) {
+      p.vx = 0;
+      p.vz = 0;
+      if (reason !== 'jump') jumpBufferedUntil = 0;
+    }
   }
 
   function setupInputs(){
@@ -1026,7 +1048,7 @@
     $$('[data-move]').forEach(btn=>{ const key=btn.dataset.move; const on=(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; }; const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; }; btn.addEventListener('pointerdown',on,{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false})); });
     $$('[data-hold]').forEach(btn=>{ const key=btn.dataset.hold; btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false})); });
     $$('[data-action]').filter(btn=>!btn.dataset.move).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
-    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
+    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
     window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
   }
@@ -1053,7 +1075,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=36').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=37').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1069,7 +1091,15 @@
     getLevelCount: () => LEVELS.length,
     getStorageKey: () => STORAGE_KEY,
     getCurrentLevel: () => currentLevel,
-    hasPowerButton: () => !!document.querySelector('#powerBtn[data-action="power"]')
+    hasPowerButton: () => !!document.querySelector('#powerBtn[data-action="power"]'),
+    getInputState: () => ({
+      input: { x: input.x, z: input.z, crouch: input.crouch },
+      joy: { active: joy.active, pointerId: joy.pointerId, x: joy.x, z: joy.z },
+      moveHold: { ...moveHold },
+      keyboard: { ...keyboard }
+    }),
+    getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode }) : null,
+    hardStopAllInput: () => hardStopAllInput('test-api')
   };
 
   setupInputs(); setupUI(); updateLobbyStats(); refreshServiceWorker();
