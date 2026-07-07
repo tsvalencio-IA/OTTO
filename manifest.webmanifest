@@ -1,13 +1,13 @@
 {
-  "name": "Athos V46.1 Render Premium Corrigido",
-  "short_name": "Athos V46.1",
-  "start_url": "./index.html?v=461-render-premium-corrigido",
+  "name": "Athos V46.2 Render Premium Corrigido",
+  "short_name": "Athos V46.2",
+  "start_url": "./index.html?v=462-render-premium-ar-hotfix",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Athos Adventure 3D+ V46.1 com render premium integrado com segurança, AR nativo sem câmera falsa e base de controles preservada.",
+  "description": "Athos Adventure 3D+ V46.2 com render premium integrado com segurança, AR nativo sem câmera falsa e base de controles preservada.",
   "icons": [
     {
       "src": "./icons/icon-192.png",

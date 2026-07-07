@@ -1,4 +1,4 @@
-# Athos Adventure 3D+ — V46.1 Render Premium Corrigido
+# Athos Adventure 3D+ — V46.2 Render Premium Corrigido
 
 Base: V45 estável.
 
@@ -13,8 +13,11 @@ Correção desta versão:
 
 Abrir após subir:
 
-`?v=461-render-premium-corrigido`
+`?v=462-render-premium-ar-hotfix`
 
 Teste:
 
-`F12_TESTE_ATHOS_V461_RENDER_PREMIUM_CORRIGIDO.js`
+`F12_TESTE_ATHOS_V462_AR_HOTFIX.js`
+
+
+Hotfix V46.2: o botão Real/AR não chama activateAR quando model-viewer informa que AR não está disponível, evitando o erro interno ARRenderer null.add em desktop. A câmera fake continua bloqueada.

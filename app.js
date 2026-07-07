@@ -70,7 +70,7 @@
   const AR_SAFE = {
     lockMs: 3200,
     freezeWhenIdle: true,
-    label: 'V461_NATIVE_AR_ANCHORED_NO_FAKE_CAMERA'
+    label: 'V462_NATIVE_AR_GUARDED_NO_FAKE_CAMERA'
   };
 
 
@@ -1982,9 +1982,10 @@
 
 
   function getARViewer(){
-    // V46.1: usa um model-viewer dedicado para AR nativo. Ele fica pronto no DOM,
-    // mas não vira câmera falsa do jogo. O objetivo é abrir Scene Viewer/WebXR ancorado no chão.
-    return els.arAnchorViewer || els.nativeViewer;
+    // V46.2 HOTFIX: prioriza o model-viewer principal já carregado.
+    // O arAnchorViewer oculto pode disparar erro interno do model-viewer em desktop:
+    // ARRenderer null.add. Ele fica apenas como fallback.
+    return els.nativeViewer || els.arAnchorViewer;
   }
   function prepareARViewer(viewer){
     if (!viewer) return;
@@ -2024,6 +2025,24 @@
       viewer.removeAttribute('style');
     } catch {}
   }
+
+  function canSafelyActivateNativeAR(viewer){
+    if (!viewer || typeof viewer.activateAR !== 'function') return false;
+    // Em desktop ou navegador sem AR, model-viewer pode lançar erro interno em ARRenderer.
+    // Só chamamos activateAR quando o próprio model-viewer confirma capacidade real.
+    try {
+      if (viewer.canActivateAR === true) return true;
+      return false;
+    } catch { return false; }
+  }
+
+  function markNativeARUnavailable(){
+    hardStopAllInput('native-ar-unavailable');
+    arSafeUntil = now() + AR_SAFE.lockMs;
+    if (p) { p.vx = 0; p.vz = 0; p.vy = Math.min(p.vy || 0, 0); }
+    toast('AR nativo só abre em celular/navegador compatível. Câmera falsa não será usada.', 'warn');
+  }
+
   function openNativeAR(reason='native-ar'){
     hardStopAllInput(reason);
     stopCamera();
@@ -2036,25 +2055,25 @@
     rebuildV46Render('real');
     const viewer = getARViewer();
     prepareARViewer(viewer);
-    prepareARActivationSurface(viewer);
-    if (!viewer || typeof viewer.activateAR !== 'function') {
-      toast('AR nativo precisa de celular compatível. Câmera falsa não será usada.', 'warn');
-      restoreARActivationSurface(viewer);
+    // Não abrimos câmera fake. Em computador, não chamamos activateAR para evitar erro interno do model-viewer.
+    if (!canSafelyActivateNativeAR(viewer)) {
+      markNativeARUnavailable();
       return false;
     }
+    prepareARActivationSurface(viewer);
     try {
       const r = viewer.activateAR();
       toast('Abrindo AR nativo ancorado: posicione Athos no chão.', 'good');
       window.setTimeout(() => restoreARActivationSurface(viewer), 4500);
       if (r && typeof r.catch === 'function') {
         r.catch(() => {
-          toast('AR nativo não abriu neste aparelho/navegador. Câmera falsa não será usada.', 'warn');
+          markNativeARUnavailable();
           restoreARActivationSurface(viewer);
         });
       }
       return true;
     } catch (err) {
-      toast('AR nativo não abriu neste aparelho/navegador. Câmera falsa não será usada.', 'warn');
+      markNativeARUnavailable();
       restoreARActivationSurface(viewer);
       return false;
     }
