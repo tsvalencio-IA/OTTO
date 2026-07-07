@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
-  <title>Athos: Guardião dos Portais V43 QUIZ PRO + ESTÚDIO 3D</title>
+  <title>Athos: Guardião dos Portais V43.1 ESTÁVEL</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=43-quiz-studio-render2" />
+  <link rel="stylesheet" href="./style.css?v=431-stable-quiz-3d" />
 
 </head>
 <body>
@@ -22,12 +22,12 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V43 QUIZ PRO + ESTÚDIO 3D • Guardião dos Portais</p>
+            <p class="eyebrow">V43.1 ESTÁVEL • Guardião dos Portais</p>
             <h1>Athos Adventure 3D+</h1>
-            <p class="subtitle">Jogo 3D voxel/AR com Quiz Pro em rodada, Estúdio 3D interativo, render mais rico e AR seguro sem Athos andar sozinho.</p>
+            <p class="subtitle">Jogo 3D/AR para brincar, jogar fases, responder quiz e ver o Athos grande em 3D.</p>
             <div class="hero-actions">
               <button id="heroPlayBtn" class="pixel-btn primary huge play-alias" data-play="missions" data-test="play-missions" aria-label="Jogar Fases 3D iniciar missões" type="button">🎮 JOGAR FASES 3D</button>
-              <button id="heroFreeBtn" class="pixel-btn huge" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 BRINCAR LIVRE AR</button>
+              <button id="heroFreeBtn" class="pixel-btn huge" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 BRINCAR LIVRE</button>
             </div>
           </div>
         </header>
@@ -36,10 +36,10 @@
           <section class="panel viewer-panel">
             <div class="panel-head">
               <div>
-                <strong>Ver em 3D / Girar — Estúdio Athos</strong>
-                <span id="modelStatus">Carregando athos.glb...</span>
+                <strong>Athos 3D</strong>
+                <span id="modelStatus">Toque e arraste para girar.</span>
               </div>
-              <em>Estúdio 3D + AR</em>
+              <em>3D + AR</em>
             </div>
 
             <model-viewer
@@ -55,56 +55,20 @@
               shadow-intensity="1"
               exposure="1"
               environment-image="neutral"
-              camera-orbit="25deg 68deg 3.8m"
-              camera-target="0m 1.25m 0m"
-              field-of-view="30deg"
-              ar-scale="fixed"
-              scale="1 1 1"
-              orientation="0deg 0deg 0deg">
-              <button id="insideArNativeBtn" class="pixel-btn ar-native-btn" type="button" slot="ar-button" aria-label="AR Nativo realidade aumentada">📱 Abrir Athos em AR Real</button>
+              camera-orbit="25deg 68deg 3.8m">
+              <button id="insideArNativeBtn" class="pixel-btn ar-native-btn" type="button" slot="ar-button" aria-label="AR Nativo realidade aumentada">📱 AR</button>
             </model-viewer>
-
-            <div class="studio-toolbar" aria-label="Controles rápidos do Estúdio 3D">
-              <button id="studioFullscreenBtn" class="pixel-btn" type="button">⛶ Tela maior</button>
-              <button id="studioResetBtn" class="pixel-btn" type="button">↺ Resetar posição</button>
-              <button id="studioArBtn" class="pixel-btn primary" type="button">📱 Abrir esta posição em AR</button>
+            <button id="arNativeExternalBtn" class="pixel-btn primary ar-external-btn" type="button" data-test="ar-native" aria-label="AR Nativo abrir realidade aumentada">📱 Abrir em AR</button>
+            <div class="viewer-controls-simple" aria-label="Controles simples do Athos 3D">
+              <button id="viewerRotateLeftBtn" class="viewer-mini-btn" type="button" aria-label="Girar para esquerda">↺</button>
+              <button id="viewerRotateRightBtn" class="viewer-mini-btn" type="button" aria-label="Girar para direita">↻</button>
+              <button id="viewerZoomInBtn" class="viewer-mini-btn" type="button" aria-label="Aproximar">＋</button>
+              <button id="viewerZoomOutBtn" class="viewer-mini-btn" type="button" aria-label="Afastar">－</button>
+              <button id="viewerMoveUpBtn" class="viewer-mini-btn" type="button" aria-label="Subir Athos">⬆</button>
+              <button id="viewerMoveDownBtn" class="viewer-mini-btn" type="button" aria-label="Descer Athos">⬇</button>
+              <button id="viewerBigBtn" class="viewer-mini-btn" type="button" aria-label="Tela maior">⛶</button>
+              <button id="viewerResetBtn" class="viewer-mini-btn" type="button" aria-label="Resetar posição">🔄</button>
             </div>
-
-            <div id="studioControls" class="studio-controls" aria-label="Estúdio 3D interativo do Athos">
-              <div class="studio-card">
-                <b>Girar / Câmera</b>
-                <div class="studio-buttons">
-                  <button class="pixel-btn" data-studio-rotate="-18" type="button">⟲ Girar</button>
-                  <button class="pixel-btn" data-studio-rotate="18" type="button">Girar ⟳</button>
-                  <button class="pixel-btn" data-studio-zoom="-0.35" type="button">＋ Perto</button>
-                  <button class="pixel-btn" data-studio-zoom="0.35" type="button">－ Longe</button>
-                </div>
-              </div>
-              <div class="studio-card">
-                <b>Posição do Athos</b>
-                <div class="studio-nudge-grid">
-                  <button class="pixel-btn" data-studio-move="y:0.15" type="button">▲ Cima</button>
-                  <button class="pixel-btn" data-studio-move="x:-0.15" type="button">◀ Esq</button>
-                  <button class="pixel-btn" data-studio-move="x:0.15" type="button">Dir ▶</button>
-                  <button class="pixel-btn" data-studio-move="y:-0.15" type="button">▼ Baixo</button>
-                </div>
-              </div>
-              <label class="studio-range">Escala / Tamanho
-                <input id="studioScale" type="range" min="0.55" max="1.85" step="0.05" value="1">
-              </label>
-              <div class="studio-card">
-                <b>Pose visual</b>
-                <div class="studio-buttons pose-buttons">
-                  <button class="pixel-btn" data-studio-pose="hero" type="button">🧍 Herói</button>
-                  <button class="pixel-btn" data-studio-pose="jump" type="button">🦘 Pulo</button>
-                  <button class="pixel-btn" data-studio-pose="power" type="button">🔥 Poder</button>
-                  <button class="pixel-btn" data-studio-pose="mini" type="button">🔹 Mini</button>
-                  <button class="pixel-btn" data-studio-pose="giant" type="button">⬛ Gigante</button>
-                </div>
-                <small id="studioRigStatus">Detectando se o modelo tem ossos/animações...</small>
-              </div>
-            </div>
-            <button id="arNativeExternalBtn" class="pixel-btn primary ar-external-btn" type="button" data-test="ar-native" aria-label="AR Nativo abrir realidade aumentada">📱 AR Nativo / Realidade Aumentada</button>
           </section>
 
           <aside class="panel menu-panel" aria-label="Menu principal">
@@ -126,8 +90,8 @@
               <button id="playBtn" class="pixel-btn primary big play-alias" data-play="missions" data-test="play-missions" aria-label="Jogar Fases 3D iniciar missões" type="button">🎮 JOGAR FASES 3D — INICIAR</button>
               <button id="hubBtn" class="pixel-btn big play-alias" data-play="hub" data-test="play-hub" aria-label="Hub dos Portais explorar mundos" type="button">🌀 Hub dos Portais</button>
               <button id="freeBtn" class="pixel-btn big play-alias" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 Brincar Livre / AR por câmera</button>
-              <button id="quizBtn" class="pixel-btn big" data-test="quiz-open" aria-label="Quiz do Athos abrir desafio" type="button">🧠 Quiz do Athos</button>
-              <button id="askBtn" class="pixel-btn big" data-test="ask-open" aria-label="Falar com Athos perguntar" type="button">💬 Falar com Athos</button>
+              <button id="quizBtn" class="pixel-btn big" data-test="quiz-open" aria-label="Quiz do Athos abrir desafio" type="button">🧠 Quiz</button>
+              <button id="askBtn" class="pixel-btn big" data-test="ask-open" aria-label="Falar com Athos perguntar" type="button">💬 Falar</button>
               <button id="collectionBtn" class="pixel-btn big" type="button">🏅 Coleção do Otto</button>
               <button id="resetBtn" class="pixel-btn danger big" type="button">🔄 Resetar progresso</button>
             </div>
@@ -138,7 +102,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V43 Quiz Pro + Estúdio 3D</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V43.1 Estável</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -222,6 +186,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=43-quiz-studio-render2"></script>
+  <script src="./app.js?v=431-stable-quiz-3d"></script>
 </body>
 </html>

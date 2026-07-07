@@ -1,13 +1,14 @@
-# Athos V43 — Quiz Pro + Estúdio 3D + Render Premium 2
+# Athos V43.1 — Estável
 
-Base preservada: V42 passou com 59 OK / 0 falhas / 0 erros JS.
+Base: V42 aprovada.
 
-## Mudanças V43
-- Quiz Pro com rodada de 5 perguntas, placar, progresso, feedback e resultado final.
-- Quiz não fecha mais após responder uma pergunta.
-- Estúdio 3D no lobby: tela maior, girar, zoom, mover posição, escala, poses visuais e abrir em AR.
-- Detector de rig/animação: modelo atual sem ossos usa pose visual de corpo inteiro.
-- Render Premium 2: mais objetos laterais, profundidade, aura de portal, partículas e identidade por mundo.
-- AR seguro preservado para não andar sozinho.
+Correções:
+- V43 anterior descartada por quebrar 3D/AR e poluir a tela.
+- Quiz agora roda 5 perguntas sem fechar ao responder.
+- Ver em 3D volta a usar o model-viewer estável, com controles simples de girar, zoom, subir/descer, tela maior, reset e AR.
+- AR seguro preservado.
+- Controles do jogo preservados.
+- Render/fases/game feel preservados da linha V42/V41.1.
 
-Powered by thIAguinho Soluções Digitais.
+Subir todos os arquivos na raiz do GitHub Pages.
+Abrir com: ?v=431-stable-quiz-3d

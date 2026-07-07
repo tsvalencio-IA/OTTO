@@ -13,7 +13,6 @@
     app: $('#app'), lobby: $('#lobby'), game: $('#game'), stage: $('#threeStage'), cameraFeed: $('#cameraFeed'), flash: $('#screenFlash'),
     nativeViewer: $('#nativeViewer'), modelStatus: $('#modelStatus'), difficultySelect: $('#difficultySelect'),
     playBtn: $('#playBtn'), heroPlayBtn: $('#heroPlayBtn'), heroFreeBtn: $('#heroFreeBtn'), hubBtn: $('#hubBtn'), freeBtn: $('#freeBtn'), quizBtn: $('#quizBtn'), askBtn: $('#askBtn'), collectionBtn: $('#collectionBtn'), resetBtn: $('#resetBtn'), arNativeExternalBtn: $('#arNativeExternalBtn'),
-    studioControls: $('#studioControls'), studioFullscreenBtn: $('#studioFullscreenBtn'), studioResetBtn: $('#studioResetBtn'), studioArBtn: $('#studioArBtn'), studioScale: $('#studioScale'), studioRigStatus: $('#studioRigStatus'), viewerPanel: $('.viewer-panel'),
     statXP: $('#statXP'), statLevel: $('#statLevel'), statMedals: $('#statMedals'), statBest: $('#statBest'),
     hudHearts: $('#hudHearts'), hudXP: $('#hudXP'), hudCrystals: $('#hudCrystals'), hudEnemies: $('#hudEnemies'), hudTime: $('#hudTime'),
     worldName: $('#worldName'), objectiveText: $('#objectiveText'), objectiveProgress: $('#objectiveProgress'), toast: $('#toast'),
@@ -22,7 +21,7 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v43_quiz_studio_render2_progress';
+  const STORAGE_KEY = 'athos_guardiao_v431_estavel_quiz_3d_progress';
   const LEGACY_STORAGE_KEYS = ['athos_guardiao_v42_level_design_ar_safe_progress','athos_guardiao_v411_pointer_capture_progress','athos_guardiao_v41_game_feel_progress','athos_guardiao_v37_auditoria_total_progress','athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
@@ -46,7 +45,7 @@
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
   };
 
-  // V43: mantém V42 estável e adiciona Quiz Pro, Estúdio 3D e Render Premium 2.
+  // V43.1: volta à base V42 estável e corrige só Quiz + controles simples do 3D, sem quebrar AR.
   const GAME_FEEL = {
     joystickDeadzone: .17,
     joystickCurve: 1.22,
@@ -71,32 +70,18 @@
   const AR_SAFE = {
     lockMs: 1350,
     freezeWhenIdle: true,
-    label: 'V42_AR_SAFE_NO_DRIFT'
+    label: 'V431_AR_SAFE_NO_DRIFT'
   };
 
 
-
-  const V43_STUDIO = {
-    label: 'V43_QUIZ_PRO_STUDIO_RENDER2',
-    roundSize: 5,
-    passScore: 3,
-    renderLayer: 'V43_RENDER_PREMIUM_2'
-  };
-
-  const studioState = {
-    yaw: 25,
-    pitch: 68,
+  const VIEWER_3D = {
+    orbit: 25,
+    elevation: 68,
     distance: 3.8,
     targetX: 0,
-    targetY: 1.25,
+    targetY: .8,
     targetZ: 0,
-    scale: 1,
-    tiltX: 0,
-    tiltY: 0,
-    tiltZ: 0,
-    pose: 'hero',
-    fullscreen: false,
-    rigged: false
+    scale: 1
   };
 
   const V42_LEVEL_GUIDES = {
@@ -111,7 +96,7 @@
 
   const LEVELS = [
     {
-      id:'training', world:'field', title:'Fase 1 — Treinamento dos Portais V42', length:210, crystals:5, enemies:3, medal:'Primeiro Pulo',
+      id:'training', world:'field', title:'Fase 1 — Treinamento dos Portais', length:210, crystals:5, enemies:3, medal:'Primeiro Pulo',
       objective:'Ritmo guiado: ande, pule na caixa, pegue cristais, use B Poder e entre no portal sem se perder.',
       tutorial:['Use o joystick para ir para o fundo da tela.','Aperte A para pular em cima das caixas.','B lança poder nos blocos escuros e inimigos.']
     },
@@ -271,7 +256,7 @@
   let cameraRig = { initialized:false, pos:null, look:null }; // V40: câmera cinematográfica suave sem mexer nos controles
   let initialized = false, animReq = 0, playing = false, paused = false, mode = 'lobby', currentLevelIndex = 0, currentLevel = null;
   let runtime = null, realBg = false, cameraStream = null, arSafeUntil = 0;
-  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [], v42Markers = [], v43Markers = [];
+  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [], v42Markers = [];
   let input = { x:0, z:0, crouch:false };
   let inputTarget = { x:0, z:0 };
   let keyboard = { left:false, right:false, forward:false, back:false };
@@ -635,7 +620,7 @@
   function clearLevel(){
     if (!levelGroup) return;
     while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
-    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; v42Markers=[]; v43Markers=[]; portalMesh=null;
+    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; v42Markers=[]; portalMesh=null;
   }
 
   function buildLevel(level, worldOverride){
@@ -647,7 +632,6 @@
     if (currentLevel.id === 'hub') createHub(); else createGameplay(currentLevel);
     createPortal(currentLevel.length || 220);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
-    applyV43RenderPremium2(currentLevel, currentLevel.length || 220);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
 
@@ -941,81 +925,6 @@
       r.position.set(0,.18,z); levelGroup.add(r);
     }
     v42Markers.push({ type:'portalRunway', z:start });
-  }
-
-
-  function applyV43RenderPremium2(level, len){
-    if (!levelGroup || !level) return;
-    const cfg = WORLD[level.world] || WORLD.field;
-    const world = level.world;
-    addV43WorldDepthFrames(world, len, cfg);
-    addV43SetDressing(world, len, cfg);
-    addV43PortalAura(len, cfg);
-    addV43AtmosphereMotifs(world, len, cfg);
-  }
-
-  function addV43WorldDepthFrames(world, len, cfg){
-    const color = cfg.accent || 0xfacc15;
-    for(let i=0;i<8;i++){
-      const z = -24 - i * Math.max(24, len/9);
-      if (Math.abs(z) > len - 14) continue;
-      [-9.4,9.4].forEach((x,side)=>{
-        const pylon = box(.34,2.8,.34, color, { emissive:color, emissiveIntensity:.16, outline:true, outlineOpacity:.12 });
-        pylon.position.set(x,1.4,z); levelGroup.add(pylon); premiumVisuals.push(pylon);
-        const beam = box(.28,.28,3.8, color, { emissive:color, emissiveIntensity:.10, transparent:true, opacity:.78 });
-        beam.position.set(x,2.85,z-1.8); levelGroup.add(beam); premiumVisuals.push(beam);
-        v43Markers.push({ type:'depthFrame', world, x, z, side });
-      });
-    }
-  }
-
-  function addV43SetDressing(world, len, cfg){
-    const color = cfg.accent || 0xfacc15;
-    const points = [-18,-46,-78,-112,-148,-188,-232,-278,-326].filter(z=>Math.abs(z)<len-18);
-    points.forEach((z,i)=>{
-      const side = i%2 ? -1 : 1;
-      const x = side * (11.5 + (i%3)*1.15);
-      if (world === 'field') {
-        const trunk = box(.55,2.8,.55,0x7c3f16,{ outline:true, outlineOpacity:.14 }); trunk.position.set(x,1.4,z); levelGroup.add(trunk);
-        const crown = box(2.5,1.55,2.5,0x22c55e,{ emissive:0x0f5f24, emissiveIntensity:.06, outline:true, outlineOpacity:.16 }); crown.position.set(x,3.05,z); levelGroup.add(crown); premiumVisuals.push(crown);
-      } else if (world === 'fire') {
-        const lava = box(2.8,.22,2.1,0xff5a1e,{ emissive:0xff3200, emissiveIntensity:.85, outline:true, outlineColor:0xffd000, outlineOpacity:.2 }); lava.position.set(x,.18,z); levelGroup.add(lava); premiumVisuals.push(lava); addGlowSprite(x,.8,z,0xff5a1e,4.3,.18);
-        const smoke = box(.7,.7,.7,0x475569,{ transparent:true, opacity:.34, emissive:0x111827, emissiveIntensity:.03 }); smoke.position.set(x,1.8,z); smoke.userData.float={baseY:1.8,amp:.55,speed:.45}; levelGroup.add(smoke); premiumVisuals.push(smoke);
-      } else if (world === 'forest') {
-        const trunk = box(.72,3.4,.72,0x4a2a12,{ outline:true, outlineOpacity:.14 }); trunk.position.set(x,1.7,z); levelGroup.add(trunk);
-        for(let k=0;k<3;k++){ const leaf=box(2.7-k*.35,1.0,2.7-k*.35,0x15803d,{ emissive:0x064e3b, emissiveIntensity:.05, outline:true, outlineOpacity:.12 }); leaf.position.set(x,3.15+k*.62,z); levelGroup.add(leaf); premiumVisuals.push(leaf); }
-      } else if (world === 'castle') {
-        const tower = box(1.45,4.4,1.45,0x64748b,{ outline:true, outlineColor:0xe2e8f0, outlineOpacity:.16 }); tower.position.set(x,2.2,z); levelGroup.add(tower);
-        const torch = box(.45,.65,.45,0xf97316,{ emissive:0xff5a1e, emissiveIntensity:.8 }); torch.position.set(x-side*.95,2.65,z); levelGroup.add(torch); premiumVisuals.push(torch); addGlowSprite(x-side*.95,2.65,z,0xffb703,3.2,.16);
-      } else if (world === 'space') {
-        const asteroid = box(1.5,1.1,1.35,0x64748b,{ emissive:0x1e293b, emissiveIntensity:.08, outline:true, outlineOpacity:.12 }); asteroid.position.set(x,3.2+(i%3),z); asteroid.rotation.set(.4*i,.3*i,.2*i); asteroid.userData.spin=.18+(i%3)*.05; levelGroup.add(asteroid); premiumVisuals.push(asteroid); addGlowSprite(x,3.2+(i%3),z,0x38bdf8,3.8,.12);
-      } else {
-        const obelisk = box(1.15,4.7,1.15,color,{ emissive:color, emissiveIntensity:.32, outline:true, outlineOpacity:.18 }); obelisk.position.set(x,2.35,z); obelisk.userData.float={baseY:2.35,amp:.22,speed:.7}; levelGroup.add(obelisk); premiumVisuals.push(obelisk); addGlowSprite(x,3.2,z,color,4.8,.18);
-      }
-    });
-  }
-
-  function addV43PortalAura(len, cfg){
-    const z = -len - 8;
-    const color = cfg.accent || 0xfacc15;
-    for(let i=0;i<3;i++){
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(3.1+i*.56,.055,10,72), mat(color,color,{ emissiveIntensity:.35, transparent:true, opacity:.42-i*.08, roughness:.2 }));
-      ring.position.set(0,3.1,z+i*.25); ring.rotation.x = Math.PI/2 + i*.08; ring.userData.spin=.22+i*.11; levelGroup.add(ring); premiumVisuals.push(ring);
-    }
-    addGlowSprite(0,3.2,z,color,8,.22);
-    v43Markers.push({ type:'portalAura', z });
-  }
-
-  function addV43AtmosphereMotifs(world, len, cfg){
-    const color = world === 'space' ? 0xffffff : (cfg.accent || 0xfacc15);
-    for(let i=0;i<18;i++){
-      const x = (Math.random()-.5)*28;
-      const y = 3.2 + Math.random()*5.5;
-      const z = -12 - Math.random() * Math.max(80, len - 20);
-      const dot = box(.12,.12,.12,color,{ emissive:color, emissiveIntensity: world==='fire' ? .65 : .28, transparent:true, opacity: world==='forest' ? .45 : .62 });
-      dot.position.set(x,y,z); dot.userData.float={baseY:y,amp:.22+Math.random()*.24,speed:.35+Math.random()*.55}; levelGroup.add(dot); premiumVisuals.push(dot);
-    }
-    v43Markers.push({ type:'atmosphere', world, count:18 });
   }
 
   function addPlatform(x,y,z,w,h,d,color){
@@ -1373,91 +1282,100 @@
   }
 
   function openQuiz(fromGame=false){
-    hardStopAllInput('quiz-pro-open');
-    const roundSize = Math.min(V43_STUDIO.roundSize, quizData.length);
-    const pool = quizData.map((q,i)=>({ ...q, _i:i })).sort(()=>Math.random()-.5);
-    const round = pool.slice(0, roundSize);
-    const state = { idx:0, right:0, wrong:0, answered:false, fromGame };
-    els.modalTitle.textContent = fromGame ? 'Quiz do Portal — Rodada Pro' : 'Quiz dos Portais — Rodada Pro';
+    hardStopAllInput('quiz-open');
+    const round = quizData.slice().sort(() => Math.random() - .5).slice(0,5);
+    let step = 0, right = 0, wrong = 0, answered = false;
 
     const renderQuestion = () => {
-      const q = round[state.idx];
-      state.answered = false;
-      const number = state.idx + 1;
-      const pct = Math.round(((state.idx) / roundSize) * 100);
+      answered = false;
+      const q = round[step] || quizData[0];
+      els.modalTitle.textContent = 'Quiz do Athos';
       els.modalBody.innerHTML = `
-        <div class="quiz-pro" data-quiz-pro="v43">
-          <div class="quiz-scorebar">
-            <b>Pergunta ${number}/${roundSize}</b>
-            <span>✅ ${state.right} acertos</span>
-            <span>❌ ${state.wrong} erros</span>
-          </div>
-          <div class="quiz-progress"><span style="width:${pct}%"></span></div>
-          <div class="quiz-question"><small>${escapeHtml(q.cat || 'athos')} • ${escapeHtml(q.diff || 'fácil')}</small><strong>${escapeHtml(q.q)}</strong></div>
-          <div id="quizOptionList" class="modal-list quiz-option-list"></div>
-          <div id="quizFeedback" class="quiz-feedback">Escolha uma resposta. O quiz não fecha sozinho.</div>
-          <button id="quizNextBtn" class="pixel-btn primary quiz-next" type="button" disabled>Próxima pergunta</button>
-        </div>`;
-      const list = $('#quizOptionList');
+        <div class="quiz-round-head">
+          <b>${step + 1}/5</b>
+          <span>✅ ${right}</span>
+          <span>❌ ${wrong}</span>
+        </div>
+        <div class="quiz-progress"><span style="width:${((step)/5)*100}%"></span></div>
+        <div class="answer quiz-question"><b>${escapeHtml(q.q)}</b></div>
+        <div class="modal-list quiz-options"></div>
+        <div id="quizFeedback" class="quiz-feedback" hidden></div>
+        <button id="quizNextBtn" class="pixel-btn primary" type="button" hidden>${step >= 4 ? 'Ver resultado' : 'Próxima'}</button>`;
+      const list = els.modalBody.querySelector('.quiz-options');
       const feedback = $('#quizFeedback');
       const next = $('#quizNextBtn');
       q.opts.forEach((opt,i)=>{
         const b=document.createElement('button');
-        b.className='pixel-btn choice quiz-option'; b.type='button'; b.dataset.test='quiz-option'; b.dataset.answer=String(i); b.dataset.correct=String(i===q.ans);
-        b.setAttribute('aria-label', `Opção do quiz: ${opt}`); b.textContent=opt;
+        b.className='pixel-btn choice quiz-option';
+        b.type='button';
+        b.dataset.test='quiz-option';
+        b.dataset.answer=String(i);
+        b.dataset.correct=String(i===q.ans);
+        b.setAttribute('aria-label', `Opção do quiz: ${opt}`);
+        b.textContent=opt;
         b.onclick=()=>{
-          if(state.answered) return;
-          state.answered = true;
+          if(answered) return;
+          answered = true;
           progress.quizAnswered=(progress.quizAnswered||0)+1;
-          if(i===q.ans){
-            state.right++; progress.quizRight=(progress.quizRight||0)+1;
-            b.classList.add('correct'); addXP(fromGame ? 9 : 6); beep(740,90,'square'); vibrate(35);
-            feedback.innerHTML = '✅ <b>Resposta certa!</b> Próxima pergunta liberada.';
-            toast('Resposta certa!', 'good');
+          const ok = i === q.ans;
+          if(ok){
+            right++;
+            progress.quizRight=(progress.quizRight||0)+1;
+            addXP(10);
+            b.classList.add('correct');
+            feedback.textContent='Acertou!';
+            feedback.className='quiz-feedback good';
+            toast('Acertou!', 'good');
+            speak('Acertou!');
           } else {
-            state.wrong++; b.classList.add('wrong'); beep(190,110,'sawtooth'); vibrate(70);
-            const rightBtn = list.querySelector(`[data-answer="${q.ans}"]`); if (rightBtn) rightBtn.classList.add('correct');
-            feedback.innerHTML = `❌ <b>Quase!</b> A resposta correta era: <b>${escapeHtml(q.opts[q.ans])}</b>.`;
-            toast('Quase! Continue a rodada.', 'bad');
+            wrong++;
+            b.classList.add('wrong');
+            const correct = list.querySelector('[data-correct="true"]');
+            if(correct) correct.classList.add('correct');
+            feedback.textContent='Quase! Veja a certa e continue.';
+            feedback.className='quiz-feedback bad';
+            toast('Quase!', 'warn');
           }
-          saveProgress(); updateHud();
-          next.disabled = false;
-          next.textContent = state.idx >= roundSize - 1 ? 'Ver resultado da rodada' : 'Próxima pergunta';
+          feedback.hidden=false;
+          next.hidden=false;
+          list.querySelectorAll('button').forEach(x=>x.disabled=true);
+          saveProgress();
+          updateHud();
         };
         list.appendChild(b);
       });
-      next.onclick = () => { if(!state.answered) return; state.idx++; if(state.idx >= roundSize) finishQuizRound(); else renderQuestion(); };
+      next.onclick=()=>{
+        if(step < round.length-1){ step++; renderQuestion(); }
+        else renderResult();
+      };
+      showModal();
     };
 
-    const finishQuizRound = () => {
-      const pct = Math.round((state.right / roundSize) * 100);
-      const passed = state.right >= V43_STUDIO.passScore;
-      const perfect = state.right === roundSize;
-      progress.quizRounds = (progress.quizRounds || 0) + 1;
-      if(perfect) addMedal('Campeão do Quiz');
-      if(passed) addXP(fromGame ? 22 : 14);
-      if(fromGame && runtime && passed){ runtime.quizSolved = true; checkGates(); }
+    const renderResult = () => {
+      const passed = right >= 3;
+      if(passed){
+        addXP(25 + right * 5);
+        if(progress.quizRight>=5)addMedal('Campeão do Quiz');
+        if(fromGame && runtime){ runtime.quizSolved=true; checkGates(); }
+      }
       saveProgress(); updateHud();
+      els.modalTitle.textContent = 'Resultado do Quiz';
       els.modalBody.innerHTML = `
-        <div class="quiz-result" data-quiz-result="v43">
-          <div class="quiz-result-medal">${perfect ? '🏆' : passed ? '⭐' : '🔁'}</div>
-          <h3>${perfect ? 'Rodada perfeita!' : passed ? 'Quiz concluído!' : 'Treine mais uma rodada!'}</h3>
-          <p>Resultado: <b>${state.right}/${roundSize}</b> respostas certas — ${pct}%.</p>
-          <div class="quiz-progress big"><span style="width:${pct}%"></span></div>
-          <div class="quiz-result-actions">
-            <button id="quizAgainBtn" class="pixel-btn primary" type="button">Jogar outra rodada</button>
-            <button id="quizCloseBtn" class="pixel-btn danger" type="button">Fechar</button>
-          </div>
-          <div class="answer">${fromGame && passed ? 'Portal energizado pelo Quiz Pro.' : 'O quiz agora é uma rodada de 5 perguntas e não fecha após uma única resposta.'}</div>
+        <div class="answer quiz-result">
+          <b>${passed ? 'Muito bem!' : 'Boa tentativa!'}</b><br>
+          Acertos: ${right}/5<br>
+          ${passed ? 'Bônus liberado.' : 'Tente outra rodada.'}
+        </div>
+        <div class="quiz-result-actions">
+          <button id="quizAgainBtn" class="pixel-btn primary" type="button">Jogar de novo</button>
+          <button id="quizDoneBtn" class="pixel-btn" type="button">Fechar</button>
         </div>`;
-      $('#quizAgainBtn').onclick = () => openQuiz(fromGame);
-      $('#quizCloseBtn').onclick = closeModal;
-      toast(passed ? 'Rodada concluída!' : 'Tente outra rodada!', passed ? 'good' : 'warn');
-      speak(passed ? 'Quiz concluído!' : 'Vamos tentar outra rodada.');
+      $('#quizAgainBtn').onclick=()=>openQuiz(fromGame);
+      $('#quizDoneBtn').onclick=closeModal;
+      showModal();
     };
 
     renderQuestion();
-    showModal();
   }
   function openAsk(){
     els.modalTitle.textContent = 'Falar com Athos';
@@ -1602,91 +1520,36 @@
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
     window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; stopHorizontalIfNoDirectionalInput(); });
   }
-  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz' || a==='ask') return; else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
-
-  function updateStudioViewer(){
+  function applyViewer3DState(){
     const v = els.nativeViewer;
-    if (!v) return;
-    studioState.distance = clamp(studioState.distance, 1.85, 7.2);
-    studioState.pitch = clamp(studioState.pitch, 35, 82);
-    studioState.scale = clamp(studioState.scale, .55, 1.85);
-    studioState.targetX = clamp(studioState.targetX, -1.4, 1.4);
-    studioState.targetY = clamp(studioState.targetY, .25, 2.8);
-    studioState.targetZ = clamp(studioState.targetZ, -1.2, 1.2);
-    v.setAttribute('camera-orbit', `${studioState.yaw}deg ${studioState.pitch}deg ${studioState.distance}m`);
-    v.setAttribute('camera-target', `${studioState.targetX.toFixed(2)}m ${studioState.targetY.toFixed(2)}m ${studioState.targetZ.toFixed(2)}m`);
-    v.setAttribute('scale', `${studioState.scale.toFixed(2)} ${studioState.scale.toFixed(2)} ${studioState.scale.toFixed(2)}`);
-    v.setAttribute('orientation', `${studioState.tiltX.toFixed(1)}deg ${studioState.tiltY.toFixed(1)}deg ${studioState.tiltZ.toFixed(1)}deg`);
-    v.dataset.pose = studioState.pose;
-    v.dataset.studio = V43_STUDIO.label;
-    if (els.studioScale && Math.abs(Number(els.studioScale.value) - studioState.scale) > .01) els.studioScale.value = studioState.scale;
+    if(!v) return;
+    v.setAttribute('camera-orbit', `${VIEWER_3D.orbit}deg ${VIEWER_3D.elevation}deg ${VIEWER_3D.distance.toFixed(2)}m`);
+    v.setAttribute('camera-target', `${VIEWER_3D.targetX.toFixed(2)}m ${VIEWER_3D.targetY.toFixed(2)}m ${VIEWER_3D.targetZ.toFixed(2)}m`);
+    v.setAttribute('scale', `${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)}`);
+    try { if (typeof v.updateFraming === 'function') v.updateFraming(); } catch {}
+  }
+  function resetViewer3D(){
+    VIEWER_3D.orbit = 25; VIEWER_3D.elevation = 68; VIEWER_3D.distance = 3.8;
+    VIEWER_3D.targetX = 0; VIEWER_3D.targetY = .8; VIEWER_3D.targetZ = 0; VIEWER_3D.scale = 1;
+    applyViewer3DState();
+    toast('Athos 3D resetado.', 'good');
+  }
+  function setupViewer3DControls(){
+    const bind = (id, fn) => { const el = document.getElementById(id); if(el) el.onclick = () => { hardStopAllInput('viewer-3d'); fn(); applyViewer3DState(); }; };
+    bind('viewerRotateLeftBtn', () => VIEWER_3D.orbit -= 18);
+    bind('viewerRotateRightBtn', () => VIEWER_3D.orbit += 18);
+    bind('viewerZoomInBtn', () => VIEWER_3D.distance = clamp(VIEWER_3D.distance - .35, 1.6, 7));
+    bind('viewerZoomOutBtn', () => VIEWER_3D.distance = clamp(VIEWER_3D.distance + .35, 1.6, 7));
+    bind('viewerMoveUpBtn', () => VIEWER_3D.targetY = clamp(VIEWER_3D.targetY + .12, -.8, 2.2));
+    bind('viewerMoveDownBtn', () => VIEWER_3D.targetY = clamp(VIEWER_3D.targetY - .12, -.8, 2.2));
+    const big = document.getElementById('viewerBigBtn');
+    if(big) big.onclick = () => { const panel = document.querySelector('.viewer-panel'); if(panel){ panel.classList.toggle('viewer-fullscreen'); setTimeout(applyViewer3DState, 80); } };
+    const reset = document.getElementById('viewerResetBtn');
+    if(reset) reset.onclick = resetViewer3D;
+    applyViewer3DState();
   }
 
-  function resetStudioPose(){
-    Object.assign(studioState, { yaw:25, pitch:68, distance:3.8, targetX:0, targetY:1.25, targetZ:0, scale:1, tiltX:0, tiltY:0, tiltZ:0, pose:'hero' });
-    updateStudioViewer();
-    toast('Estúdio 3D resetado.', 'good');
-  }
-
-  function setStudioPose(pose){
-    studioState.pose = pose;
-    if (pose === 'hero') Object.assign(studioState, { tiltX:0, tiltY:0, tiltZ:0, scale:1, targetY:1.25, distance:3.8 });
-    else if (pose === 'jump') Object.assign(studioState, { tiltX:-10, tiltY:0, tiltZ:7, scale:1.06, targetY:1.42, distance:3.45 });
-    else if (pose === 'power') Object.assign(studioState, { tiltX:0, tiltY:18, tiltZ:-8, scale:1.08, targetY:1.22, distance:3.25 });
-    else if (pose === 'mini') Object.assign(studioState, { tiltX:0, tiltY:0, tiltZ:0, scale:.72, targetY:.85, distance:3.1 });
-    else if (pose === 'giant') Object.assign(studioState, { tiltX:0, tiltY:0, tiltZ:0, scale:1.55, targetY:1.7, distance:5.05 });
-    updateStudioViewer();
-    toast(`Pose visual: ${pose}`, 'good');
-  }
-
-  function updateStudioRigStatus(){
-    let animations = 0;
-    try { animations = els.nativeViewer && els.nativeViewer.availableAnimations ? els.nativeViewer.availableAnimations.length : 0; } catch {}
-    studioState.rigged = animations > 0;
-    if (els.studioRigStatus) {
-      els.studioRigStatus.textContent = studioState.rigged
-        ? `Modelo com ${animations} animação(ões): controles de pose avançada liberados quando houver rig.`
-        : 'Modelo atual sem ossos/animações: pose visual move corpo inteiro, câmera, escala e posição. Braços/pernas reais exigem GLB rigado.';
-    }
-  }
-
-  function openStudioAR(){
-    hardStopAllInput('studio-ar');
-    arSafeUntil = now() + AR_SAFE.lockMs;
-    updateStudioViewer();
-    if (!els.nativeViewer || typeof els.nativeViewer.activateAR !== 'function') { toast('AR nativo indisponível neste navegador. Use Brincar Livre AR.', 'warn'); return; }
-    try { const r = els.nativeViewer.activateAR(); if (r && typeof r.catch === 'function') r.catch(()=>toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn')); } catch { toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn'); }
-  }
-
-  function setupStudio3D(){
-    updateStudioViewer();
-    $$('.studio-controls [data-studio-rotate]').forEach(btn => btn.onclick = () => { studioState.yaw += Number(btn.dataset.studioRotate || 0); updateStudioViewer(); });
-    $$('.studio-controls [data-studio-zoom]').forEach(btn => btn.onclick = () => { studioState.distance += Number(btn.dataset.studioZoom || 0); updateStudioViewer(); });
-    $$('.studio-controls [data-studio-move]').forEach(btn => btn.onclick = () => {
-      const [axis, raw] = String(btn.dataset.studioMove || '').split(':');
-      const delta = Number(raw || 0);
-      if(axis === 'x') studioState.targetX += delta;
-      if(axis === 'y') studioState.targetY += delta;
-      if(axis === 'z') studioState.targetZ += delta;
-      updateStudioViewer();
-    });
-    $$('.studio-controls [data-studio-pose]').forEach(btn => btn.onclick = () => setStudioPose(btn.dataset.studioPose));
-    if (els.studioScale) els.studioScale.oninput = () => { studioState.scale = Number(els.studioScale.value || 1); updateStudioViewer(); };
-    if (els.studioResetBtn) els.studioResetBtn.onclick = resetStudioPose;
-    if (els.studioArBtn) els.studioArBtn.onclick = openStudioAR;
-    if (els.studioFullscreenBtn) els.studioFullscreenBtn.onclick = () => {
-      studioState.fullscreen = !studioState.fullscreen;
-      els.viewerPanel && els.viewerPanel.classList.toggle('studio-fullscreen', studioState.fullscreen);
-      els.app && els.app.classList.toggle('studio-fullscreen-active', studioState.fullscreen);
-      els.studioFullscreenBtn.textContent = studioState.fullscreen ? '↙ Sair da tela maior' : '⛶ Tela maior';
-      setTimeout(()=>{ try { els.nativeViewer && els.nativeViewer.updateFraming && els.nativeViewer.updateFraming(); } catch{} }, 120);
-    };
-    if(els.nativeViewer){
-      els.nativeViewer.addEventListener('load', updateStudioRigStatus);
-      setTimeout(updateStudioRigStatus, 900);
-    }
-  }
-
+  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz' || a==='ask') return; else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
   function setupUI(){
     const bindStart = (el, target) => { if (!el) return; el.onclick = () => { closeModal(); start(target || el.dataset.play || 'missions'); }; };
     [els.playBtn, els.heroPlayBtn].forEach(el => bindStart(el, 'missions'));
@@ -1696,24 +1559,24 @@
     if (els.quizBtn) els.quizBtn.onclick=()=>openQuiz(false);
     if (els.askBtn) els.askBtn.onclick=openAsk;
     if (els.collectionBtn) els.collectionBtn.onclick=openCollection;
-    setupStudio3D();
     if (els.resetBtn) els.resetBtn.onclick=()=>{ if(confirm('Resetar XP, fases e medalhas?')){ localStorage.removeItem(STORAGE_KEY); location.reload(); } };
     if (els.exitBtn) els.exitBtn.onclick=exitGame;
     if (els.modalClose) els.modalClose.onclick=closeModal;
     if (els.modal) els.modal.addEventListener('click',(e)=>{ if(e.target===els.modal) closeModal(); });
     if (els.difficultySelect) els.difficultySelect.onchange=()=>{ progress.difficulty=els.difficultySelect.value; saveProgress(); toast(`Dificuldade: ${DIFFICULTY[progress.difficulty].name}`,'good'); };
+    setupViewer3DControls();
     const openNativeAR = () => {
       hardStopAllInput('native-ar');
+      applyViewer3DState();
       arSafeUntil = now() + AR_SAFE.lockMs;
-      updateStudioViewer();
       if (!els.nativeViewer || typeof els.nativeViewer.activateAR !== 'function') { toast('AR nativo indisponível neste navegador. Use Brincar Livre AR.', 'warn'); return; }
       try { const r = els.nativeViewer.activateAR(); if (r && typeof r.catch === 'function') r.catch(()=>toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn')); } catch { toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn'); }
     };
     if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=openNativeAR;
-    if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>{ els.modelStatus.textContent='athos.glb carregado no Estúdio 3D.'; updateStudioRigStatus(); }); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
+    if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=43-quiz-studio-render2').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=431-stable-quiz-3d').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1739,10 +1602,8 @@
     getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode, lastLandAt }) : null,
     getGameFeel: () => ({ ...GAME_FEEL }),
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
-    getV43Design: () => ({ markers:v43Markers.length, layer:V43_STUDIO.renderLayer, currentLevel: currentLevel ? currentLevel.id : null }),
-    getStudioState: () => ({ ...studioState }),
-    getQuizPro: () => ({ roundSize:V43_STUDIO.roundSize, passScore:V43_STUDIO.passScore, quizCount:quizData.length }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: realBg && now() < arSafeUntil, label: AR_SAFE.label }),
+    getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };
 
