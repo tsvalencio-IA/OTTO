@@ -21,7 +21,7 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v41_game_feel_progress';
+  const STORAGE_KEY = 'athos_guardiao_v411_pointer_capture_progress';
   const LEGACY_STORAGE_KEYS = ['athos_guardiao_v37_auditoria_total_progress','athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
@@ -45,7 +45,7 @@
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
   };
 
-  // V41 GAME FEEL: camada isolada de jogabilidade. Não mexe em HTML, AR, dock, Quiz/Falar ou render V40.
+  // V41.1 HOTFIX: mantém game feel V41 e corrige captura de ponteiro para não gerar NotFoundError em toque/teste.
   const GAME_FEEL = {
     joystickDeadzone: .17,
     joystickCurve: 1.22,
@@ -1203,7 +1203,7 @@
       e.preventDefault(); e.stopPropagation();
       joy.active=true; joy.pointerId=e.pointerId;
       const r=ring.getBoundingClientRect(); joy.cx=r.left+r.width/2; joy.cy=r.top+r.height/2;
-      ring.setPointerCapture && ring.setPointerCapture(e.pointerId);
+      safePointerCapture(ring, e);
       move(e);
     }, { passive:false });
     document.addEventListener('pointermove', move, { passive:false });
@@ -1248,18 +1248,32 @@
     }
   }
 
+
+  function safePointerCapture(el, event){
+    if (!el || !event || typeof event.pointerId !== 'number') return false;
+    if (!el.setPointerCapture) return false;
+    try {
+      el.setPointerCapture(event.pointerId);
+      return true;
+    } catch (err) {
+      // Alguns testes sintéticos e navegadores Android podem disparar pointerdown sem ponteiro ativo.
+      // Não pode virar erro fatal nem travar o controle.
+      return false;
+    }
+  }
+
   function setupInputs(){
     setupJoystick();
     $$('[data-move]').forEach(btn=>{
       const key=btn.dataset.move;
-      const on=(e)=>{ e.preventDefault(); e.stopPropagation(); btn.setPointerCapture && btn.setPointerCapture(e.pointerId); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; };
+      const on=(e)=>{ e.preventDefault(); e.stopPropagation(); safePointerCapture(btn, e); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; };
       const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; stopHorizontalIfNoDirectionalInput(); };
       btn.addEventListener('pointerdown',on,{passive:false});
       ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false}));
     });
     $$('[data-hold]').forEach(btn=>{
       const key=btn.dataset.hold;
-      btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); btn.setPointerCapture && btn.setPointerCapture(e.pointerId); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false});
+      btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); safePointerCapture(btn, e); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false});
       ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false}));
     });
     $$('[data-action]').filter(btn=>!btn.dataset.move && !btn.dataset.hold).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
