@@ -1,0 +1,25 @@
+{
+  "version": "V46_RENDER_PREMIUM_10_10",
+  "styleTarget": "voxel_mobile_adventure_premium",
+  "preserve": [
+    "athos.glb",
+    "model-viewer",
+    "joystick",
+    "B Poder",
+    "Quiz",
+    "Falar",
+    "AR Nativo",
+    "data-action",
+    "data-move",
+    "data-world"
+  ],
+  "worlds": {
+    "campo": {},
+    "vulcao": {},
+    "floresta": {},
+    "castelo": {},
+    "espaco": {},
+    "arena": {},
+    "real": {}
+  }
+}

@@ -1,3 +1,11 @@
+# ATHOS V46 — Render Premium 10/10 Integrado
+
+Base: V45 Plataforma 10/10 + camada V46 recebida do Gemini Canvas e corrigida para integração segura.
+
+Não foram alterados: athos.glb, model-viewer, joystick, B Poder, Quiz/Falar, data-action, data-move, data-world, localStorage e fluxo principal.
+
+Abra com `?v=46-render-premium-integrado`.
+
 # Athos V45 — Plataforma 10/10 / Render real + AR nativo ancorado
 
 Base: V44.2 preservada, com render e AR corrigidos conforme o padrão visual aprovado.

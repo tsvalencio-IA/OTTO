@@ -1,0 +1,357 @@
+/**
+ * ATHOS ADVENTURE 3D+ | RENDER PREMIUM V46 (CSS)
+ * Aplica um estilo premium, moderno e imersivo sobre o HTML existente.
+ * NENHUM elemento vital ocultado (display:none evitado para joysticks/botões-chave).
+ */
+
+/* Ativação via classe no body (gerida pelo JS global) */
+body.v46-premium-active {
+    background-color: #0d0d0d;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior: none; /* Previne bounce scroll no mobile */
+}
+
+/* =========================================
+   HUD SUPERIOR (Vidas, Moedas, XP, Status)
+   ========================================= */
+body.v46-premium-active .top-hud {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: linear-gradient(180deg, rgba(15,15,20,0.85) 0%, rgba(15,15,20,0) 100%);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    z-index: 1000;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    pointer-events: none; /* Deixa clicar no jogo através do fundo */
+}
+
+/* Cards Genéricos dentro do HUD */
+body.v46-premium-active .card,
+body.v46-premium-active [class*="status-box"],
+body.v46-premium-active [class*="hud-item"] {
+    background: rgba(30, 30, 40, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 6px 12px;
+    color: #fff;
+    font-weight: 600;
+    text-shadow: 0px 1px 3px rgba(0,0,0,0.8);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    pointer-events: auto; /* Reativa clique nos cards se necessário */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 4px;
+    transition: all 0.3s ease;
+}
+
+/* Barras de Progresso (Vida, XP) */
+body.v46-premium-active progress,
+body.v46-premium-active .health-bar,
+body.v46-premium-active .xp-bar {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 10px;
+    border-radius: 5px;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    overflow: hidden;
+}
+
+body.v46-premium-active .health-bar::-webkit-progress-value { background: linear-gradient(90deg, #d32f2f, #ff5252); }
+body.v46-premium-active .health-bar::-moz-progress-bar { background: linear-gradient(90deg, #d32f2f, #ff5252); }
+body.v46-premium-active .xp-bar::-webkit-progress-value { background: linear-gradient(90deg, #0288d1, #40c4ff); box-shadow: 0 0 8px #40c4ff; }
+body.v46-premium-active .xp-bar::-moz-progress-bar { background: linear-gradient(90deg, #0288d1, #40c4ff); box-shadow: 0 0 8px #40c4ff; }
+
+
+/* =========================================
+   CONTROLES MOBILE (Joystick e Botões)
+   ========================================= */
+
+/* Zona do Joystick (Não ocultamos, apenas embelezamos) */
+body.v46-premium-active #joystick-zone,
+body.v46-premium-active .joystick-container {
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.2) 100%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.2) !important;
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 0 15px rgba(255,255,255,0.1), 0 0 20px rgba(0,0,0,0.3);
+    border-radius: 50% !important;
+}
+
+/* O "pino" do joystick */
+body.v46-premium-active #joystick-knob,
+body.v46-premium-active .joystick-stick {
+    background: linear-gradient(145deg, rgba(255,255,255,0.8), rgba(200,200,200,0.6)) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.8) !important;
+    border-radius: 50% !important;
+    border: none !important;
+}
+
+/* Container de Botões de Ação (Poder, Pulo, Interação) */
+body.v46-premium-active .action-buttons,
+body.v46-premium-active #action-pad {
+    display: flex;
+    gap: 12px;
+    z-index: 1000;
+}
+
+/* Botões de Ação Específicos preservando as IDs informadas */
+body.v46-premium-active .game .action-btn {
+    background: linear-gradient(135deg, rgba(138, 43, 226, 0.8), rgba(75, 0, 130, 0.9));
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 50%; /* Formato circular premium */
+    width: 65px;
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 4px 15px rgba(138, 43, 226, 0.5), inset 0 -3px 5px rgba(0,0,0,0.3), inset 0 3px 5px rgba(255,255,255,0.4);
+    backdrop-filter: blur(4px);
+    transition: transform 0.1s, box-shadow 0.1s, background 0.3s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    pointer-events: auto;
+}
+
+body.v46-premium-active .game .action-btn:active {
+    transform: scale(0.92);
+    box-shadow: 0 2px 5px rgba(138, 43, 226, 0.5), inset 0 4px 8px rgba(0,0,0,0.5);
+    background: linear-gradient(135deg, rgba(75, 0, 130, 0.9), rgba(48, 0, 84, 0.9));
+}
+
+/* Diferenciação de Cores para Botões Específicos */
+body.v46-premium-active #powerBtn {
+    background: linear-gradient(135deg, rgba(0, 229, 255, 0.8), rgba(0, 176, 255, 0.9));
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.5), inset 0 -3px 5px rgba(0,0,0,0.3);
+}
+body.v46-premium-active #quizBtn {
+    background: linear-gradient(135deg, rgba(255, 152, 0, 0.8), rgba(245, 124, 0, 0.9));
+    box-shadow: 0 4px 15px rgba(255, 152, 0, 0.5), inset 0 -3px 5px rgba(0,0,0,0.3);
+}
+
+/* =========================================
+   MENUS E MODAIS (Painéis bonitos e curtos)
+   ========================================= */
+body.v46-premium-active .modal,
+body.v46-premium-active .menu-panel {
+    background: rgba(20, 20, 25, 0.9) !important;
+    border: 1px solid rgba(138, 43, 226, 0.4);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 20px rgba(138, 43, 226, 0.2);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    color: #fff;
+    padding: 24px;
+}
+
+body.v46-premium-active h1, 
+body.v46-premium-active h2, 
+body.v46-premium-active .title {
+    color: #00E5FF;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0;
+}
+
+body.v46-premium-active .menu-btn,
+body.v46-premium-active button.primary {
+    background: linear-gradient(90deg, #00B0FF, #00E5FF);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 24px;
+    color: #000;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+body.v46-premium-active .menu-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(0, 229, 255, 0.4);
+}
+
+/* =========================================
+   TOQUES FINAIS / ANIMAÇÕES
+   ========================================= */
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.4); }
+    50% { box-shadow: 0 0 15px rgba(0, 229, 255, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(0, 229, 255, 0.4); }
+}
+
+body.v46-premium-active .crystal-icon,
+body.v46-premium-active [class*="gem"] {
+    animation: pulseGlow 2s infinite ease-in-out;
+    filter: drop-shadow(0 0 5px #00E5FF);
+}
+
+/* =========================================================
+   ATHOS V46 INTEGRATION SAFE OVERRIDES
+   Objetivo: aplicar skin premium sem quebrar ids/controles.
+   ========================================================= */
+body.v46-premium-active {
+  background:#071326;
+}
+body.v46-premium-active .hero-shell {
+  background:
+    radial-gradient(circle at 20% 15%, rgba(255,213,111,.20), transparent 22%),
+    radial-gradient(circle at 75% 20%, rgba(168,85,247,.22), transparent 26%),
+    linear-gradient(180deg, rgba(9,21,43,.94), rgba(4,8,18,.98));
+  border: 4px solid rgba(203,224,245,.65);
+  border-radius: 24px;
+  box-shadow: 0 22px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.25);
+}
+body.v46-premium-active .hero {
+  min-height: 350px;
+  background-image: linear-gradient(180deg, rgba(5,12,28,.22), rgba(5,12,28,.80)), url('../v45_menu_target.png');
+  background-size: cover;
+  background-position: center top;
+  border-radius: 20px;
+  padding: 24px 20px 28px;
+  align-items: end;
+}
+body.v46-premium-active .eyebrow { color:#ffd54a; text-shadow:0 3px 0 #000; letter-spacing:.14em; }
+body.v46-premium-active .hero h1 {
+  color:#fff;
+  font-weight: 1000;
+  text-shadow: 0 5px 0 rgba(0,0,0,.75), 0 0 24px rgba(96,165,250,.45);
+}
+body.v46-premium-active .subtitle { color:#eaf6ff; text-shadow:0 2px 0 #000; }
+body.v46-premium-active .athos-badge {
+  border-color:#ffd54a;
+  box-shadow:0 0 0 5px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.45), 0 0 22px rgba(255,213,74,.45);
+}
+body.v46-premium-active .pixel-btn {
+  border-radius: 18px;
+  border: 3px solid rgba(255,255,255,.85);
+  box-shadow: inset 0 4px 0 rgba(255,255,255,.42), inset 0 -7px 0 rgba(0,0,0,.28), 0 8px 0 rgba(0,0,0,.38), 0 15px 30px rgba(0,0,0,.35);
+  text-shadow: 0 3px 0 rgba(0,0,0,.62);
+}
+body.v46-premium-active .main-actions {
+  gap: 12px;
+}
+body.v46-premium-active .main-actions .pixel-btn.big {
+  min-height: 60px;
+  font-size: clamp(1.05rem, 4.2vw, 1.65rem);
+  justify-content:center;
+}
+body.v46-premium-active #playBtn,
+body.v46-premium-active #heroPlayBtn { background: linear-gradient(180deg,#4ade80,#17b848) !important; color:#07131c; text-shadow:0 2px 0 rgba(255,255,255,.35); }
+body.v46-premium-active #freeBtn,
+body.v46-premium-active #heroFreeBtn { background: linear-gradient(180deg,#a855f7,#6d28d9) !important; color:#fff; }
+body.v46-premium-active #quizBtn,
+body.v46-premium-active #askBtn { background: linear-gradient(180deg,#38bdf8,#0369a1) !important; color:#fff; }
+body.v46-premium-active #collectionBtn { background: linear-gradient(180deg,#facc15,#d97706) !important; color:#fff; }
+body.v46-premium-active .hint-box { display:none !important; }
+
+body.v46-premium-active .viewer-panel {
+  background: linear-gradient(180deg, rgba(226,246,255,.95), rgba(191,227,244,.96)) !important;
+  border-radius: 22px;
+}
+body.v46-premium-active .native-viewer {
+  border-radius: 18px;
+  background: linear-gradient(#9bd8ff 0 55%, #5bcb5b 56% 100%) !important;
+  border: 5px solid #0b1427;
+  min-height: 300px;
+}
+body.v46-premium-active .ar-external-btn { background: linear-gradient(180deg,#55e987,#16a34a) !important; color:#06120a; text-shadow:0 2px 0 rgba(255,255,255,.35); }
+
+body.v46-premium-active .game { background:#061020; }
+body.v46-premium-active .top-hud {
+  background: linear-gradient(180deg, rgba(6,14,33,.84), rgba(6,14,33,0));
+  padding: max(8px, env(safe-area-inset-top)) 12px 6px;
+  gap: 7px;
+}
+body.v46-premium-active .hud-box {
+  background: rgba(6,15,31,.78);
+  border: 3px solid rgba(255,255,255,.35);
+  border-radius: 14px;
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.18), 0 8px 18px rgba(0,0,0,.35);
+  min-width: 82px;
+}
+body.v46-premium-active .objective-card {
+  top: calc(max(74px, env(safe-area-inset-top) + 72px));
+  max-width: min(820px, calc(100vw - 24px));
+  background: rgba(10,26,48,.70);
+  border: 3px solid rgba(164,210,255,.38);
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.16);
+}
+body.v46-premium-active .objective-card strong { font-size: clamp(.98rem, 3.1vw, 1.5rem); }
+body.v46-premium-active .world-strip {
+  background: rgba(4,12,28,.82);
+  border: 2px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  padding: 6px;
+  box-shadow: 0 -8px 24px rgba(0,0,0,.35);
+}
+body.v46-premium-active .world-chip {
+  border-radius: 13px;
+  min-height: 40px;
+  background: linear-gradient(180deg,#ffffff,#b9c4cf);
+  color:#07131c;
+  border: 2px solid rgba(255,255,255,.85);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.65), 0 4px 0 rgba(0,0,0,.34);
+}
+body.v46-premium-active .world-chip.active { background: linear-gradient(180deg,#facc15,#b45309); color:#111827; }
+body.v46-premium-active .world-chip[data-world="real"] { background: linear-gradient(180deg,#58f18f,#16a34a); color:#06120a; }
+body.v46-premium-active .joy-ring {
+  background: radial-gradient(circle, rgba(255,255,255,.22), rgba(11,18,32,.50));
+  border: 5px solid rgba(255,255,255,.82);
+  box-shadow: inset 0 0 28px rgba(255,255,255,.10), 0 12px 32px rgba(0,0,0,.45);
+}
+body.v46-premium-active .joy-knob {
+  background: linear-gradient(180deg,#f8fafc,#b8c2cf);
+  box-shadow: inset 0 4px 0 rgba(255,255,255,.80), 0 8px 18px rgba(0,0,0,.45);
+}
+body.v46-premium-active .action-grid .action-btn {
+  border-radius: 18px !important;
+  width: auto !important;
+  height: auto !important;
+  min-height: 58px;
+  border: 3px solid rgba(255,255,255,.92) !important;
+  box-shadow: inset 0 3px 0 rgba(255,255,255,.44), inset 0 -5px 0 rgba(0,0,0,.30), 0 6px 0 rgba(0,0,0,.38) !important;
+}
+body.v46-premium-active #jumpBtn { background: linear-gradient(180deg,#4b8cff,#1d4ed8) !important; }
+body.v46-premium-active #powerBtn { background: linear-gradient(180deg,#ff523d,#b91c1c) !important; }
+body.v46-premium-active #crouchBtn { background: linear-gradient(180deg,#facc15,#a16207) !important; }
+body.v46-premium-active #sizeBtn { background: linear-gradient(180deg,#22c55e,#15803d) !important; }
+body.v46-premium-active #normalBtn { background: linear-gradient(180deg,#64748b,#334155) !important; }
+body.v46-premium-active #pauseBtn { background: linear-gradient(180deg,#a855f7,#6d28d9) !important; }
+body.v46-premium-active #exitBtn { background: linear-gradient(180deg,#ef4444,#991b1b) !important; }
+
+@media (max-width: 740px) {
+  body.v46-premium-active .hero-shell { border-radius: 0; border-width: 0 0 3px; }
+  body.v46-premium-active .hero {
+    min-height: 310px;
+    margin: 0 8px 12px;
+    padding: 18px 16px 20px;
+  }
+  body.v46-premium-active .lobby-grid { grid-template-columns: 1fr; gap: 12px; }
+  body.v46-premium-active .menu-panel { order: 1; }
+  body.v46-premium-active .viewer-panel { order: 2; }
+  body.v46-premium-active .stats-grid, body.v46-premium-active .field-label, body.v46-premium-active #difficultySelect { display:none !important; }
+  body.v46-premium-active .main-actions { grid-template-columns: 1fr 1fr; display:grid; }
+  body.v46-premium-active #playBtn, body.v46-premium-active #freeBtn, body.v46-premium-active #collectionBtn, body.v46-premium-active #resetBtn { grid-column: 1 / -1; }
+  body.v46-premium-active .native-viewer { min-height: 290px; }
+}
+
+@media (orientation: portrait) and (max-width: 740px) {
+  body.v46-premium-active .game-controls { height: min(37dvh, 318px); }
+  body.v46-premium-active .three-stage { bottom: min(37dvh, 318px); }
+  body.v46-premium-active .hud-box { min-width: 0; flex: 1 1 74px; padding: 6px 4px; }
+  body.v46-premium-active .hud-box small { font-size: .72rem; }
+  body.v46-premium-active .hud-box b { font-size: 1.38rem; }
+}

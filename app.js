@@ -1,5 +1,6 @@
 (() => {
   'use strict';
+  // V46_RENDER_PREMIUM_INTEGRADO: camada visual procedural instalada sem alterar controles/AR/lógica.
 
   window.__athosErrors = window.__athosErrors || [];
   window.addEventListener('error', event => window.__athosErrors.push(event.message || 'Erro JS'));
@@ -452,6 +453,7 @@
     buildFallbackAthos(); loadAthosGLB();
     window.addEventListener('resize', resize, { passive:true });
     window.addEventListener('orientationchange', () => setTimeout(resize, 140), { passive:true });
+    installV46Premium(currentLevel && currentLevel.world);
     animate();
     return true;
   }
@@ -621,6 +623,44 @@
     });
   }
 
+
+
+  // V46 — Render Premium integrado como camada visual independente.
+  function v46WorldName(world){
+    const map = { field:'campo', hub:'campo', fire:'vulcao', forest:'floresta', castle:'castelo', space:'espaco', arena:'arena', real:'real' };
+    return map[world] || world || 'campo';
+  }
+  function v46Ctx(world){
+    return {
+      THREE: window.THREE,
+      scene,
+      camera,
+      renderer,
+      player,
+      currentWorld: v46WorldName(world || (currentLevel && currentLevel.world) || 'field'),
+      level: currentLevel,
+      objects: { platforms, hazards, gates, solids, checkpoints },
+      enemies,
+      portal: portalMesh,
+      crystals
+    };
+  }
+  function installV46Premium(world){
+    const api = window.ATHOS_V46_RENDER_PREMIUM;
+    if (!api || !window.THREE || !scene || !renderer || !camera) return;
+    try { api.install(v46Ctx(world)); } catch (err) { console.warn('V46 install ignorado:', err); }
+  }
+  function rebuildV46Premium(world){
+    const api = window.ATHOS_V46_RENDER_PREMIUM;
+    if (!api || !window.THREE || !scene || !renderer || !camera) return;
+    try { api.rebuildWorld(v46Ctx(world), v46WorldName(world || (currentLevel && currentLevel.world) || 'field')); } catch (err) { console.warn('V46 rebuild ignorado:', err); }
+  }
+  function updateV46Premium(dt){
+    const api = window.ATHOS_V46_RENDER_PREMIUM;
+    if (!api || !window.THREE || !scene || !renderer || !camera) return;
+    try { api.update(v46Ctx(currentLevel && currentLevel.world), dt); } catch (err) { console.warn('V46 update ignorado:', err); }
+  }
+
   async function start(modeName){
     mode = modeName; paused = false; playing = true;
     hardStopAllInput('start');
@@ -669,6 +709,7 @@
     applyV442MinecraftAdventureRender(currentLevel, currentLevel.length || 220);
     applyV45TrueGamePlatformRender(currentLevel, currentLevel.length || 220);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
+    rebuildV46Premium(currentLevel.world);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
 
@@ -1394,7 +1435,7 @@
   }
 
   function update(dt){
-    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateV44EnemyProjectiles(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
+    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateV44EnemyProjectiles(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); updateV46Premium(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
   function updateInput(dt=1/60){
@@ -1993,7 +2034,7 @@
       ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false}));
     });
     $$('[data-action]').filter(btn=>!btn.dataset.move && !btn.dataset.hold).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
-    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(btn.dataset.world==='real'){ updateWorldButtons('real'); openNativeAR('world-chip-real'); return; } if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
+    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(btn.dataset.world==='real'){ updateWorldButtons('real'); rebuildV46Premium('real'); openNativeAR('world-chip-real'); return; } if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
     document.addEventListener('pointerup', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     document.addEventListener('pointercancel', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
@@ -2077,6 +2118,7 @@
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: now() < arSafeUntil, label: AR_SAFE.label, nativeAR:true, fakeCamera:false }),
     getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds, v45:V45_PLATFORM_RENDER.label }),
+    getV46Render: () => (window.ATHOS_V46_RENDER_PREMIUM && window.ATHOS_V46_RENDER_PREMIUM.getStatus ? window.ATHOS_V46_RENDER_PREMIUM.getStatus() : { installed:false }),
     getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V45_TRUE_GAME_PLATFORM_10_10', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
