@@ -767,3 +767,50 @@ body.viewer-fullscreen-open{overflow:hidden!important;touch-action:none!importan
 /* V47.3 cache marker: shader-safe render and playable controls. */
 
 /* V48 cache marker: render-alvo fiel shader-safe + controles mobile jogáveis. */
+
+
+/* ===== V49 — render exigido + controles limpos para novo repositório ===== */
+:root{--athos-render-exigido:url('./assets/render-targets/render-exigido-campo.jpg');}
+body{background:#071425!important;}
+.hero-shell{background:transparent!important;border:none!important;box-shadow:none!important;padding:8px 0 0!important;backdrop-filter:none!important}
+.hero{position:relative!important;min-height:240px!important;padding:18px!important;border-radius:22px!important;overflow:hidden!important;background-image:linear-gradient(90deg,rgba(5,10,24,.68) 0%,rgba(5,10,24,.28) 45%,rgba(5,10,24,.18) 100%),linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.40)),var(--athos-render-exigido)!important;background-size:cover!important;background-position:center center!important;box-shadow:0 20px 44px rgba(0,0,0,.38)!important;border:2px solid rgba(255,255,255,.20)!important}
+.hero::before{display:none!important}
+.hero h1,.subtitle,.eyebrow{position:relative!important;z-index:2!important}
+.lobby-grid{margin-top:10px!important}
+.viewer-panel,.menu-panel{background:rgba(236,245,255,.92)!important;border-radius:20px!important;box-shadow:0 14px 28px rgba(0,0,0,.18)!important}
+.native-viewer{background:linear-gradient(180deg,#88d7ff 0%,#c9f1ff 48%,#6fda70 49%,#2f9242 100%)!important}
+
+.game.active{background:#071425!important}
+.three-stage{position:absolute!important;inset:0!important;background-image:linear-gradient(180deg,rgba(8,17,35,.08),rgba(8,17,35,.18)),var(--athos-render-exigido)!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+#three-canvas{background:transparent!important}
+.game.active .objective-card{z-index:40!important}
+.game.active .game-controls{display:grid!important;grid-template-columns:minmax(140px,1fr) auto!important;grid-template-areas:'world world' 'left right'!important;align-items:end!important;gap:8px!important;left:0!important;right:0!important;bottom:0!important;padding:8px 8px calc(8px + var(--safe-bottom))!important;background:linear-gradient(180deg,rgba(2,6,23,0),rgba(2,6,23,.16) 20%,rgba(2,6,23,.42) 100%)!important}
+.game.active .game-controls>.world-strip{grid-area:world!important;justify-self:center!important;max-width:100%!important;padding:4px 6px!important;margin:0 auto!important}
+.game.active .left-zone{grid-area:left!important;display:flex!important;align-items:flex-end!important;gap:8px!important;min-width:0!important}
+.game.active .right-zone{grid-area:right!important;display:flex!important;align-items:flex-end!important;justify-content:flex-end!important;min-width:0!important}
+.game.active .world-strip{border-radius:14px!important;background:rgba(2,8,18,.32)!important;backdrop-filter:blur(4px)!important;border:1px solid rgba(255,255,255,.14)!important}
+.game.active .world-chip{min-height:32px!important;border-radius:10px!important;padding:6px 10px!important}
+.game.active .joystick{gap:6px!important}
+.game.active .joy-ring{width:118px!important;height:118px!important;background:rgba(255,255,255,.14)!important}
+.game.active .joy-knob{width:52px!important;height:52px!important;margin:-26px 0 0 -26px!important}
+.game.active .direction-buttons{display:grid!important;grid-template-columns:repeat(2,44px)!important;grid-template-areas:'f f' 'l r' 'b b'!important;gap:5px!important;opacity:.88!important;transform:none!important}
+.game.active #moveForwardBtn{grid-area:f!important}
+.game.active #moveLeftBtn{grid-area:l!important}
+.game.active #moveRightBtn{grid-area:r!important}
+.game.active #moveBackBtn{grid-area:b!important}
+.game.active .move-btn{width:44px!important;height:32px!important;min-height:32px!important;font-size:14px!important;padding:0!important}
+.game.active .move-btn span{display:none!important}
+.game.active .action-grid{grid-template-columns:repeat(3,58px)!important;gap:8px!important}
+.game.active .action-btn{width:58px!important;height:58px!important;min-height:58px!important}
+.game.active .action-btn span{display:none!important}
+.game.active .hud-box{background:rgba(7,16,36,.72)!important}
+body[data-world="real"] .three-stage{background-image:linear-gradient(180deg,rgba(8,17,35,.06),rgba(8,17,35,.12))!important}
+@media (max-width:560px){
+  .game.active .objective-card{width:min(95vw,520px)!important}
+  .game.active .game-controls{grid-template-columns:1fr auto!important}
+  .game.active .left-zone{gap:6px!important}
+  .game.active .joy-ring{width:108px!important;height:108px!important}
+  .game.active .joy-knob{width:48px!important;height:48px!important;margin:-24px 0 0 -24px!important}
+  .game.active .action-grid{grid-template-columns:repeat(3,54px)!important;gap:7px!important}
+  .game.active .action-btn{width:54px!important;height:54px!important;min-height:54px!important}
+}

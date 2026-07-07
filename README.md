@@ -1,14 +1,14 @@
-# Athos Adventure 3D+ — V48 Render-alvo 10/10
+# ATHOS V49
 
-Pacote completo para subir direto no GitHub Pages.
+Pacote GitHub completo preparado como base limpa para novo repositório.
 
-Base: motor de gameplay Codex + AR/model-viewer preservado + camada visual V48 shader-safe.
+Inclui:
+- jogo completo atual
+- render de referência exigido embutido como alvo visual
+- scripts de teste F12
+- correção da sombra/bola preta
+- controles reorganizados para mobile
 
-Arquivos de teste incluídos:
-
+Arquivos de teste:
 - F12_TESTE_ATHOS_V48_RENDER_ALVO_10.js
 - F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js
-
-Abra com: `?v=48-render-alvo-10`
-
-Powered by thIAguinho Soluções Digitais.

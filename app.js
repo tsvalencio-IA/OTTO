@@ -623,17 +623,13 @@
   }
 
   function ensurePlayerContactShadow(){
-    if (!player || player.userData.contactShadow || !window.THREE) return;
-    const shadow = new THREE.Mesh(
-      new THREE.CircleGeometry(.82, 32),
-      new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:.22, depthWrite:false })
-    );
-    shadow.name = 'athosContactShadowV40';
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = .018;
-    shadow.renderOrder = 4;
-    player.add(shadow);
-    player.userData.contactShadow = shadow;
+    // V49: sombra circular removida para não gerar a 'bola preta' em volta do Athos.
+    if (!player) return;
+    if (player.userData && player.userData.contactShadow && player.remove) {
+      try { player.remove(player.userData.contactShadow); } catch(_) {}
+    }
+    if (!player.userData) player.userData = {};
+    player.userData.contactShadow = null;
   }
 
   function addV40BackdropSilhouettes(world, length, cfg){
@@ -738,6 +734,8 @@
     applyV45TrueGamePlatformRender(currentLevel, currentLevel.length || 220);
     rebuildV48Render(currentLevel.world);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
+    document.body.dataset.world = currentLevel.world;
+    if (els.game) els.game.dataset.world = currentLevel.world;
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
 
@@ -745,9 +743,10 @@
     const cfg = WORLD[world] || WORLD.field;
     realBg = world === 'real'; els.game.classList.toggle('real-bg', realBg);
     if (skyMesh && scene) { scene.remove(skyMesh); skyMesh = null; }
-    scene.background = realBg ? null : new THREE.Color(world === 'space' ? 0x020617 : shadeColor(cfg.sky || 0x101827, world === 'fire' ? -18 : -4));
+    const premiumBackdrop = world !== 'real';
+    scene.background = premiumBackdrop ? null : null;
     const fogDensity = world === 'space' ? .0028 : world === 'fire' ? .0048 : world === 'castle' ? .0036 : .0024;
-    scene.fog = realBg ? null : new THREE.FogExp2(cfg.fog || cfg.sky, fogDensity);
+    scene.fog = premiumBackdrop ? null : new THREE.FogExp2(cfg.fog || cfg.sky, fogDensity);
     ambientLight.color.setHex(cfg.light); ambientLight.intensity = realBg ? 1.0 : world === 'space' ? .38 : world === 'fire' ? .34 : .48;
     sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
     sunLight.position.set(world === 'space' ? -12 : 10, world === 'fire' ? 18 : 22, world === 'castle' ? 4 : 12);
