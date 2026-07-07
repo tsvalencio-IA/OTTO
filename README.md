@@ -1,34 +1,13 @@
-# ATHOS V42 — Fases desenhadas + AR seguro
+# Athos V43 — Quiz Pro + Estúdio 3D + Render Premium 2
 
-Base: V41.1 Game Feel Hotfix.
+Base preservada: V42 passou com 59 OK / 0 falhas / 0 erros JS.
 
-Escopo fechado da V42:
-- melhorar desenho das fases com guias visuais, placas, marcações de pista, alerta de perigo e runway do portal;
-- melhorar AR/Real para o Athos não andar sozinho ao abrir câmera/realidade aumentada;
-- remover auto-rotate do model-viewer do lobby para o boneco não ficar se mexendo sozinho;
-- manter controles limpos da V39;
-- manter render/câmera da V40;
-- manter game feel/pointer hotfix da V41.1.
-
-Não foi removido:
-- athos.glb;
-- AR Nativo;
-- Brincar Livre AR;
-- Three.js;
-- Quiz/Falar no lobby;
-- joystick;
-- A/B/Y/X/N/R/I/Pausa/Sair;
-- fases, inimigos, portais, cristais e progresso.
-
-Arquivo de teste:
-F12_TESTE_ATHOS_V42_FASES_AR_SEGURO.js
-
-Como testar:
-1. Subir tudo na raiz do GitHub Pages.
-2. Abrir com ?v=42-level-design-ar-safe.
-3. Entrar em Jogar Fases 3D.
-4. Confirmar que a fase tem placas/guias/marcações de desafio.
-5. Trocar para Real/AR e não tocar em nada: Athos precisa ficar parado.
-6. Rodar o teste F12 da V42 no console.
+## Mudanças V43
+- Quiz Pro com rodada de 5 perguntas, placar, progresso, feedback e resultado final.
+- Quiz não fecha mais após responder uma pergunta.
+- Estúdio 3D no lobby: tela maior, girar, zoom, mover posição, escala, poses visuais e abrir em AR.
+- Detector de rig/animação: modelo atual sem ossos usa pose visual de corpo inteiro.
+- Render Premium 2: mais objetos laterais, profundidade, aura de portal, partículas e identidade por mundo.
+- AR seguro preservado para não andar sozinho.
 
 Powered by thIAguinho Soluções Digitais.
