@@ -45,7 +45,7 @@
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
   };
 
-  // V44: base V43.1 estável; camada cirúrgica de INIMIGOS/BOSS + Real visível no mobile. Não altera controles, AR nativo, model-viewer, Quiz/Falar ou localStorage.
+  // V44.1: base V43.1 + V44 inimigos preservadas. Hotfix visual: menu Minecraft limpo, HUD menos poluído e leitura de jogo sem excesso de texto.
   const GAME_FEEL = {
     joystickDeadzone: .17,
     joystickCurve: 1.22,
@@ -75,7 +75,7 @@
 
 
   const V44_ENEMY_AI = {
-    label: 'V44_ROUTE_ENEMIES_BOSS_ONLY',
+    label: 'V441_ROUTE_ENEMIES_BOSS_MINECRAFT_CLEAN',
     enabled: true,
     vision: 13,
     projectileSpeed: 7.0,
@@ -101,49 +101,49 @@
   };
 
   const V42_LEVEL_GUIDES = {
-    training: ['Ande para o fundo', 'Pule na caixa', 'Pegue cristal', 'Use B Poder', 'Entre no portal'],
-    field: ['Rota das caixas', 'Cristal alto', 'Desvie do buraco', 'Quebre bloco escuro', 'Portal do campo'],
-    volcano: ['Lava machuca', 'Pule com direção', 'Espinho usa B', 'Checkpoint seguro', 'Portal do vulcão'],
-    forest: ['Y abaixa', 'Mini passa no túnel', 'Cristal escondido', 'Voador usa B', 'Portal da floresta'],
-    castle: ['Portão pesado', 'Gigante ajuda', 'Golem aguenta', 'Checkpoint do castelo', 'Portal de pedra'],
-    space: ['Plataforma flutuante', 'Pulo com impulso', 'Voador espacial', 'Quiz do portal', 'Portal do espaço'],
-    arena: ['Misture tudo', 'Cuidado com espinhos', 'Use B e X', 'Boss guardião', 'Portal final']
+    training: ['IR', 'PULO', 'GEMA', 'B', 'PORTAL'],
+    field: ['CAIXA', 'GEMA', 'BURACO', 'B', 'PORTAL'],
+    volcano: ['LAVA', 'PULO', 'ESPINHO', 'CHECK', 'PORTAL'],
+    forest: ['Y', 'MINI', 'GEMA', 'B', 'PORTAL'],
+    castle: ['PORTÃO', 'GIGANTE', 'GOLEM', 'CHECK', 'PORTAL'],
+    space: ['PLATAFORMA', 'PULO', 'VOADOR', 'QUIZ', 'PORTAL'],
+    arena: ['ARENA', 'ESPINHO', 'B + X', 'BOSS', 'FINAL']
   };
 
   const LEVELS = [
     {
       id:'training', world:'field', title:'Fase 1 — Treinamento dos Portais', length:210, crystals:5, enemies:3, medal:'Primeiro Pulo',
-      objective:'Ritmo guiado: ande, pule na caixa, pegue cristais, use B Poder e entre no portal sem se perder.',
+      objective:'Pegue 5 cristais, vença 3 inimigos e abra o portal.',
       tutorial:['Use o joystick para ir para o fundo da tela.','Aperte A para pular em cima das caixas.','B lança poder nos blocos escuros e inimigos.']
     },
     {
       id:'field', world:'field', title:'Fase 2 — Campo dos Blocos', length:245, crystals:6, enemies:4, medal:'Guardião do Campo',
-      objective:'Siga a rota do campo: caixas em sequência, buraco com desvio, bloco escuro e portal liberado no fim.',
+      objective:'Suba nas caixas, pegue cristais e use B no bloco escuro.',
       tutorial:['Caixas são caminho, não decoração.','Pule em cima de inimigos comuns para vencer.','Complete cristais e inimigos para liberar o portal.']
     },
     {
       id:'volcano', world:'fire', title:'Fase 3 — Vulcão Pixel', length:265, crystals:6, enemies:5, medal:'Mestre do Vulcão',
-      objective:'Leia o chão vermelho: desvie da lava, pule buracos, use B nos espinhos e conquiste o portal do vulcão.',
+      objective:'Lava machuca. Pule, desvie e use B nos espinhos.',
       tutorial:['Lava e buracos tiram vida.','Pule segurando o joystick para dar impulso.','Espinhos não podem ser pisados: use poder.']
     },
     {
       id:'forest', world:'forest', title:'Fase 4 — Floresta Voxel', length:295, crystals:7, enemies:6, medal:'Explorador da Floresta',
-      objective:'A floresta ensina tamanho: Y abaixa, mini passa nos túneis, B acerta voadores e o portal aparece no fim.',
+      objective:'Abaixe, fique mini, pegue cristais e acerte voadores.',
       tutorial:['Segure Y para abaixar.','X alterna mini, normal e gigante.','Mini passa melhor por túneis.']
     },
     {
       id:'castle', world:'castle', title:'Fase 5 — Castelo de Pedra', length:325, crystals:7, enemies:7, medal:'Cavaleiro do Castelo',
-      objective:'O castelo testa força: use gigante nos portões, B contra golems e checkpoints antes do portal.',
+      objective:'Use tamanho gigante, vença golems e abra o castelo.',
       tutorial:['Use X para virar gigante nos portões.','Golems têm mais vida.','Checkpoints salvam seu retorno.']
     },
     {
       id:'space', world:'space', title:'Fase 6 — Espaço Cubo', length:350, crystals:8, enemies:7, medal:'Viajante do Espaço', quizGate:true,
-      objective:'No espaço, pule com impulso, mire nos voadores e responda o quiz para energizar o portal.',
+      objective:'Pule entre plataformas, acerte voadores e ligue o portal.',
       tutorial:['Plataformas flutuantes exigem pulo com direção.','O quiz libera a energia do portal.','Observe o minimapa para saber a distância.']
     },
     {
       id:'arena', world:'arena', title:'Fase 7 — Arena dos Portais', length:390, crystals:10, enemies:9, medal:'Mestre dos Portais', boss:true, quizGate:true,
-      objective:'Arena final desenhada: use profundidade, pulo, B Poder, tamanho, checkpoint e estratégia para fechar o portal mestre.',
+      objective:'Use tudo que aprendeu e derrote o chefe do portal.',
       tutorial:['A arena mistura todos os desafios.','O Guardião do Portal precisa de vários poderes.','Completar a arena libera medalha final.']
     }
   ];
@@ -875,10 +875,10 @@
   function addV42GuideBoard(text, x, z, color, order=0){
     const post = box(.34,2.15,.34,0x111827,{ outline:true, outlineColor:color, outlineOpacity:.25 });
     post.position.set(x,1.08,z); levelGroup.add(post);
-    const board = box(3.7,1.0,.25,color,{ emissive:color, emissiveIntensity:.18, outline:true, outlineColor:0xffffff, outlineOpacity:.16 });
-    board.position.set(x,2.45,z); levelGroup.add(board);
+    const board = box(2.75,.72,.22,color,{ emissive:color, emissiveIntensity:.18, outline:true, outlineColor:0xffffff, outlineOpacity:.16 });
+    board.position.set(x,2.15,z); levelGroup.add(board);
     const sprite = makeV42TextSprite(text, color);
-    sprite.position.set(x,2.55,z + (x < 0 ? .34 : -.34));
+    sprite.position.set(x,2.22,z + (x < 0 ? .34 : -.34));
     sprite.material.depthTest = false;
     levelGroup.add(sprite);
     v42Markers.push({ type:'guide', text, x, z, order });
@@ -886,19 +886,19 @@
 
   function makeV42TextSprite(text, color){
     const canvas = document.createElement('canvas');
-    canvas.width = 512; canvas.height = 144;
+    canvas.width = 384; canvas.height = 96;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0,0,512,144);
     ctx.fillStyle = 'rgba(3,7,18,.78)';
-    ctx.fillRect(0,0,512,144);
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 8; ctx.strokeRect(6,6,500,132);
-    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 44px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const label = String(text || '').toUpperCase().slice(0,22);
-    ctx.fillText(label,256,76);
+    ctx.fillRect(0,0,384,96);
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 8; ctx.strokeRect(5,5,374,86);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 34px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const label = String(text || '').toUpperCase().slice(0,10);
+    ctx.fillText(label,192,51);
     const tex = new THREE.CanvasTexture(canvas); tex.needsUpdate = true;
     const matSprite = new THREE.SpriteMaterial({ map:tex, transparent:true, opacity:.92, depthWrite:false });
     const sprite = new THREE.Sprite(matSprite);
-    sprite.scale.set(4.8,1.35,1);
+    sprite.scale.set(3.2,.82,1);
     premiumVisuals.push(sprite);
     return sprite;
   }
@@ -1699,7 +1699,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=44-inimigos-boss-real').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=441-minecraft-clean').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1726,7 +1726,7 @@
     getGameFeel: () => ({ ...GAME_FEEL }),
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: realBg && now() < arSafeUntil, label: AR_SAFE.label }),
-    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
+    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V44.1_MINECRAFT_CLEAN', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };

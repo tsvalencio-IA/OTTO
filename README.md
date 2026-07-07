@@ -1,14 +1,16 @@
-# Athos V44 — Roteiro correto: Inimigos e Boss
+# Athos V44.1 — Minecraft Clean UI
 
-Base: V43.1 estável.
+Base: V43.1 estável + V44 inimigos/boss do roteiro.
 
-Escopo seguido:
-- hotfix do botão 📷 Real visível no celular;
-- camada V44 somente de inimigos/boss;
-- preserva HTML estrutural dos controles, IDs, data-action, data-move, data-world, AR nativo, model-viewer, athos.glb, Quiz/Falar no lobby, B Poder, joystick, dock mobile, localStorage e fluxo entrada/sair.
+Correção cirúrgica desta versão:
+- menu/lobby menos poluído;
+- visual mais Minecraft/voxel;
+- textos de objetivo e placas reduzidos;
+- HUD mais limpo;
+- botão Real preservado e visível;
+- inimigos/boss da V44 preservados;
+- AR seguro preservado;
+- Quiz em rodada preservado.
 
-Abrir no GitHub Pages com:
-`?v=44-inimigos-boss-real`
-
-Teste F12:
-`F12_TESTE_ATHOS_V44_ROTEIRO_INIMIGOS_BOSS.js`
+Subir na raiz do GitHub Pages e abrir com:
+?v=441-minecraft-clean

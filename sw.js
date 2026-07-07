@@ -1,6 +1,6 @@
-// Athos V44 INIMIGOS E BOSS — Service Worker leve para GitHub Pages.
+// Athos V44.1 MINECRAFT CLEAN — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v44-inimigos-boss-real';
+const CACHE_VERSION = 'athos-v441-minecraft-clean';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
