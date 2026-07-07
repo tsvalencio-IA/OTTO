@@ -1,40 +1,30 @@
-# ATHOS V47 — ZIP COMPLETO LIMPO PARA GITHUB
+# Athos Adventure 3D+ — V47.1 Render Fix + Gameplay
 
-Use este pacote como ZIP completo da versão V47.
+Pacote completo limpo para GitHub Pages.
 
-## O que subir no GitHub
-Suba todo o conteúdo deste ZIP na raiz do repositório `OTTO`.
+## Como usar
 
-A raiz deve ficar assim:
+Suba todos os arquivos da raiz deste ZIP no repositório GitHub Pages.
+
+Abra com:
 
 ```text
-index.html
-app.js
-style.css
-athos.glb
-manifest.webmanifest
-sw.js
-.nojekyll
-404.html
-README.md
-F12_TESTE_ATHOS_V47_FINAL_RENDER_GAMEPLAY.js
-F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js
-icons/
-assets/
-moldes/
+?v=471-render-fix-gameplay
 ```
 
 ## Testes incluídos
-Rode nesta ordem no console F12:
 
 1. `F12_TESTE_ATHOS_V47_FINAL_RENDER_GAMEPLAY.js`
 2. `F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js`
 
-## Abrir depois de subir
+## Correção principal V47.1
 
-```text
-?v=47-final-clean-github
-```
+A V47 anterior carregava, mas o render premium falhava durante `rebuildWorld` porque a camada Gemini esperava inimigos como `Object3D`, enquanto o motor do jogo usa inimigos como objetos `{ mesh, type, hp... }`.
 
-## Observação
-Este ZIP não é “somente alterados”. É o pacote completo para publicar no GitHub Pages.
+Nesta V47.1:
+
+- `v47-render-premium.js` aceita inimigos do motor real;
+- `app.js` passa `platforms`, `enemies`, `portalMesh` e `crystals` reais para o contexto V47;
+- o render premium cria cenário rico mesmo se algum item do motor não puder ser reskinado;
+- mundo Real não cria cenário/câmera fake;
+- joystick, B Poder, Quiz/Falar, AR Nativo e model-viewer foram preservados.

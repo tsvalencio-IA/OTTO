@@ -1,4 +1,4 @@
-// Athos V47 FINAL — Service Worker leve para GitHub Pages.
+// Athos V471 FINAL — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
 const CACHE_VERSION = 'athos-v47-render-gameplay-final';
 

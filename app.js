@@ -502,10 +502,11 @@
       player,
       currentWorld: worldOverride || currentLevel?.world || 'field',
       level: currentLevel,
-      objects: runtime?.objects || [],
+      // V47.1: passa os arrays reais do motor, não campos inexistentes em runtime.
+      objects: platforms.map(o => o.mesh).filter(Boolean),
       enemies,
       portal: portalMesh,
-      crystals: runtime?.crystals || []
+      crystals: crystals.map(c => c.mesh).filter(Boolean)
     };
   }
   function installV47Render(worldOverride){

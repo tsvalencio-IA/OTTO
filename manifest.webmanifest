@@ -1,7 +1,7 @@
 {
-  "name": "Athos V47 Render + Gameplay",
-  "short_name": "Athos V47",
-  "start_url": "./index.html?v=47-final-render-gameplay",
+  "name": "Athos V47.1 Render + Gameplay",
+  "short_name": "Athos V47.1",
+  "start_url": "./index.html?v=471-render-fix-gameplay",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",

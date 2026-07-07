@@ -1,453 +1,288 @@
 // FILE: assets/render-v47/v47-render-premium.js
-// CAMADA VISUAL PREMIUM V47 - ATHOS GUARDIÃO DOS PORTAIS
-// MODO: ESPECIALISTA ATIVADO (*177)
-// CONTEXTO: Totalmente defensivo, performance focada em mobile (InstancedMesh, texturas procedurais).
+// ATHOS V47.1 — RENDER PREMIUM FIEL 10/10 — HOTFIX REAL DE RENDER
+// Camada visual isolada. Não altera física, joystick, B Poder, AR nativo, model-viewer ou athos.glb.
+(function(){
+  'use strict';
 
-(function() {
-    'use strict';
+  const VERSION = 'V47_1_RENDER_PREMIUM_FIEL_FIX_10_10';
+  let installed = false;
+  let group = null;
+  let THREE_REF = null;
+  let currentWorld = 'campo';
+  let mats = {};
+  let geos = {};
+  let updatables = [];
+  let stats = { objects:0, decorative:0, attached:0, updatables:0 };
 
-    const VERSION = "V47_RENDER_PREMIUM_FIEL_10_10";
-    let group = null;
-    let materials = {};
-    let geometries = {};
-    let updatables = [];
-    let isInstalled = false;
+  const WORLD_MAP = {
+    field:'campo', training:'campo', hub:'campo', free:'campo', campo:'campo',
+    fire:'vulcao', volcano:'vulcao', vulcao:'vulcao',
+    forest:'floresta', floresta:'floresta',
+    castle:'castelo', castelo:'castelo',
+    space:'espaco', espaço:'espaco', espaco:'espaco',
+    arena:'arena', boss:'arena', real:'real', ar:'real', camera:'real'
+  };
 
+  const PALETTES = {
+    campo:{ sky:0x8bd8ff, fog:0x8bd8ff, top:0x52c85a, side:0x5f3f22, path:0xc89a5a, stone:0x8f9498, accent:0x18d8ff, magic:0xd800ff, enemy:0x2ca84a, flower:0xffe66d, glow:0x9f5cff },
+    vulcao:{ sky:0x35100c, fog:0x35100c, top:0x3d3531, side:0x1d1714, path:0x5b4b45, stone:0x4a4a50, accent:0xff7a00, magic:0xff2a8a, enemy:0x7f1d1d, flower:0xffa000, glow:0xff4a00 },
+    floresta:{ sky:0x12341f, fog:0x1b5e20, top:0x2e7d32, side:0x4e342e, path:0x8d6e3e, stone:0x73806f, accent:0x64ff7a, magic:0x48ffca, enemy:0x1b5e20, flower:0xf472b6, glow:0x55ff99 },
+    castelo:{ sky:0x5d687a, fog:0x64748b, top:0x64748b, side:0x3f4652, path:0x9ca3af, stone:0x7b8491, accent:0xffc857, magic:0x8b5cf6, enemy:0x5b6470, flower:0xeab308, glow:0xffd28a },
+    espaco:{ sky:0x03071f, fog:0x050816, top:0x1f2a44, side:0x111827, path:0x28324f, stone:0x404b70, accent:0x38bdf8, magic:0xa855f7, enemy:0x111827, flower:0x67e8f9, glow:0x7c3aed },
+    arena:{ sky:0x251000, fog:0x3b1d00, top:0x7c3f18, side:0x3c1f0d, path:0x8b5a2b, stone:0x6b5a49, accent:0xff2e63, magic:0xff7a18, enemy:0x111827, flower:0xffcc33, glow:0xff2e63 }
+  };
 
-    function normalizeWorldName(worldName) {
-        const map = {
-            field: 'campo',
-            campo: 'campo',
-            fire: 'vulcao',
-            vulcao: 'vulcao',
-            forest: 'floresta',
-            floresta: 'floresta',
-            castle: 'castelo',
-            castelo: 'castelo',
-            space: 'espaco',
-            espaco: 'espaco',
-            arena: 'arena',
-            real: 'real',
-            ar: 'real',
-            AR: 'real'
-        };
-        return map[String(worldName || 'campo').toLowerCase()] || 'campo';
+  function norm(world){ return WORLD_MAP[String(world||'campo').toLowerCase()] || 'campo'; }
+  function safe(fn){ return function(){ try { return fn.apply(this, arguments); } catch(e){ console.warn('[V47.1 Render] protegido:', e); return null; } }; }
+  function isObj3D(o){ return !!o && (o.isObject3D || typeof o.add === 'function' || typeof o.traverse === 'function' || o.position); }
+  function meshOf(item){ return item && (item.mesh || item.object || item.group || item.model || item); }
+  function addTo(parent, child){ if(parent && child && typeof parent.add === 'function') parent.add(child); return child; }
+
+  function tex(THREE, base, speck, type){
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = base; ctx.fillRect(0,0,64,64);
+    for(let i=0;i<520;i++){
+      ctx.fillStyle = Math.random()>.5 ? speck : base;
+      const x=(Math.random()*16|0)*4, y=(Math.random()*16|0)*4;
+      ctx.fillRect(x,y,4,4);
     }
-
-    // Utilitário para criar texturas pixel art procedurais via Canvas
-    function createProceduralTexture(THREE, type, colorBase, colorVar) {
-        const canvas = document.createElement('canvas');
-        canvas.width = 64;
-        canvas.height = 64;
-        const ctx = canvas.getContext('2d');
-        
-        ctx.fillStyle = colorBase;
-        ctx.fillRect(0, 0, 64, 64);
-        
-        // Adicionar ruído voxel
-        for (let i = 0; i < 400; i++) {
-            ctx.fillStyle = Math.random() > 0.5 ? colorVar : colorBase;
-            const x = Math.floor(Math.random() * 16) * 4;
-            const y = Math.floor(Math.random() * 16) * 4;
-            ctx.fillRect(x, y, 4, 4);
-        }
-
-        // Detalhes específicos por tipo
-        if (type === 'grass_side') {
-            ctx.fillStyle = '#4d3319'; // terra
-            ctx.fillRect(0, 16, 64, 48);
-            for (let i = 0; i < 15; i++) {
-                ctx.fillStyle = '#4CAF50'; // grama caindo
-                const x = Math.floor(Math.random() * 16) * 4;
-                const h = Math.floor(Math.random() * 4) * 4 + 4;
-                ctx.fillRect(x, 16, 4, h);
-            }
-        }
-
-        if (type === 'portal') {
-            const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-            gradient.addColorStop(0, '#e066ff');
-            gradient.addColorStop(1, '#4b0082');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 64, 64);
-        }
-
-        // eslint-disable-next-line no-undef
-        const texture = new THREE.CanvasTexture(canvas);
-        // eslint-disable-next-line no-undef
-        texture.magFilter = THREE.NearestFilter; // Visual Pixelado/Voxel
-        // eslint-disable-next-line no-undef
-        texture.minFilter = THREE.NearestFilter;
-        // eslint-disable-next-line no-undef
-        texture.wrapS = THREE.RepeatWrapping;
-        // eslint-disable-next-line no-undef
-        texture.wrapT = THREE.RepeatWrapping;
-        return texture;
+    if(type==='grassSide'){
+      ctx.fillStyle = speck; ctx.fillRect(0,18,64,46);
+      for(let x=0;x<64;x+=4){ const h=18+(Math.random()*16|0); ctx.fillStyle = base; ctx.fillRect(x,0,4,h); }
     }
-
-    function initResources(THREE) {
-        if (Object.keys(materials).length > 0) return; // Já inicializado
-
-        // Geometrias Base
-        geometries.box = new THREE.BoxGeometry(1, 1, 1);
-        geometries.plane = new THREE.PlaneGeometry(1, 1);
-        geometries.crystal = new THREE.OctahedronGeometry(0.5, 0);
-
-        // Texturas Procedurais
-        const texGrassTop = createProceduralTexture(THREE, 'grass_top', '#4CAF50', '#45a049');
-        const texGrassSide = createProceduralTexture(THREE, 'grass_side', '#4CAF50', '#8B4513');
-        const texDirt = createProceduralTexture(THREE, 'dirt', '#8B4513', '#70380f');
-        const texStone = createProceduralTexture(THREE, 'stone', '#808080', '#696969');
-        const texLava = createProceduralTexture(THREE, 'lava', '#ff4500', '#ff8c00');
-        const texWater = createProceduralTexture(THREE, 'water', '#1e90ff', '#00bfff');
-        const texWood = createProceduralTexture(THREE, 'wood', '#5c3a21', '#4a2f1b');
-
-        // Materiais
-        materials.grass = [
-            new THREE.MeshStandardMaterial({ map: texGrassSide, roughness: 0.9 }),
-            new THREE.MeshStandardMaterial({ map: texGrassSide, roughness: 0.9 }),
-            new THREE.MeshStandardMaterial({ map: texGrassTop, roughness: 0.8 }),
-            new THREE.MeshStandardMaterial({ map: texDirt, roughness: 0.9 }),
-            new THREE.MeshStandardMaterial({ map: texGrassSide, roughness: 0.9 }),
-            new THREE.MeshStandardMaterial({ map: texGrassSide, roughness: 0.9 })
-        ];
-
-        materials.dirt = new THREE.MeshStandardMaterial({ map: texDirt, roughness: 0.9 });
-        materials.stone = new THREE.MeshStandardMaterial({ map: texStone, roughness: 0.7 });
-        materials.lava = new THREE.MeshStandardMaterial({ map: texLava, emissive: '#ff4500', emissiveIntensity: 0.5 });
-        materials.water = new THREE.MeshStandardMaterial({ map: texWater, transparent: true, opacity: 0.8, roughness: 0.1 });
-        materials.wood = new THREE.MeshStandardMaterial({ map: texWood, roughness: 0.9 });
-        
-        materials.crystal = new THREE.MeshStandardMaterial({ 
-            color: 0x00ffff, emissive: 0x0088ff, emissiveIntensity: 0.8, transparent: true, opacity: 0.9, roughness: 0.1, metalness: 0.8
-        });
-        
-        materials.portalGlow = new THREE.MeshBasicMaterial({
-            map: createProceduralTexture(THREE, 'portal', '', ''),
-            transparent: true, opacity: 0.8,
-            blending: THREE.AdditiveBlending
-        });
-
-        materials.enemyGreen = new THREE.MeshStandardMaterial({ color: 0x2E8B57, roughness: 0.8 });
-        materials.enemyEye = new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000 });
-        materials.golemStone = new THREE.MeshStandardMaterial({ map: texStone, roughness: 1.0 });
+    if(type==='path'){
+      ctx.strokeStyle='rgba(0,0,0,.18)'; ctx.lineWidth=3;
+      for(let y=0;y<64;y+=16){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(64,y+((Math.random()-.5)*6)); ctx.stroke(); }
+      for(let x=0;x<64;x+=16){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x+((Math.random()-.5)*6),64); ctx.stroke(); }
     }
-
-    function setupLighting(THREE, scene, isReal) {
-        if (isReal) return; // Em AR não mexemos na luz ambiente original
-        
-        const ambient = new THREE.AmbientLight(0xffffff, 0.6);
-        group.add(ambient);
-
-        const dirLight = new THREE.DirectionalLight(0xfffae6, 1.2);
-        dirLight.position.set(20, 50, 20);
-        dirLight.castShadow = true;
-        dirLight.shadow.camera.near = 0.5;
-        dirLight.shadow.camera.far = 150;
-        dirLight.shadow.camera.left = -30;
-        dirLight.shadow.camera.right = 30;
-        dirLight.shadow.camera.top = 30;
-        dirLight.shadow.camera.bottom = -30;
-        dirLight.shadow.mapSize.width = 1024;
-        dirLight.shadow.mapSize.height = 1024;
-        group.add(dirLight);
+    if(type==='portal'){
+      const g = ctx.createRadialGradient(32,32,1,32,32,34);
+      g.addColorStop(0,'#fff7ff'); g.addColorStop(.28,'#f000ff'); g.addColorStop(.68,'#7210ff'); g.addColorStop(1,'#18002f');
+      ctx.fillStyle=g; ctx.fillRect(0,0,64,64);
+      ctx.strokeStyle='rgba(255,255,255,.6)'; for(let i=0;i<8;i++){ ctx.beginPath(); ctx.arc(32,32,6+i*3,Math.random()*6.28,Math.random()*6.28+2.5); ctx.stroke(); }
     }
+    const t = new THREE.CanvasTexture(c); t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t;
+  }
 
-    function buildDecorativeScenery(ctx) {
-        const { THREE } = ctx;
-        const dummy = new THREE.Object3D();
+  function init(THREE, pal){
+    if(THREE_REF === THREE && Object.keys(mats).length) return;
+    THREE_REF = THREE; mats = {}; geos = {};
+    geos.box = new THREE.BoxGeometry(1,1,1);
+    geos.crystal = new THREE.OctahedronGeometry(.52,0);
+    geos.plane = new THREE.PlaneGeometry(1,1);
+    geos.circle = new THREE.CircleGeometry(1,24);
+    const grassTop = tex(THREE, '#55c85a', '#2f8f3b', 'grassTop');
+    const grassSide = tex(THREE, '#55c85a', '#6b4226', 'grassSide');
+    const dirt = tex(THREE, '#7b4b27', '#4f2d17', 'dirt');
+    const path = tex(THREE, '#c99857', '#e2c188', 'path');
+    const stone = tex(THREE, '#808994', '#5f6670', 'stone');
+    const wood = tex(THREE, '#6a3f22', '#3d2514', 'wood');
+    const lava = tex(THREE, '#ff3b00', '#ffc400', 'lava');
+    const portal = tex(THREE, '#8b00ff', '#ff00ff', 'portal');
+    mats.grass = [
+      new THREE.MeshStandardMaterial({map:grassSide, roughness:.86}), new THREE.MeshStandardMaterial({map:grassSide, roughness:.86}),
+      new THREE.MeshStandardMaterial({map:grassTop, roughness:.82}), new THREE.MeshStandardMaterial({map:dirt, roughness:.96}),
+      new THREE.MeshStandardMaterial({map:grassSide, roughness:.86}), new THREE.MeshStandardMaterial({map:grassSide, roughness:.86})
+    ];
+    mats.dirt = new THREE.MeshStandardMaterial({map:dirt, roughness:.92});
+    mats.path = new THREE.MeshStandardMaterial({map:path, roughness:.88});
+    mats.stone = new THREE.MeshStandardMaterial({map:stone, roughness:.74});
+    mats.wood = new THREE.MeshStandardMaterial({map:wood, roughness:.88});
+    mats.lava = new THREE.MeshStandardMaterial({map:lava, emissive:0xff3b00, emissiveIntensity:.95, roughness:.25});
+    mats.water = new THREE.MeshStandardMaterial({color:0x18bdff, transparent:true, opacity:.72, roughness:.12, emissive:0x006dff, emissiveIntensity:.15});
+    mats.leaf = new THREE.MeshStandardMaterial({color:pal.top, roughness:.95});
+    mats.flower = new THREE.MeshStandardMaterial({color:pal.flower, emissive:pal.flower, emissiveIntensity:.06, roughness:.7});
+    mats.enemy = new THREE.MeshStandardMaterial({color:pal.enemy, roughness:.78});
+    mats.enemyDark = new THREE.MeshStandardMaterial({color:0x151923, emissive:pal.magic, emissiveIntensity:.22, roughness:.72});
+    mats.eye = new THREE.MeshBasicMaterial({color:0xff001e});
+    mats.crystalBlue = new THREE.MeshStandardMaterial({color:0x50e6ff, emissive:0x0bb8ff, emissiveIntensity:.85, transparent:true, opacity:.94, roughness:.08, metalness:.25});
+    mats.crystalPurple = new THREE.MeshStandardMaterial({color:0xf032ff, emissive:0x9f00ff, emissiveIntensity:.95, transparent:true, opacity:.92, roughness:.08, metalness:.22});
+    mats.portal = new THREE.MeshBasicMaterial({map:portal, transparent:true, opacity:.92, side:THREE.DoubleSide, blending:THREE.AdditiveBlending});
+    mats.shadow = new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.18, depthWrite:false});
+  }
 
-        // 1. Fundo: Ilhas Flutuantes
-        const islandsCount = 10;
-        const islandMesh = new THREE.InstancedMesh(geometries.box, materials.dirt, islandsCount);
-        for (let i = 0; i < islandsCount; i++) {
-            const x = (Math.random() - 0.5) * 200;
-            const y = (Math.random() * 20) - 10;
-            const z = -50 - Math.random() * 50;
-            const sx = 5 + Math.random() * 15;
-            const sy = 2 + Math.random() * 5;
-            const sz = 5 + Math.random() * 15;
-            dummy.position.set(x, y, z);
-            dummy.scale.set(sx, sy, sz);
-            dummy.updateMatrix();
-            islandMesh.setMatrixAt(i, dummy.matrix);
-        }
-        group.add(islandMesh);
-
-        // 2. Cachoeira de Voxel e Lava
-        const decorGroup = new THREE.Group();
-        
-        const waterDrop = new THREE.Mesh(geometries.box, materials.water);
-        waterDrop.position.set(-30, 10, -20);
-        waterDrop.scale.set(4, 20, 1);
-        decorGroup.add(waterDrop);
-
-        const lavaPool = new THREE.Mesh(geometries.box, materials.lava);
-        lavaPool.position.set(30, -5, -20);
-        lavaPool.scale.set(15, 1, 15);
-        decorGroup.add(lavaPool);
-
-        // Animar UVs da água e lava
-        updatables.push((dt) => {
-            if (materials.water.map) materials.water.map.offset.y -= dt * 0.5;
-            if (materials.lava.map) materials.lava.map.offset.x += dt * 0.1;
-        });
-
-        group.add(decorGroup);
+  function block(THREE, mat, x,y,z, sx=1,sy=1,sz=1){
+    const m = new THREE.Mesh(geos.box, mat); m.position.set(x,y,z); m.scale.set(sx,sy,sz); m.castShadow = true; m.receiveShadow = true; group.add(m); stats.objects++; return m;
+  }
+  function addLight(THREE, type, color, intensity, dist, x,y,z){
+    const l = type==='point' ? new THREE.PointLight(color,intensity,dist) : new THREE.DirectionalLight(color,intensity);
+    l.position.set(x,y,z); if(l.castShadow!==undefined) l.castShadow = true; group.add(l); stats.objects++; return l;
+  }
+  function crystal(THREE,x,y,z, purple=false){
+    const c = new THREE.Mesh(geos.crystal, purple?mats.crystalPurple:mats.crystalBlue); c.position.set(x,y,z); c.scale.set(.9,1.75,.9); c.castShadow = true; group.add(c); stats.objects++;
+    addLight(THREE,'point', purple?0xc026ff:0x23d6ff, .85, 7, x,y,z);
+    updatables.push(dt=>{ c.rotation.y += dt*1.4; c.position.y = y + Math.sin(performance.now()*.002 + x)*.16; });
+    return c;
+  }
+  function flower(THREE,x,z,pal){
+    block(THREE, new THREE.MeshStandardMaterial({color:0x2f9d45}), x,.22,z,.12,.44,.12);
+    block(THREE, mats.flower, x,.55,z,.38,.22,.38); stats.decorative++;
+  }
+  function mushroom(THREE,x,z){
+    block(THREE,new THREE.MeshStandardMaterial({color:0xfff1cf}),x,.25,z,.26,.5,.26);
+    const cap=block(THREE,new THREE.MeshStandardMaterial({color:0xe53935}),x,.62,z,.9,.36,.9); stats.decorative++;
+    block(THREE,new THREE.MeshStandardMaterial({color:0xffffff}),x+.18,.83,z+.15,.18,.08,.18);
+    block(THREE,new THREE.MeshStandardMaterial({color:0xffffff}),x-.22,.83,z-.18,.16,.08,.16);
+    return cap;
+  }
+  function tree(THREE,x,z,pal, tall=false){
+    const h = tall?3.2:2.2;
+    block(THREE,mats.wood,x,h/2,z,.62,h,.62);
+    block(THREE,mats.leaf,x,h+1.0,z,2.4,1.8,2.4);
+    block(THREE,mats.leaf,x,h+2.0,z,1.65,1.2,1.65); stats.decorative++;
+  }
+  function sign(THREE,x,z){
+    block(THREE,mats.wood,x,.75,z,.22,1.5,.22);
+    block(THREE,mats.wood,x+.55,1.35,z,.16,1.3,.12,.18);
+    block(THREE,new THREE.MeshBasicMaterial({color:0xffffff}),x+.58,1.35,z+.1,.08,.72,.05); stats.decorative++;
+  }
+  function enemySkin(THREE, type, x,y,z){
+    const g = new THREE.Group(); g.position.set(x,y,z);
+    const mat = type==='flyer'||type==='boss' ? mats.enemyDark : type==='golem' ? mats.stone : mats.enemy;
+    const s = type==='boss'?1.8:type==='golem'?1.55:type==='flyer'?1.05:1.15;
+    const body = new THREE.Mesh(geos.box, mat); body.scale.set(s,s,s); body.position.y=s/2; body.castShadow=true; body.receiveShadow=true; g.add(body);
+    const eyeL = new THREE.Mesh(geos.box, mats.eye); eyeL.scale.set(.22,.18,.08); eyeL.position.set(-s*.25,s*.58,s*.51); g.add(eyeL);
+    const eyeR = new THREE.Mesh(geos.box, mats.eye); eyeR.scale.set(.22,.18,.08); eyeR.position.set(s*.25,s*.58,s*.51); g.add(eyeR);
+    if(type==='spiky'){
+      for(let i=0;i<5;i++){ const sp = new THREE.Mesh(geos.box, mats.stone); sp.scale.set(.18,.42,.18); sp.position.set((i-2)*.32,s+.2,(i%2-.5)*.5); g.add(sp); }
     }
-
-    function reskinPlatforms(ctx) {
-        const { THREE, objects } = ctx;
-        if (!objects || !objects.length) return;
-
-        objects.forEach(obj => {
-            if (!obj.geometry) return;
-            
-            // Ocultar material original (sem quebrar a física do jogo)
-            if (obj.material) {
-                obj.material.visible = false;
-            }
-
-            // Criar malha visual baseada no bounding box para parecer Voxel
-            obj.geometry.computeBoundingBox();
-            const bbox = obj.geometry.boundingBox;
-            const size = new THREE.Vector3();
-            bbox.getSize(size);
-
-            const visualMesh = new THREE.Mesh(geometries.box, materials.grass);
-            visualMesh.scale.copy(size);
-            
-            // Ajuste de texturas repetidas para não esticar
-            visualMesh.material.forEach((mat) => {
-                if (mat.map && mat.map.clone) {
-                    mat = mat.clone();
-                    mat.map = mat.map.clone();
-                    // Assumindo tamanho 1 unit = 1 bloco voxel
-                    mat.map.repeat.set(Math.max(1, size.x/2), Math.max(1, size.z/2));
-                }
-            });
-
-            visualMesh.position.copy(obj.position);
-            visualMesh.rotation.copy(obj.rotation);
-            visualMesh.castShadow = true;
-            visualMesh.receiveShadow = true;
-            
-            // Atrelar à cena visual, mas seguir a posição se o objeto original se mover
-            group.add(visualMesh);
-            updatables.push(() => {
-                visualMesh.position.copy(obj.position);
-                visualMesh.rotation.copy(obj.rotation);
-            });
-        });
+    if(type==='golem'||type==='boss'){
+      const armL = new THREE.Mesh(geos.box, mat); armL.scale.set(.45,1.25,.45); armL.position.set(-s*.75,s*.42,0); g.add(armL);
+      const armR = new THREE.Mesh(geos.box, mat); armR.scale.set(.45,1.25,.45); armR.position.set(s*.75,s*.42,0); g.add(armR);
     }
-
-    function reskinEnemies(ctx) {
-        const { THREE, enemies } = ctx;
-        if (!enemies) return;
-
-        enemies.forEach(enemy => {
-            // Ocultar representação original
-            enemy.traverse((child) => {
-                if (child.isMesh) child.visible = false;
-            });
-
-            // Adicionar skin premium: Inimigo Voxel com Olhos Vermelhos
-            const skinGroup = new THREE.Group();
-            
-            const body = new THREE.Mesh(geometries.box, materials.enemyGreen);
-            body.scale.set(1.5, 1.5, 1.5);
-            body.castShadow = true;
-            skinGroup.add(body);
-
-            const eyeL = new THREE.Mesh(geometries.box, materials.enemyEye);
-            eyeL.scale.set(0.3, 0.3, 0.1);
-            eyeL.position.set(-0.4, 0.3, 0.76);
-            skinGroup.add(eyeL);
-
-            const eyeR = new THREE.Mesh(geometries.box, materials.enemyEye);
-            eyeR.scale.set(0.3, 0.3, 0.1);
-            eyeR.position.set(0.4, 0.3, 0.76);
-            skinGroup.add(eyeR);
-
-            enemy.add(skinGroup); // Adiciona ao objeto pai da engine para mover junto
-
-            // Animação de pulsação suave
-            let time = Math.random() * 100;
-            updatables.push((dt) => {
-                time += dt;
-                skinGroup.scale.y = 1 + Math.sin(time * 5) * 0.05;
-            });
-        });
+    const sh = new THREE.Mesh(geos.circle, mats.shadow); sh.rotation.x = -Math.PI/2; sh.scale.set(s*1.25,s*1.25,1); sh.position.y=.03; g.add(sh);
+    group.add(g); stats.objects++; stats.decorative++;
+    updatables.push(dt=>{ if(type==='flyer'){ g.position.y = y+2.3+Math.sin(performance.now()*.002+x)*.45; g.rotation.y += dt*.7; } else { g.scale.y = 1 + Math.sin(performance.now()*.006+x)*.035; } });
+    return g;
+  }
+  function portalTemple(THREE, pal, z){
+    const pg = new THREE.Group(); pg.position.set(0,0,z); group.add(pg); stats.objects++;
+    const add = (mat,x,y,zz,sx,sy,sz)=>{ const m=new THREE.Mesh(geos.box,mat); m.position.set(x,y,zz); m.scale.set(sx,sy,sz); m.castShadow=true; m.receiveShadow=true; pg.add(m); stats.objects++; return m; };
+    for(let i=0;i<5;i++) add(mats.stone,0,.12+i*.18,2.6-i*.62,8.2-i*.8,.32,1.1);
+    add(mats.stone,-3.1,2.6,0,1.2,5.2,1.2); add(mats.stone,3.1,2.6,0,1.2,5.2,1.2);
+    add(mats.stone,0,5.3,0,7.8,1.05,1.35); add(mats.stone,0,6.15,0,5.3,.75,1.15);
+    const p = new THREE.Mesh(geos.plane,mats.portal); p.position.set(0,2.75,.08); p.scale.set(4.6,5.1,1); pg.add(p); stats.objects++;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(2.35,.09,8,42), new THREE.MeshBasicMaterial({color:pal.magic, transparent:true, opacity:.85})); ring.position.set(0,2.75,.12); pg.add(ring); stats.objects++;
+    addLight(THREE,'point',pal.magic,4.0,26,0,3.1,z+1.3);
+    for(let i=0;i<6;i++) crystal(THREE, (i%2?1:-1)*(4.2+Math.random()*2.0), 1.1+Math.random()*1.8, z+1-Math.random()*5, true);
+    updatables.push(dt=>{ p.rotation.z += dt*.45; ring.rotation.z -= dt*.25; });
+  }
+  function waterfall(THREE,x,z){
+    const fall = block(THREE,mats.water,x,4.4,z,3.2,8.8,.34); const pool = block(THREE,mats.water,x,.08,z+2.4,4.8,.18,3.2);
+    updatables.push(dt=>{ if(fall.material.map) fall.material.map.offset.y -= dt*.7; }); stats.decorative++;
+  }
+  function lavaSet(THREE,x,z){
+    const lava = block(THREE,mats.lava,x,.04,z,7,.16,10); addLight(THREE,'point',0xff4d00,1.2,10,x,1.4,z); stats.decorative++;
+    updatables.push(dt=>{ if(lava.material.map) lava.material.map.offset.x += dt*.15; });
+  }
+  function buildWorld(THREE, ctx, pal, world){
+    const len = Math.min(420, Math.max(170, Number(ctx.level?.length || 240)));
+    // base path like reference: central dirt/stone road, grass blocks and cliffs on sides.
+    const pathMat = world==='castelo'||world==='espaco'||world==='vulcao' ? mats.stone : mats.path;
+    for(let z=10; z>-len; z-=2){
+      block(THREE,pathMat,0,-.32,z,5.6,.64,2.02);
+      if(world!=='espaco'){
+        block(THREE,mats.grass,-5.2,-.36,z,3.8,.72,2.0);
+        block(THREE,mats.grass,5.2,-.36,z,3.8,.72,2.0);
+      } else {
+        if(Math.abs(z/8|0)%2===0){ block(THREE,mats.stone,-5.2,-.36,z,3.0,.54,1.6); block(THREE,mats.stone,5.2,-.36,z,3.0,.54,1.6); }
+      }
+      if(Math.abs(z)%12===0){
+        block(THREE,mats.grass,-9.2,.08,z,2.4,1.2,2.6); block(THREE,mats.grass,9.2,.08,z,2.4,1.2,2.6);
+      }
     }
-
-    function reskinPortal(ctx) {
-        const { THREE, portal } = ctx;
-        if (!portal) return;
-
-        portal.traverse((child) => {
-            if (child.isMesh) child.visible = false;
-        });
-
-        const portalGroup = new THREE.Group();
-
-        // Estrutura de Pedra (Templo)
-        const frameL = new THREE.Mesh(geometries.box, materials.stone);
-        frameL.scale.set(1, 4, 1);
-        frameL.position.set(-2, 2, 0);
-        portalGroup.add(frameL);
-
-        const frameR = new THREE.Mesh(geometries.box, materials.stone);
-        frameR.scale.set(1, 4, 1);
-        frameR.position.set(2, 2, 0);
-        portalGroup.add(frameR);
-
-        const frameT = new THREE.Mesh(geometries.box, materials.stone);
-        frameT.scale.set(5, 1, 1);
-        frameT.position.set(0, 4.5, 0);
-        portalGroup.add(frameT);
-
-        // Centro Brilhante
-        const glow = new THREE.Mesh(geometries.plane, materials.portalGlow);
-        glow.scale.set(3.8, 3.8, 1);
-        glow.position.set(0, 2, 0);
-        portalGroup.add(glow);
-
-        portal.add(portalGroup);
-
-        // Partículas do Portal
-        const pCount = 30;
-        const pGeo = new THREE.BufferGeometry();
-        const pPos = new Float32Array(pCount * 3);
-        for(let i=0; i<pCount*3; i++) pPos[i] = (Math.random() - 0.5) * 3;
-        pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
-        const pMat = new THREE.PointsMaterial({ color: 0xaa00ff, size: 0.2, transparent: true, blending: THREE.AdditiveBlending });
-        const particles = new THREE.Points(pGeo, pMat);
-        particles.position.set(0, 2, 0);
-        portal.add(particles);
-
-        updatables.push((dt) => {
-            glow.rotation.z += dt * 0.5;
-            particles.rotation.y += dt * 0.2;
-            particles.rotation.z += dt * 0.1;
-        });
+    // lateral rich clutter, but not on path.
+    for(let z=4; z>-len+15; z-=8){
+      const side = (Math.abs(z/8)%2===0)?-1:1;
+      const x1 = side*(7.8+Math.random()*3.2);
+      if(world==='vulcao') lavaSet(THREE, side*11.6, z-3);
+      else if(world==='espaco') { crystal(THREE, x1, 1.2, z, true); }
+      else {
+        if(Math.random()>.35) tree(THREE,x1,z,pal,Math.random()>.55);
+        if(Math.random()>.25) flower(THREE,-side*(6.8+Math.random()*2.0),z+1,pal);
+        if(Math.random()>.68) mushroom(THREE,side*(4.2+Math.random()*2.5),z-1);
+      }
+      if(Math.abs(z)%32===0) sign(THREE, -3.8, z);
     }
-
-    function reskinCrystals(ctx) {
-        const { THREE, crystals } = ctx;
-        if (!crystals) return;
-
-        crystals.forEach(crystalObj => {
-            crystalObj.traverse((child) => {
-                if (child.isMesh) child.visible = false;
-            });
-
-            const premiumCrystal = new THREE.Mesh(geometries.crystal, materials.crystal);
-            premiumCrystal.scale.set(0.8, 1.5, 0.8);
-            
-            const pointLight = new THREE.PointLight(0x00ffff, 0.5, 5);
-            premiumCrystal.add(pointLight);
-
-            crystalObj.add(premiumCrystal);
-
-            updatables.push((dt) => {
-                premiumCrystal.rotation.y += dt;
-                premiumCrystal.position.y = Math.sin(Date.now() * 0.002 + premiumCrystal.id) * 0.2;
-            });
-        });
+    // collectibles guide line, as visual reference only.
+    for(let i=0;i<7;i++){ const z = -18 - i*24; crystal(THREE, (i%2?1:-1)*1.15, 1.25, z, i>4); }
+    // readable enemies in scene.
+    enemySkin(THREE,'spiky',4.2,0,-34);
+    enemySkin(THREE,'flyer',-2.6,2.3,-62);
+    enemySkin(THREE,'golem',-7.4,1.2,-90);
+    if(world==='arena') enemySkin(THREE,'boss',0,0,-118);
+    waterfall(THREE,-12.5,-48);
+    if(world!=='vulcao') lavaSet(THREE,13.4,-78);
+    portalTemple(THREE,pal,-Math.min(len-28,320));
+    // distant floating islands/clouds.
+    const dummy = new THREE.Object3D();
+    const islandMesh = new THREE.InstancedMesh(geos.box, mats.dirt, 22);
+    for(let i=0;i<22;i++){ dummy.position.set((Math.random()>.5?1:-1)*(15+Math.random()*42), 4+Math.random()*18, -34-Math.random()*len); dummy.scale.set(3+Math.random()*8, .9+Math.random()*3, 3+Math.random()*8); dummy.updateMatrix(); islandMesh.setMatrixAt(i,dummy.matrix); }
+    group.add(islandMesh); stats.objects++;
+    const cloudMat = new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:world==='espaco'?.15:.78});
+    for(let i=0;i<18;i++){
+      const c = new THREE.Group();
+      const m1=new THREE.Mesh(geos.box,cloudMat); m1.scale.set(2.6,.52,1.1); c.add(m1);
+      const m2=new THREE.Mesh(geos.box,cloudMat); m2.scale.set(1.5,.5,1); m2.position.set(1.7,.08,.2); c.add(m2);
+      c.position.set((Math.random()-.5)*60, 12+Math.random()*16, -20-Math.random()*len); group.add(c); stats.objects++;
+      updatables.push(dt=>{ c.position.x += dt*.16; if(c.position.x>34)c.position.x=-34; });
     }
+  }
+  function attachToEngineObjects(THREE, ctx){
+    // Defensive: enemies in our engine are plain objects {mesh,type}. Gemini's first code expected Object3D and failed.
+    const enemies = Array.isArray(ctx.enemies)?ctx.enemies:[];
+    enemies.forEach((e,idx)=>{
+      const host = meshOf(e);
+      if(!isObj3D(host) || host.userData?.v471SkinAttached) return;
+      try{
+        host.userData = host.userData || {}; host.userData.v471SkinAttached = true;
+        const s = enemySkin(THREE, e.type || 'walker', 0, -9999, 0); // create in group, then reparent pieces safely by following host instead of modifying host hierarchy
+        updatables.push(()=>{ if(host.position){ s.position.copy(host.position); s.position.y = (host.position.y||0) - ((e.size||1)/2); s.rotation.y = host.rotation?.y || 0; } });
+        stats.attached++;
+      }catch(err){ console.warn('[V47.1 Render] enemy skin ignorada', err); }
+    });
+  }
 
-    window.ATHOS_V47_RENDER_PREMIUM = {
-        version: VERSION,
-        
-        install: function(ctx) {
-            console.log("[V47 PREMIUM] Iniciando Instalação...");
-            if (!ctx || !ctx.THREE || !ctx.scene) {
-                console.error("[V47 PREMIUM] Falha: THREE ou scene ausentes no contexto.");
-                return;
-            }
-            isInstalled = true;
-            document.body.classList.add('v47-premium-active');
-            console.log("[V47 PREMIUM] Instalado com sucesso.");
-        },
+  const API = {
+    version: VERSION,
+    install: safe(function(ctx){
+      if(!ctx || !ctx.THREE || !ctx.scene) return false;
+      installed = true; document.body.classList.add('v47-premium-active');
+      return true;
+    }),
+    rebuildWorld: safe(function(ctx, worldName){
+      if(!installed || !ctx || !ctx.THREE || !ctx.scene) return false;
+      const THREE = ctx.THREE; currentWorld = norm(worldName || ctx.currentWorld || ctx.level?.world || 'campo');
+      API.disposeVisualOnly();
+      if(currentWorld === 'real') { stats = {objects:0,decorative:0,attached:0,updatables:0}; return true; }
+      const pal = PALETTES[currentWorld] || PALETTES.campo;
+      init(THREE,pal);
+      group = new THREE.Group(); group.name = 'V47_RENDER_PREMIUM_GROUP'; ctx.scene.add(group);
+      stats = {objects:0, decorative:0, attached:0, updatables:0};
+      try { if(ctx.scene) { ctx.scene.background = new THREE.Color(pal.sky); ctx.scene.fog = new THREE.FogExp2(pal.fog, currentWorld==='espaco'?.005:currentWorld==='vulcao'?.018:.010); } } catch{}
+      try { if(ctx.renderer && ctx.renderer.shadowMap){ ctx.renderer.shadowMap.enabled = true; ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap; } if(ctx.renderer && ctx.renderer.toneMapping !== undefined){ ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping; ctx.renderer.toneMappingExposure = currentWorld==='vulcao'?1.18:1.08; } } catch{}
+      addLight(THREE,'point',pal.glow,.8,22,-8,8,-30);
+      addLight(THREE,'point',pal.magic,1.5,30,8,8,-110);
+      const hemi = new THREE.HemisphereLight(0xffffff, pal.side, currentWorld==='espaco'?.48:.72); group.add(hemi); stats.objects++;
+      const sun = new THREE.DirectionalLight(currentWorld==='vulcao'?0xffd199:0xfff5dd, 1.25); sun.position.set(-12,24,18); sun.castShadow = true; if(sun.shadow){ sun.shadow.mapSize.width=1024; sun.shadow.mapSize.height=1024; sun.shadow.camera.left=-32; sun.shadow.camera.right=32; sun.shadow.camera.top=32; sun.shadow.camera.bottom=-32; sun.shadow.camera.far=120; } group.add(sun); stats.objects++;
+      buildWorld(THREE,ctx,pal,currentWorld);
+      attachToEngineObjects(THREE,ctx);
+      stats.updatables = updatables.length;
+      return true;
+    }),
+    update: safe(function(ctx,dt){
+      if(!installed || !group) return;
+      const delta = typeof dt === 'number' ? dt : .016;
+      for(let i=0;i<updatables.length;i++){ try{ updatables[i](delta); }catch(e){} }
+    }),
+    disposeVisualOnly: safe(function(){
+      if(group && group.parent){ group.parent.remove(group); }
+      group = null; updatables = [];
+    }),
+    dispose: safe(function(){ API.disposeVisualOnly(); installed = false; document.body.classList.remove('v47-premium-active'); }),
+    getStatus: function(){ return { installed, version:VERSION, world:currentWorld, hasGroup:!!group, objects:stats.objects||0, decorative:stats.decorative||0, attached:stats.attached||0, updatablesCount:updatables.length, worldNormalizer:true, arTouched:false, renderFixed:true }; }
+  };
 
-        update: function(ctx, dt) {
-            if (!isInstalled || !group) return;
-            const delta = dt || 0.016;
-            for (let i = 0; i < updatables.length; i++) {
-                try {
-                    updatables[i](delta);
-                } catch (e) {
-                    console.warn("[V47 PREMIUM] Erro no update loop:", e);
-                }
-            }
-        },
-
-        rebuildWorld: function(ctx, worldName) {
-            if (!isInstalled || !ctx || !ctx.THREE || !ctx.scene) return;
-            worldName = normalizeWorldName(worldName);
-            this.dispose(); // Limpa renderizações anteriores
-            
-            const isReal = (worldName === 'real');
-            if (isReal) {
-                console.log("[V47 PREMIUM] Modo Real/AR detectado. Mantendo câmera original. Limpeza visual efetuada.");
-                return; // Em AR não adicionamos skybox ou cenário pesado
-            }
-
-            console.log(`[V47 PREMIUM] Reconstruindo mundo: ${worldName}`);
-            const { THREE, scene } = ctx;
-            group = new THREE.Group();
-            group.name = "V47_RENDER_PREMIUM_GROUP";
-            scene.add(group);
-
-            initResources(THREE);
-            setupLighting(THREE, scene, isReal);
-
-            // Cores base do mundo
-            let bgColor = 0x87CEEB; // Campo padrão
-            if (worldName === 'vulcao') bgColor = 0x2b0f0f;
-            if (worldName === 'floresta') bgColor = 0x001a00;
-            if (worldName === 'espaco') bgColor = 0x00001a;
-            
-            scene.background = new THREE.Color(bgColor);
-            scene.fog = new THREE.FogExp2(bgColor, 0.015);
-
-            buildDecorativeScenery(ctx);
-            reskinPlatforms(ctx);
-            reskinEnemies(ctx);
-            reskinPortal(ctx);
-            reskinCrystals(ctx);
-        },
-
-        dispose: function() {
-            if (group && group.parent) {
-                group.parent.remove(group);
-                group.traverse((child) => {
-                    if (child.geometry) child.geometry.dispose();
-                    if (child.material) {
-                        if (Array.isArray(child.material)) {
-                            child.material.forEach(m => m.dispose());
-                        } else {
-                            child.material.dispose();
-                        }
-                    }
-                });
-                group = null;
-            }
-            updatables = [];
-            console.log("[V47 PREMIUM] Camada descartada e limpa.");
-        },
-
-        getStatus: function() {
-            return {
-                installed: isInstalled,
-                version: VERSION,
-                hasGroup: group !== null,
-                updatablesCount: updatables.length,
-                objects: group ? group.children.length : 0,
-                worldNormalizer: true,
-                arTouched: false
-            };
-        }
-    };
-
+  window.ATHOS_V47_RENDER_PREMIUM = API;
 })();
