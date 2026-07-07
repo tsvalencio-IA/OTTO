@@ -1,18 +1,14 @@
-# ATHOS V49.2 — Render Exigido Real
+# ATHOS V50 RECUPERADO
 
-Pacote completo para novo repositório GitHub.
+Base profissional de recuperação:
+- base estável: V39 controles limpos;
+- render 3D real novo por objetos Three.js;
+- sem V46/V47/V48/V49 experimentais;
+- sem backplate/fundo falso como jogo;
+- preserva athos.glb, model-viewer, AR nativo, joystick, B Poder, Quiz/Falar no lobby e data-*.
 
-Abrir com:
-?v=492-render-exigido-real
+Abra no GitHub Pages com:
+?v=50-recuperado
 
-Testes:
-- F12_TESTE_ATHOS_V492_RENDER_EXIGIDO_REAL.js
-- F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js
-
-Correções:
-- usa o render exigido como backplate visual absoluto;
-- esconde o cenário procedural antigo para não aparecer lavado/protótipo;
-- remove a bola preta/sombra circular;
-- fixa a tela do jogo em 100dvh;
-- recoloca joystick, mundos e botões sempre embaixo;
-- preserva motor, joystick, B Poder, Real/AR, model-viewer, athos.glb, Quiz/Falar e data-*.
+Teste F12:
+F12_TESTE_ATHOS_V50_RECUPERADO.js

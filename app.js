@@ -11,7 +11,7 @@
 
   const els = {
     app: $('#app'), lobby: $('#lobby'), game: $('#game'), stage: $('#threeStage'), cameraFeed: $('#cameraFeed'), flash: $('#screenFlash'),
-    nativeViewer: $('#nativeViewer'), viewerCameraFeed: $('#viewerCameraFeed'), arAnchorViewer: $('#arAnchorViewer'), modelStatus: $('#modelStatus'), difficultySelect: $('#difficultySelect'),
+    nativeViewer: $('#nativeViewer'), modelStatus: $('#modelStatus'), difficultySelect: $('#difficultySelect'),
     playBtn: $('#playBtn'), heroPlayBtn: $('#heroPlayBtn'), heroFreeBtn: $('#heroFreeBtn'), hubBtn: $('#hubBtn'), freeBtn: $('#freeBtn'), quizBtn: $('#quizBtn'), askBtn: $('#askBtn'), collectionBtn: $('#collectionBtn'), resetBtn: $('#resetBtn'), arNativeExternalBtn: $('#arNativeExternalBtn'),
     statXP: $('#statXP'), statLevel: $('#statLevel'), statMedals: $('#statMedals'), statBest: $('#statBest'),
     hudHearts: $('#hudHearts'), hudXP: $('#hudXP'), hudCrystals: $('#hudCrystals'), hudEnemies: $('#hudEnemies'), hudTime: $('#hudTime'),
@@ -21,8 +21,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v431_estavel_quiz_3d_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v42_level_design_ar_safe_progress','athos_guardiao_v411_pointer_capture_progress','athos_guardiao_v41_game_feel_progress','athos_guardiao_v37_auditoria_total_progress','athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v37_auditoria_total_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -45,142 +45,40 @@
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
   };
 
-  // V44.1: base V43.1 + V44 inimigos preservadas. Hotfix visual: menu Minecraft limpo, HUD menos poluído e leitura de jogo sem excesso de texto.
-  const GAME_FEEL = {
-    joystickDeadzone: .17,
-    joystickCurve: 1.34,
-    inputSmoothing: 22,
-    inputRelease: 44,
-    groundAcceleration: 23,
-    groundDeceleration: 48,
-    airAcceleration: 10.5,
-    airDeceleration: 14,
-    stopThreshold: .06,
-    platformSnap: .38,
-    groundSnap: .22,
-    coyoteMs: 140,
-    jumpBufferMs: 160,
-    jumpCooldownMs: 110,
-    jumpForwardBoost: 4.0,
-    jumpSideBoost: 1.55,
-    landingHorizontalDamp: .80,
-    fallGravityBoost: 1.15,
-    spaceGravityScale: .84
-  };
-
-  const GAMEPLAY_CAMERA = {
-    cameraFollowDistance: 8.8,
-    cameraHeight: 5.6,
-    cameraLookAhead: 8.8,
-    cameraSmoothing: 5.6,
-    cameraJumpOffset: .72
-  };
-
-  const INPUT_DEBOUNCE_MS = {
-    action: 90,
-    power: 140,
-    world: 180
-  };
-
-
-  const AR_SAFE = {
-    lockMs: 3200,
-    freezeWhenIdle: true,
-    label: 'V49_RENDER_EXIGIDO_GAMEPLAY_AR_GUARDED'
-  };
-
-
-  const V44_ENEMY_AI = {
-    label: 'V45_TRUE_GAME_PLATFORM_RENDER',
-    enabled: true,
-    vision: 13,
-    projectileSpeed: 7.0,
-    projectileLife: 2.1,
-    easyAttackMs: 2350,
-    mediumAttackMs: 1850,
-    hardAttackMs: 1450,
-    bossHp: 10,
-    golemHp: 4,
-    flyerHp: 2,
-    spikyHp: 2
-  };
-
-
-
-  const V442_RENDER = {
-    label: 'V48_TARGET_VISUAL_LAYER_ACTIVE',
-    target: 'approved_reference_voxel_portal_adventure_10_10',
-    enabled: true,
-    maxSideIslands: 28,
-    clouds: 26,
-    flowers: 140
-  };
-
-
-  const V45_PLATFORM_RENDER = {
-    label: 'V48_TARGET_PLATFORM_RENDER_ACTIVE',
-    enabled: true,
-    nativeAR: true,
-    noFakeCameraAR: true,
-    reference: 'approved_voxel_portal_adventure'
-  };
-
-  const VIEWER_3D = {
-    orbit: 25,
-    elevation: 68,
-    distance: 3.8,
-    targetX: 0,
-    targetY: .8,
-    targetZ: 0,
-    scale: 1,
-    fov: 30,
-    cameraPreview: false
-  };
-
-  const V42_LEVEL_GUIDES = {
-    training: ['IR', 'PULO', 'GEMA', 'B', 'PORTAL'],
-    field: ['CAIXA', 'GEMA', 'BURACO', 'B', 'PORTAL'],
-    volcano: ['LAVA', 'PULO', 'ESPINHO', 'CHECK', 'PORTAL'],
-    forest: ['Y', 'MINI', 'GEMA', 'B', 'PORTAL'],
-    castle: ['PORTÃO', 'GIGANTE', 'GOLEM', 'CHECK', 'PORTAL'],
-    space: ['PLATAFORMA', 'PULO', 'VOADOR', 'QUIZ', 'PORTAL'],
-    arena: ['ARENA', 'ESPINHO', 'B + X', 'BOSS', 'FINAL']
-  };
-
   const LEVELS = [
     {
       id:'training', world:'field', title:'Fase 1 — Treinamento dos Portais', length:210, crystals:5, enemies:3, medal:'Primeiro Pulo',
-      objective:'Pegue 5 cristais, vença 3 inimigos e abra o portal.',
+      objective:'Aprenda a usar profundidade: suba nas caixas, colete 5 cristais, vença 3 inimigos e entre no portal.',
       tutorial:['Use o joystick para ir para o fundo da tela.','Aperte A para pular em cima das caixas.','B lança poder nos blocos escuros e inimigos.']
     },
     {
       id:'field', world:'field', title:'Fase 2 — Campo dos Blocos', length:245, crystals:6, enemies:4, medal:'Guardião do Campo',
-      objective:'Suba nas caixas, pegue cristais e use B no bloco escuro.',
+      objective:'Colete cristais, pule caixas sólidas, vença cubos simples e abra o portal do campo.',
       tutorial:['Caixas são caminho, não decoração.','Pule em cima de inimigos comuns para vencer.','Complete cristais e inimigos para liberar o portal.']
     },
     {
       id:'volcano', world:'fire', title:'Fase 3 — Vulcão Pixel', length:265, crystals:6, enemies:5, medal:'Mestre do Vulcão',
-      objective:'Lava machuca. Pule, desvie e use B nos espinhos.',
+      objective:'Desvie da lava, pule os buracos, use B nos espinhos e libere o portal do vulcão.',
       tutorial:['Lava e buracos tiram vida.','Pule segurando o joystick para dar impulso.','Espinhos não podem ser pisados: use poder.']
     },
     {
       id:'forest', world:'forest', title:'Fase 4 — Floresta Voxel', length:295, crystals:7, enemies:6, medal:'Explorador da Floresta',
-      objective:'Abaixe, fique mini, pegue cristais e acerte voadores.',
+      objective:'Passe por túneis baixos com Y, suba plataformas e colete o cristal escondido.',
       tutorial:['Segure Y para abaixar.','X alterna mini, normal e gigante.','Mini passa melhor por túneis.']
     },
     {
       id:'castle', world:'castle', title:'Fase 5 — Castelo de Pedra', length:325, crystals:7, enemies:7, medal:'Cavaleiro do Castelo',
-      objective:'Use tamanho gigante, vença golems e abra o castelo.',
+      objective:'Abra portões, derrote o golem e encontre o portal no fim do castelo.',
       tutorial:['Use X para virar gigante nos portões.','Golems têm mais vida.','Checkpoints salvam seu retorno.']
     },
     {
       id:'space', world:'space', title:'Fase 6 — Espaço Cubo', length:350, crystals:8, enemies:7, medal:'Viajante do Espaço', quizGate:true,
-      objective:'Pule entre plataformas, acerte voadores e ligue o portal.',
+      objective:'Pule em plataformas espaciais, acerte o quiz do portal e derrote os voadores.',
       tutorial:['Plataformas flutuantes exigem pulo com direção.','O quiz libera a energia do portal.','Observe o minimapa para saber a distância.']
     },
     {
       id:'arena', world:'arena', title:'Fase 7 — Arena dos Portais', length:390, crystals:10, enemies:9, medal:'Mestre dos Portais', boss:true, quizGate:true,
-      objective:'Use tudo que aprendeu e derrote o chefe do portal.',
+      objective:'Use tudo: profundidade, caixas, pulo, poder, tamanho e estratégia para fechar o portal final.',
       tutorial:['A arena mistura todos os desafios.','O Guardião do Portal precisa de vários poderes.','Completar a arena libera medalha final.']
     }
   ];
@@ -306,18 +204,15 @@
 
   const progress = loadProgress();
   let scene, camera, renderer, clock, root, levelGroup, player, playerModel, mixer, ambientLight, sunLight, portalMesh, skyMesh;
-  let cameraRig = { initialized:false, pos:null, look:null }; // V40: câmera cinematográfica suave sem mexer nos controles
   let initialized = false, animReq = 0, playing = false, paused = false, mode = 'lobby', currentLevelIndex = 0, currentLevel = null;
-  let runtime = null, realBg = false, cameraStream = null, viewerCameraStream = null, arSafeUntil = 0;
-  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], enemyProjectiles = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [], v42Markers = [], v44EnemyMarkers = [];
+  let runtime = null, realBg = false, cameraStream = null;
+  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [];
   let input = { x:0, z:0, crouch:false };
-  let inputTarget = { x:0, z:0 };
   let keyboard = { left:false, right:false, forward:false, back:false };
   let moveHold = { left:false, right:false, forward:false, back:false };
   let joy = { active:false, pointerId:null, cx:0, cy:0, max:42, x:0, z:0 };
-  let actionPressAt = {};
   let p = defaultPlayer();
-  let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0, lastJumpAt = 0, lastLandAt = 0, powerReadyAt = 0;
+  let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0, powerReadyAt = 0;
 
   function defaultPlayer(){
     return { x:0, y:0, z:4, vx:0, vy:0, vz:0, grounded:true, scaleMode:'normal', scale:1, targetScale:1, height:2.4, radius:.55, spinUntil:0, invUntil:0, combo:0, facing:Math.PI };
@@ -359,12 +254,6 @@
     els.worldName.textContent = `${WORLD[currentLevel.world]?.name || 'Mundo'} • ${DIFFICULTY[progress.difficulty].name}`;
     const portalReady = objectivesDone();
     els.objectiveText.textContent = portalReady ? 'Portal liberado! Vá até o brilho verde no fim da fase.' : `${currentLevel.objective} Portal: bloqueado.`;
-    if (portalReady && runtime && !runtime.portalAnnounced) {
-      runtime.portalAnnounced = true;
-      toast('Portal liberado!', 'good');
-      addParticles(p.x, p.y + 1.2, p.z, 0x22c55e, 18);
-      vibrate(35);
-    }
     const done = runtime.requiredCrystals + runtime.requiredEnemies + (currentLevel.quizGate ? 1 : 0);
     const got = runtime.crystals + runtime.defeated + (runtime.quizSolved ? (currentLevel.quizGate ? 1 : 0) : 0);
     els.objectiveProgress.style.width = `${clamp(done ? (got / done) * 100 : 100, 0, 100)}%`;
@@ -455,16 +344,16 @@
     initialized = true;
     scene = new THREE.Scene(); clock = new THREE.Clock();
     const rect = stageSize();
-    camera = new THREE.PerspectiveCamera(64, Math.max(1, rect.width) / Math.max(1, rect.height), .1, 900);
+    camera = new THREE.PerspectiveCamera(62, Math.max(1, rect.width) / Math.max(1, rect.height), .1, 900);
     renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true, powerPreference:'high-performance', logarithmicDepthBuffer:false });
     renderer.domElement.id = 'three-canvas';
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.85));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setSize(rect.width, rect.height);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.12;
+    renderer.toneMappingExposure = 1.08;
     renderer.physicallyCorrectLights = true;
     els.stage.innerHTML = ''; els.stage.appendChild(renderer.domElement);
     ambientLight = new THREE.AmbientLight(0xffffff, .42); scene.add(ambientLight);
@@ -477,7 +366,6 @@
     buildFallbackAthos(); loadAthosGLB();
     window.addEventListener('resize', resize, { passive:true });
     window.addEventListener('orientationchange', () => setTimeout(resize, 140), { passive:true });
-    installV49Render(currentLevel?.world || 'field');
     animate();
     return true;
   }
@@ -490,72 +378,6 @@
     renderer.setSize(rect.width, rect.height);
   }
 
-
-  // V48: integração segura da camada de render premium fiel enviada em assets/render-v48.
-  // Esta camada é visual e defensiva: não altera joystick, botões, B Poder, Quiz/Falar, localStorage, AR nativo ou model-viewer.
-  function v48Ctx(worldOverride){
-    return {
-      THREE: window.THREE,
-      scene,
-      camera,
-      renderer,
-      player,
-      currentWorld: worldOverride || currentLevel?.world || 'field',
-      level: currentLevel,
-      levelGroup,
-      // V48: passa os arrays reais do motor, não campos inexistentes em runtime.
-      objects: platforms.map(o => o.mesh).filter(Boolean),
-      enemies,
-      portal: portalMesh,
-      crystals: crystals.map(c => c.mesh).filter(Boolean)
-    };
-  }
-  function activateV492Render(worldOverride){
-    const world = worldOverride || currentLevel?.world || 'field';
-    try {
-      document.body.classList.add('v49-render-exigido-active','v492-render-exigido-real-active');
-      document.body.dataset.world = world;
-      if (els.game) {
-        els.game.dataset.world = world;
-        els.game.classList.add('v492-render-exigido-real-active');
-      }
-      // V49.2: render exigido absoluto. O cenário antigo fica invisível para não aparecer
-      // lavado/protótipo em cima do render-alvo. A lógica/colisão continua existindo.
-      if (levelGroup) levelGroup.visible = false;
-      if (scene) {
-        scene.background = null;
-        scene.fog = null;
-      }
-      if (player) {
-        player.visible = true;
-        if (player.userData && player.userData.contactShadow && player.remove) {
-          try { player.remove(player.userData.contactShadow); } catch(_) {}
-          player.userData.contactShadow = null;
-        }
-      }
-    } catch(_) {}
-    window.ATHOS_V492_STATUS = {
-      version:'V49_2_RENDER_EXIGIDO_REAL_BACKGROUND',
-      installed:true,
-      world,
-      exactBackplate:true,
-      proceduralWorldHidden: !!(levelGroup && levelGroup.visible === false),
-      contactShadow:false,
-      target:'1000801721_render_exigido_absoluto'
-    };
-    return true;
-  }
-
-  function installV49Render(worldOverride){
-    return activateV492Render(worldOverride);
-  }
-  function rebuildV49Render(worldOverride){
-    return activateV492Render(worldOverride);
-  }
-  function updateV49Render(dt){
-    activateV492Render(currentLevel?.world || 'field');
-  }
-
   function buildFallbackAthos(){
     if (playerModel) player.remove(playerModel);
     const g = new THREE.Group();
@@ -564,7 +386,7 @@
     addPart(g,1.05,1.25,.72,0,1.55,0,black); addPart(g,.38,1.25,.38,-.82,1.55,0,orange); addPart(g,.38,.38,.42,-.82,.84,0,yellow);
     addPart(g,.38,1.25,.38,.82,1.55,0,orange); addPart(g,.38,.38,.42,.82,.84,0,yellow);
     addPart(g,.42,1.25,.42,-.28,.28,0,black); addPart(g,.42,.38,.44,-.28,-.42,0,orange); addPart(g,.42,1.25,.42,.28,.28,0,black); addPart(g,.42,.38,.44,.28,-.42,0,orange);
-    playerModel = g; player.add(playerModel); ensurePlayerContactShadow();
+    playerModel = g; player.add(playerModel);
   }
   function addPart(group,w,h,d,x,y,z,material){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material); m.position.set(x,y,z); m.castShadow = true; m.receiveShadow = true; group.add(m); return m; }
   function loadAthosGLB(){
@@ -572,12 +394,11 @@
     loader.load('./athos.glb', (gltf) => {
       if (playerModel) player.remove(playerModel);
       playerModel = gltf.scene;
-      playerModel.traverse((o) => { if (o.isMesh) { o.castShadow=true; o.receiveShadow=true; polishAthosMaterial(o); } });
+      playerModel.traverse((o) => { if (o.isMesh) { o.castShadow=true; o.receiveShadow=true; } });
       const box = new THREE.Box3().setFromObject(playerModel); const size = new THREE.Vector3(); box.getSize(size);
       const s = size.y > 0 ? 2.65 / size.y : 1; playerModel.scale.setScalar(s);
       const b2 = new THREE.Box3().setFromObject(playerModel); playerModel.position.y -= b2.min.y;
       player.add(playerModel);
-      ensurePlayerContactShadow();
       if (gltf.animations && gltf.animations.length) { mixer = new THREE.AnimationMixer(playerModel); mixer.clipAction(gltf.animations[0]).play(); }
       els.modelStatus.textContent = 'athos.glb carregado.';
     }, undefined, () => { els.modelStatus.textContent = 'Fallback voxel ativo; athos.glb não carregou.'; });
@@ -632,89 +453,12 @@
     return glow;
   }
 
-
-  function polishAthosMaterial(mesh){
-    if (!mesh || !mesh.material) return;
-    const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    list.forEach(m => {
-      if (!m) return;
-      if ('roughness' in m) m.roughness = Math.min(.72, m.roughness ?? .58);
-      if ('metalness' in m) m.metalness = Math.min(.12, m.metalness ?? .04);
-      if ('envMapIntensity' in m) m.envMapIntensity = 1.15;
-      if ('emissiveIntensity' in m && m.emissive) m.emissiveIntensity = Math.max(m.emissiveIntensity || 0, .08);
-      m.needsUpdate = true;
-    });
-  }
-
-  function ensurePlayerContactShadow(){
-    // V49: sombra circular removida para não gerar a 'bola preta' em volta do Athos.
-    if (!player) return;
-    if (player.userData && player.userData.contactShadow && player.remove) {
-      try { player.remove(player.userData.contactShadow); } catch(_) {}
-    }
-    if (!player.userData) player.userData = {};
-    player.userData.contactShadow = null;
-  }
-
-  function addV40BackdropSilhouettes(world, length, cfg){
-    if (realBg) return;
-    const farColor = world === 'fire' ? 0x3b0a0a : world === 'space' ? 0x111827 : world === 'castle' ? 0x1f2937 : world === 'forest' ? 0x064e3b : 0x1d4ed8;
-    for (let i=0;i<9;i++) {
-      const side = i % 2 ? -1 : 1;
-      const z = -28 - i * Math.max(20, length / 9);
-      const h = 3.5 + (i % 3) * 1.2;
-      const w = world === 'castle' ? 3.6 : world === 'space' ? 2.4 : 4.8;
-      const m = box(w, h, .75, shadeColor(farColor, (i%2)*12), { roughness:.9, outline:false, emissive: world === 'space' ? cfg.accent : 0x000000, emissiveIntensity: world === 'space' ? .16 : 0 });
-      m.position.set(side*(12.5 + (i%3)*1.6), h/2 - .05, z);
-      m.material.transparent = true; m.material.opacity = world === 'space' ? .55 : .42;
-      levelGroup.add(m); premiumVisuals.push(m);
-    }
-  }
-
-  function applyV40RenderPass(world,length){
-    const cfg = WORLD[world] || WORLD.field;
-    addV40LaneReadability(length, cfg);
-    addV40PortalRunway(length, cfg);
-    addV40SoftSpotlights(world, length, cfg);
-  }
-
-  function addV40LaneReadability(length, cfg){
-    // Luzes baixas nas bordas e marcas discretas deixam a criança entender a profundidade sem texto.
-    for (let z=-6; z>-length; z-=18) {
-      [-6.85, 6.85].forEach((x,idx)=>{
-        const pebble = box(.42,.14,.42, idx ? shadeColor(cfg.accent, 18) : shadeColor(cfg.grid, 28), { emissive:cfg.accent, emissiveIntensity:.18, roughness:.45 });
-        pebble.position.set(x,.18,z);
-        pebble.userData.pulseMat = true;
-        levelGroup.add(pebble); premiumVisuals.push(pebble);
-      });
-    }
-  }
-
-  function addV40PortalRunway(length, cfg){
-    const start = -Math.max(30, length - 54);
-    for (let z=start; z>-length-6; z-=10) {
-      const beacon = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.62,8), mat(cfg.accent, cfg.accent, { emissiveIntensity:.42, roughness:.35 }));
-      beacon.position.set(-3.15,.55,z); beacon.castShadow = true; levelGroup.add(beacon); premiumVisuals.push(beacon);
-      const beacon2 = beacon.clone(); beacon2.position.x = 3.15; levelGroup.add(beacon2); premiumVisuals.push(beacon2);
-    }
-  }
-
-  function addV40SoftSpotlights(world, length, cfg){
-    if (realBg) return;
-    const points = [-48, -Math.max(90, length*.45), -Math.max(150, length*.72)].filter(z => Math.abs(z) < length + 10);
-    points.forEach((z,i)=>{
-      const light = new THREE.PointLight(world === 'fire' ? 0xff6b00 : cfg.accent, world === 'space' ? .55 : .38, 18);
-      light.position.set(i%2 ? -5.8 : 5.8, 4.2, z);
-      levelGroup.add(light); premiumVisuals.push(light);
-    });
-  }
-
   async function start(modeName){
     mode = modeName; paused = false; playing = true;
     hardStopAllInput('start');
     els.game.classList.remove('compact-hud');
     if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub e escolha uma fase pelos portais. Para aventura real, toque em JOGAR FASES.' };
-    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre', world:'field', length:260, crystals:10, enemies:7, objective:'Explore livremente. Para AR fixo, toque no botão Real.' };
+    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
     else { currentLevelIndex = Math.min(progress.level || 0, LEVELS.length - 1); currentLevel = LEVELS[currentLevelIndex]; }
     showScreen('game');
     if (!await initThree()) { showScreen('lobby'); playing = false; return; }
@@ -736,30 +480,187 @@
 
   function newRuntime(){
     const diff = DIFFICULTY[progress.difficulty];
-    return { hearts:diff.hearts, crystals:0, defeated:0, requiredCrystals:currentLevel.crystals||0, requiredEnemies:currentLevel.enemies||0, timer:(mode==='missions'?diff.timer:0), checkpoint:4, quizSolved:!currentLevel.quizGate, completed:false, tutorialStep:0, startedAt:now(), portalAnnounced:false };
+    return { hearts:diff.hearts, crystals:0, defeated:0, requiredCrystals:currentLevel.crystals||0, requiredEnemies:currentLevel.enemies||0, timer:(mode==='missions'?diff.timer:0), checkpoint:4, quizSolved:!currentLevel.quizGate, completed:false, tutorialStep:0, startedAt:now() };
   }
 
-  function resetPlayer(){ p = defaultPlayer(); p.z = (runtime && runtime.checkpoint) || 4; player.position.set(p.x,p.y,p.z); player.rotation.y = Math.PI; lastGroundedAt = now(); lastJumpAt = 0; lastLandAt = now(); jumpBufferedUntil = 0; clearMovementState(); }
+  function resetPlayer(){ p = defaultPlayer(); p.z = (runtime && runtime.checkpoint) || 4; player.position.set(p.x,p.y,p.z); player.rotation.y = Math.PI; clearMovementState(); }
   function clearLevel(){
     if (!levelGroup) return;
     while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
-    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; enemyProjectiles=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; v42Markers=[]; v44EnemyMarkers=[]; portalMesh=null;
+    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; portalMesh=null;
+  }
+
+
+  const V50_RENDER_RECUPERACAO = {
+    label:'V50_RESTAURACAO_V39_RENDER_EXIGIDO_REAL_3D',
+    target:'render_exigido_voxel_premium_3d_real_sem_backplate',
+    objects:0,
+    world:'field'
+  };
+
+  function v50Rand(seed){
+    const x = Math.sin(seed * 9283.133 + 17.17) * 43758.5453;
+    return x - Math.floor(x);
+  }
+  function v50Add(obj){
+    if (!obj || !levelGroup) return obj;
+    levelGroup.add(obj);
+    premiumVisuals.push(obj);
+    V50_RENDER_RECUPERACAO.objects++;
+    return obj;
+  }
+  function v50Box(w,h,d,color,x,y,z,opts={}){
+    const m = box(w,h,d,color,{ outline:true, outlineColor:opts.outlineColor||0xffffff, outlineOpacity:opts.outlineOpacity ?? .18, emissive:opts.emissive||0x000000, emissiveIntensity:opts.emissiveIntensity||0, roughness:opts.roughness ?? .72, metalness:opts.metalness ?? .03 });
+    m.position.set(x,y,z);
+    return v50Add(m);
+  }
+  function v50Flower(x,z,c=0xff5cc8){
+    v50Box(.10,.32,.10,0x25a244,x,.22,z,{outlineOpacity:0});
+    v50Box(.18,.10,.18,c,x,.43,z,{emissive:c,emissiveIntensity:.08,outlineOpacity:.08});
+  }
+  function v50GrassClump(x,z,scale=1){
+    const colors=[0x2faa46,0x52d45c,0x89e85f];
+    for(let i=0;i<3;i++){
+      const dx=(v50Rand(x*13+z*7+i)-.5)*.45*scale, dz=(v50Rand(x*5-z*11+i)-.5)*.45*scale;
+      v50Box(.08*scale,.38*scale,.08*scale,colors[i%colors.length],x+dx,.22*scale,z+dz,{outlineOpacity:0});
+    }
+  }
+  function v50Mushroom(x,z){
+    v50Box(.20,.38,.20,0xf8f0d2,x,.24,z,{outlineOpacity:.08});
+    v50Box(.65,.28,.65,0xdc2626,x,.58,z,{emissive:0x4a0000,emissiveIntensity:.06,outlineOpacity:.12});
+    [[-.16,-.12],[.14,.1],[.02,-.02]].forEach((p,i)=>v50Box(.12,.05,.12,0xffffff,x+p[0],.74,z+p[1],{outlineOpacity:0}));
+  }
+  function v50Tree(x,z,pal,big=false){
+    const h=big?3.2:2.4;
+    v50Box(.72,h,.72,pal.wood||0x6b3f1d,x,h/2,z,{outlineOpacity:.10});
+    v50Box(big?3.2:2.5,big?2.2:1.7,big?3.2:2.5,pal.leaf||pal.grass2||0x3ccc54,x,h+.85,z,{outlineColor:0xb6ff92,outlineOpacity:.16});
+    v50Box(big?2.0:1.45,big?1.3:1.0,big?2.0:1.45,pal.leaf2||0x6ee75d,x,h+2.05,z,{outlineColor:0xdbffb0,outlineOpacity:.12});
+  }
+  function v50Crystal(x,y,z,color=0x24d9ff,scale=1){
+    const g=new THREE.Group(); g.position.set(x,y,z);
+    const m=mat(color,color,{emissiveIntensity:.85,roughness:.18,metalness:.12,transparent:true,opacity:.88});
+    const a=new THREE.Mesh(new THREE.OctahedronGeometry(.46*scale,0),m); a.castShadow=true; a.receiveShadow=false; g.add(a);
+    const b=new THREE.Mesh(new THREE.BoxGeometry(.08*scale,1.0*scale,.08*scale),m); b.rotation.y=Math.PI/4; g.add(b);
+    const glow=addGlowSprite(color,.95*scale,.28); glow.position.y=.02; g.add(glow);
+    v50Add(g); updatableCrystal(g); return g;
+  }
+  function v50EnemyStatue(type,x,z,pal){
+    const g=new THREE.Group(); g.position.set(x,0,z);
+    const bodyColor=type==='golem'?0x6b7280:type==='slime'?0x34a853:0x231942;
+    const body=box(type==='golem'?1.6:1.25,type==='golem'?2.2:1.25,type==='golem'?1.1:1.25,bodyColor,{outline:true,outlineColor:0xffffff,outlineOpacity:.20,emissive:type==='flyer'?0x501180:0x000000,emissiveIntensity:type==='flyer'?.22:0});
+    body.position.y=type==='golem'?1.1:.75; g.add(body);
+    const eyeMat=mat(0xff1744,0xff1744,{emissiveIntensity:.85,roughness:.2});
+    [-.28,.28].forEach(ex=>{ const e=new THREE.Mesh(new THREE.BoxGeometry(.22,.16,.08),eyeMat); e.position.set(ex,type==='golem'?1.55:.95,.58); g.add(e); });
+    if(type==='golem'){
+      v50Box(.58,1.4,.58,0x5b626b,x-.95,.9,z,{outlineOpacity:.12});
+      v50Box(.58,1.4,.58,0x5b626b,x+.95,.9,z,{outlineOpacity:.12});
+    }
+    if(type==='slime'){
+      const spikes=[[0,.42],[-.42,0],[.42,0],[0,-.42]];
+      spikes.forEach(p=>{ const s=box(.22,.22,.22,0xdef7c2,{outline:true,outlineOpacity:.08}); s.position.set(p[0],1.18,p[1]); g.add(s); });
+    }
+    if(type==='flyer') g.position.y=2.1;
+    v50Add(g); return g;
+  }
+  function v50PortalTemple(z,pal,unlocked=false){
+    const stone=pal.stone||0x87919a, magic=pal.magic||0xd13bff;
+    const baseY=.22;
+    for(let i=0;i<5;i++) v50Box(5.8-i*.55,.34,2.5,stone,0,baseY+i*.28,z+1.35-i*.18,{outlineColor:0xdbeafe,outlineOpacity:.16});
+    [-2.35,2.35].forEach(x=>{
+      for(let y=0;y<4;y++) v50Box(.78,.72,.78,stone,x,.68+y*.72,z,{outlineColor:0xdbeafe,outlineOpacity:.16});
+      v50Crystal(x,3.85,z,magic,.65);
+    });
+    v50Box(5.6,.72,.92,stone,0,3.45,z,{outlineColor:0xdbeafe,outlineOpacity:.16});
+    const ringMat=new THREE.MeshBasicMaterial({color:unlocked?0x2df8ff:magic,transparent:true,opacity:.75,side:THREE.DoubleSide});
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(1.38,.16,12,64),ringMat); ring.position.set(0,2.08,z+.08); ring.rotation.y=Math.PI/2; v50Add(ring); particles.push({mesh:ring,kind:'v50portal',baseY:2.08});
+    const core=new THREE.Mesh(new THREE.CircleGeometry(1.04,36),new THREE.MeshBasicMaterial({color:magic,transparent:true,opacity:.42,side:THREE.DoubleSide})); core.position.set(0,2.08,z+.1); core.rotation.y=Math.PI/2; v50Add(core); particles.push({mesh:core,kind:'v50portalCore',baseY:2.08});
+    for(let i=0;i<18;i++){
+      const a=i/18*Math.PI*2; const r=.8+v50Rand(i)*.55;
+      v50Crystal(Math.cos(a)*r,1.15+v50Rand(i+9)*1.7,z+.1+Math.sin(a)*.20,magic,.18+v50Rand(i+3)*.12);
+    }
+  }
+  function v50FloatingIsland(x,z,pal,s=1){
+    v50Box(4.6*s,.7,3.5*s,pal.dirt||0x70451f,x,5.0,z,{outlineColor:0x30180a,outlineOpacity:.14});
+    v50Box(4.4*s,.22,3.3*s,pal.grass2||0x6ee75d,x,5.48,z,{outlineColor:0xcbff86,outlineOpacity:.12});
+    v50Tree(x-.9*s,z,pal,false);
+    v50Crystal(x+1.0*s,5.95,z,pal.magic||0xd13bff,.5*s);
+  }
+  function v50Waterfall(x,z,pal){
+    const m=new THREE.MeshBasicMaterial({color:pal.water||0x28c7ff,transparent:true,opacity:.42});
+    const w=new THREE.Mesh(new THREE.BoxGeometry(1.4,4.6,.18),m); w.position.set(x,2.35,z); v50Add(w);
+    const pool=new THREE.Mesh(new THREE.BoxGeometry(3.2,.08,2.2),m); pool.position.set(x,.08,z+1.15); v50Add(pool);
+  }
+  function v50LavaStrip(x,z,pal){
+    for(let i=0;i<8;i++) v50Box(1.2,.08,1.2,pal.lava||0xff4a00,x,.08,z-i*1.25,{emissive:pal.lava||0xff4a00,emissiveIntensity:.7,outlineOpacity:.02});
+  }
+  function applyV50RenderExigido(world,length){
+    if (realBg || !levelGroup || !window.THREE) return;
+    document.body.classList.add('v50-recuperado-render');
+    const pal = WORLD[world] || WORLD.field;
+    V50_RENDER_RECUPERACAO.world=world; V50_RENDER_RECUPERACAO.objects=0;
+    // Reduz a cara de protótipo/debug sem apagar colisões/lógica.
+    levelGroup.traverse(o=>{
+      if(o.type==='GridHelper' || o.isGridHelper){ if(o.material){ o.material.transparent=true; o.material.opacity=.10; } }
+      if(o.name && /v40|v45|v46|v47|v48/i.test(o.name)) o.visible=false;
+    });
+    const len=length||220;
+    // Caminho central estilo aventura: terra/pedra/grama em blocos, sem fundo fake.
+    for(let z=10; z>-len-4; z-=4){
+      const i=Math.round((10-z)/4);
+      const xoff=(i%7===0)?.55:(i%5===0?-.35:0);
+      v50Box(4.25,.18,3.85,pal.path||0xc78c47,xoff,.12,z,{outlineColor:0xffffff,outlineOpacity:.09});
+      if(i%2===0) v50Box(.62,.20,.62,pal.stone||0x9ca3af,-1.25+xoff,.27,z-.9,{outlineOpacity:.06});
+      if(i%3===0) v50Box(.52,.18,.52,pal.stone||0x9ca3af,1.22+xoff,.27,z+.75,{outlineOpacity:.06});
+      if(i%4===1) v50Crystal((i%8<4?1.65:-1.65)+xoff,1.15,z-.2,pal.crystal||0x22d3ee,.72);
+    }
+    // Plataformas laterais ricas e camadas de profundidade.
+    for(let z=0; z>-len; z-=9){
+      const i=Math.round(Math.abs(z)/9);
+      [-1,1].forEach(side=>{
+        const r=v50Rand(i*17+(side>0?2:5));
+        const x=side*(6.8 + r*2.3);
+        const w=3.2+r*2.0, d=3.1+v50Rand(i*7)*2.3;
+        v50Box(w,.62,d,pal.dirt||0x70451f,x,.05,z,{outlineColor:0x3c220e,outlineOpacity:.10});
+        v50Box(w*.96,.20,d*.96,pal.grass2||pal.ground||0x56d45b,x,.46,z,{outlineColor:0xccff8a,outlineOpacity:.11});
+        if(i%2===0) v50GrassClump(x-.7,z+.4,1.1);
+        if(i%3===0) v50Flower(x+.75,z-.35,i%2?0xff70d0:0xffe36d);
+        if(i%5===0) v50Mushroom(x,z+.85);
+        if(i%4===0) v50Tree(x+side*1.2,z-.8,pal,i%8===0);
+        if(i%6===0) v50EnemyStatue(i%12===0?'golem':(i%8===0?'flyer':'slime'),x,z,pal);
+        if(i%7===0) v50Crystal(x-side*.9,.95,z+.4,pal.magic||0xd13bff,.48);
+      });
+    }
+    // Marcos fortes no fundo e laterais.
+    v50PortalTemple(-len-10,pal,false);
+    v50Waterfall(-9.8,-62,pal);
+    if(world==='fire') { v50LavaStrip(8.8,-28,pal); v50LavaStrip(-8.8,-78,pal); }
+    else { v50LavaStrip(9.6,-118,{...pal,lava:0xff5a00}); }
+    v50FloatingIsland(-11,-70,pal,.85); v50FloatingIsland(10,-105,pal,.72); v50FloatingIsland(-7,-150,pal,.62);
+    // Nuvens voxel / céu de profundidade.
+    for(let i=0;i<16;i++){
+      const z=-22-i*12, x=(v50Rand(i)-.5)*22, y=7.5+v50Rand(i+2)*5;
+      const cloudColor=world==='space'?0x6d5cff:0xffffff;
+      v50Box(2.2,.32,.8,cloudColor,x,y,z,{transparent:true,opacity:.58,outlineOpacity:0});
+      v50Box(1.2,.28,.7,cloudColor,x+1.3,y+.08,z+.35,{transparent:true,opacity:.48,outlineOpacity:0});
+      v50Box(1.3,.30,.7,cloudColor,x-1.2,y-.02,z-.25,{transparent:true,opacity:.48,outlineOpacity:0});
+    }
+    updateV50CameraTuning(world);
+  }
+  function updateV50CameraTuning(world){
+    if(!camera) return;
+    camera.fov = innerWidth < innerHeight ? 55 : 58;
+    camera.updateProjectionMatrix();
   }
 
   function buildLevel(level, worldOverride){
     currentLevel = { ...level, world:worldOverride || level.world };
-    clearLevel(); runtime = newRuntime(); resetPlayer(); cameraRig.initialized = false; cameraRig.pos = null; cameraRig.look = null; configureWorld(currentLevel.world);
+    clearLevel(); runtime = newRuntime(); resetPlayer(); configureWorld(currentLevel.world);
     createPremiumAtmosphere(currentLevel.world, currentLevel.length || 220);
     createTrack(currentLevel.length || 220);
     createDecor(currentLevel.world, currentLevel.length || 220);
     if (currentLevel.id === 'hub') createHub(); else createGameplay(currentLevel);
     createPortal(currentLevel.length || 220);
-    applyV442MinecraftAdventureRender(currentLevel, currentLevel.length || 220);
-    applyV45TrueGamePlatformRender(currentLevel, currentLevel.length || 220);
-    rebuildV49Render(currentLevel.world);
-    applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
-    document.body.dataset.world = currentLevel.world;
-    if (els.game) els.game.dataset.world = currentLevel.world;
+    applyV50RenderExigido(currentLevel.world, currentLevel.length || 220);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
 
@@ -767,51 +668,37 @@
     const cfg = WORLD[world] || WORLD.field;
     realBg = world === 'real'; els.game.classList.toggle('real-bg', realBg);
     if (skyMesh && scene) { scene.remove(skyMesh); skyMesh = null; }
-    const premiumBackdrop = world !== 'real';
-    scene.background = premiumBackdrop ? null : null;
-    const fogDensity = world === 'space' ? .0028 : world === 'fire' ? .0048 : world === 'castle' ? .0036 : .0024;
-    scene.fog = premiumBackdrop ? null : new THREE.FogExp2(cfg.fog || cfg.sky, fogDensity);
-    ambientLight.color.setHex(cfg.light); ambientLight.intensity = realBg ? 1.0 : world === 'space' ? .38 : world === 'fire' ? .34 : .48;
-    sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
-    sunLight.position.set(world === 'space' ? -12 : 10, world === 'fire' ? 18 : 22, world === 'castle' ? 4 : 12);
-    renderer.toneMappingExposure = world === 'fire' ? 1.20 : world === 'space' ? 1.28 : world === 'castle' ? 1.10 : 1.14;
-    if (realBg) { resetPlayer(); enterARSafeMode('world-real'); stopCamera(); } else { arSafeUntil = 0; stopCamera(); }
+    scene.background = realBg ? null : new THREE.Color(shadeColor(cfg.sky || 0x101827, -6));
+    scene.fog = realBg ? null : new THREE.FogExp2(cfg.fog || cfg.sky, world === 'space' ? .0018 : world === 'fire' ? .0032 : .0020);
+    ambientLight.color.setHex(cfg.light); ambientLight.intensity = realBg ? .96 : .5;
+    sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : 1.22;
+    renderer.toneMappingExposure = world === 'fire' ? 1.18 : world === 'space' ? 1.26 : 1.08;
+    if (realBg) startCamera(); else stopCamera();
   }
 
   function createPremiumAtmosphere(world,length){
     const cfg = WORLD[world] || WORLD.field;
     if (!realBg) {
-      const skyGeo = new THREE.SphereGeometry(440, 36, 20);
-      const skyTop = world === 'space' ? 0x020617 : shadeColor(cfg.sky || 0x101827, world === 'fire' ? -22 : 2);
-      const skyMat = new THREE.MeshBasicMaterial({ color: skyTop, side: THREE.BackSide });
-      skyMesh = new THREE.Mesh(skyGeo, skyMat); skyMesh.position.set(0,36,-length/2); scene.add(skyMesh);
-      // V40: camada de horizonte, para tirar aparência de vazio/debug.
-      const horizonColor = world === 'fire' ? 0x7f1d1d : world === 'space' ? 0x1e1b4b : world === 'castle' ? 0x334155 : world === 'forest' ? 0x166534 : 0x60a5fa;
-      const horizon = new THREE.Mesh(
-        new THREE.PlaneGeometry(96, 22),
-        new THREE.MeshBasicMaterial({ color:horizonColor, transparent:true, opacity: world === 'space' ? .20 : .26, depthWrite:false, side:THREE.DoubleSide })
-      );
-      horizon.position.set(0,8,-length*.66); horizon.rotation.x = 0; levelGroup.add(horizon); premiumVisuals.push(horizon);
-      horizon.userData.float = { baseY:8, amp:.12, speed:.35 };
+      const skyGeo = new THREE.SphereGeometry(420, 32, 18);
+      const skyMat = new THREE.MeshBasicMaterial({ color: shadeColor(cfg.sky || 0x101827, world === 'space' ? -28 : 6), side: THREE.BackSide });
+      skyMesh = new THREE.Mesh(skyGeo, skyMat); skyMesh.position.set(0,35,-length/2); scene.add(skyMesh);
     }
-    const sunColor = world === 'fire' ? 0xff7a00 : world === 'space' ? 0x8b5cf6 : world === 'castle' ? 0xfbbf24 : cfg.accent;
-    const sun = new THREE.Mesh(new THREE.SphereGeometry(world==='space'?4.6:3.15,28,18), new THREE.MeshBasicMaterial({ color:sunColor, transparent:true, opacity: world==='space'?.48:.58 }));
-    sun.position.set(world==='space'?-18:18, world==='space'?28:25, -length*.58); sun.userData.float = { baseY:sun.position.y, amp:.35, speed:.42 }; levelGroup.add(sun); premiumVisuals.push(sun);
-    addGlowSprite(sun.position.x, sun.position.y, sun.position.z, sunColor, world==='space'?14:10, .18);
-    const count = world==='space'?96:world==='fire'?44:34;
-    for (let i=0;i<count;i++) {
-      const starColor = world==='fire' ? (Math.random()>.4?0xffd000:0xff4d00) : world==='space' ? (Math.random()>.5?0xffffff:0x7dd3fc) : (Math.random()>.7?cfg.accent:0xffffff);
-      const star = new THREE.Mesh(new THREE.BoxGeometry(.12,.12,.12), new THREE.MeshBasicMaterial({ color:starColor, transparent:true, opacity: world==='space'?.92:.34 }));
-      star.position.set((Math.random()-.5)*76, 10+Math.random()*28, -Math.random()*length-12); star.userData.twinkle = { base:.35+Math.random()*.55, speed:.7+Math.random()*1.6, phase:Math.random()*6.28 };
+    const sunColor = world === 'fire' ? 0xff7a00 : world === 'space' ? 0x8b5cf6 : cfg.accent;
+    const sun = new THREE.Mesh(new THREE.SphereGeometry(world==='space'?4.5:3.2,24,16), new THREE.MeshBasicMaterial({ color:sunColor, transparent:true, opacity:.55 }));
+    sun.position.set(world==='space'?-18:18, world==='space'?28:25, -length*.55); sun.userData.float = { baseY:sun.position.y, amp:.35, speed:.42 }; levelGroup.add(sun); premiumVisuals.push(sun);
+    addGlowSprite(sun.position.x, sun.position.y, sun.position.z, sunColor, world==='space'?13:9, .18);
+    for (let i=0;i<(world==='space'?80:28);i++) {
+      const starColor = world==='fire' ? (Math.random()>.4?0xffd000:0xff4d00) : world==='space' ? (Math.random()>.5?0xffffff:0x7dd3fc) : 0xffffff;
+      const star = new THREE.Mesh(new THREE.BoxGeometry(.12,.12,.12), new THREE.MeshBasicMaterial({ color:starColor, transparent:true, opacity: world==='space'?.9:.38 }));
+      star.position.set((Math.random()-.5)*70, 10+Math.random()*26, -Math.random()*length-12); star.userData.twinkle = { base:.35+Math.random()*.55, speed:.7+Math.random()*1.6, phase:Math.random()*6.28 };
       levelGroup.add(star); premiumVisuals.push(star);
     }
-    addV40BackdropSilhouettes(world, length, cfg);
   }
 
   function createTrack(length){
     const cfg = WORLD[currentLevel.world] || WORLD.field;
     const base = box(18,.45,length+44,cfg.ground); base.position.set(0,-.25,-length/2+4); levelGroup.add(base);
-    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.018; levelGroup.add(grid);
+    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.46; levelGroup.add(grid);
     for (let z=8; z>-length-12; z-=8) {
       const stripe = box(.08,.08,1.25,cfg.grid); stripe.position.set(0,.09,z); levelGroup.add(stripe);
       if (Math.abs(z)%32===0) { const mark=box(1.3,.09,.18,cfg.accent); mark.position.set(-6.8,.12,z); levelGroup.add(mark); const mark2=box(1.3,.09,.18,cfg.accent); mark2.position.set(6.8,.12,z); levelGroup.add(mark2); }
@@ -900,299 +787,6 @@
     }
   }
 
-
-  function applyV442MinecraftAdventureRender(level, length){
-    if (!V442_RENDER.enabled || realBg) return;
-    const world = level.world || 'field';
-    const cfg = WORLD[world] || WORLD.field;
-    addV442SkyBlocks(world, length, cfg);
-    addV442AdventurePath(world, length, cfg);
-    addV442SideIslands(world, length, cfg);
-    addV442PortalRewardArea(world, length, cfg);
-    addV442CollectibleTrail(world, length, cfg);
-    addV442EnemyStageSilhouettes(world, length, cfg);
-    v44EnemyMarkers.push({ type:'render', label:V442_RENDER.label, world, target:V442_RENDER.target });
-  }
-
-  function v442Box(w,h,d,color,opts={}){
-    const mesh = box(w,h,d,color, { outline:true, outlineColor:opts.outlineColor || 0xffffff, outlineOpacity: opts.outlineOpacity ?? .12, emissive:opts.emissive || 0x000000, emissiveIntensity:opts.emissiveIntensity || 0, roughness:opts.roughness ?? .76 });
-    mesh.castShadow = opts.castShadow !== false;
-    mesh.receiveShadow = opts.receiveShadow !== false;
-    if (opts.name) mesh.name = opts.name;
-    return mesh;
-  }
-
-  function addV442GrassClump(x,z,world,cfg){
-    const colors = world === 'fire' ? [0x7c2d12,0xf97316,0xfacc15] : world === 'space' ? [0x60a5fa,0x8b5cf6,0x22d3ee] : world === 'castle' ? [0x94a3b8,0xfbbf24,0x64748b] : [0x16a34a,0x84cc16,0xfde047,0xffffff,0xf472b6];
-    for(let i=0;i<3;i++){
-      const c = colors[Math.floor(Math.random()*colors.length)];
-      const h = .28 + Math.random()*.45;
-      const stem = v442Box(.12,h,.12,c,{emissive:c, emissiveIntensity:i===2?.12:0, outlineOpacity:.04});
-      stem.position.set(x+(Math.random()-.5)*.9,h/2+.13,z+(Math.random()-.5)*.9);
-      levelGroup.add(stem); premiumVisuals.push(stem);
-    }
-  }
-
-  function addV442SkyBlocks(world,length,cfg){
-    if (world === 'space') return;
-    for(let i=0;i<V442_RENDER.clouds;i++){
-      const z = -10 - i*(length/(V442_RENDER.clouds+1)) + (Math.random()-.5)*8;
-      const x = (i%2? -1:1) * (9 + Math.random()*12);
-      const y = 10 + Math.random()*7;
-      const g = new THREE.Group();
-      const cloudColor = world==='fire' ? 0x5b1b1b : world==='castle'?0xcbd5e1:0xf8fafc;
-      const opacity = world==='fire' ? .30 : .55;
-      [[0,0,0,2.4,.45,.9],[-1.6,.05,.1,1.8,.4,.75],[1.7,.08,-.05,2.1,.48,.8],[.35,.28,.1,1.65,.45,.75]].forEach(p=>{
-        const b = v442Box(p[3],p[4],p[5],cloudColor,{outlineOpacity:.05, castShadow:false});
-        b.material.transparent = true; b.material.opacity = opacity; b.position.set(p[0],p[1],p[2]); g.add(b);
-      });
-      g.position.set(x,y,z); g.userData.float={baseY:y, amp:.35, speed:.18+Math.random()*.18};
-      levelGroup.add(g); premiumVisuals.push(g);
-    }
-  }
-
-  function addV442AdventurePath(world,length,cfg){
-    const grass = world==='fire'?0x4b1515:world==='space'?0x312e81:world==='castle'?0x64748b:world==='forest'?0x15803d:0x35a634;
-    const dirt = world==='fire'?0x7f1d1d:world==='space'?0x4338ca:world==='castle'?0x475569:0x9a5b22;
-    const stone = world==='fire'?0x2b0909:world==='space'?0x1e1b4b:world==='castle'?0x94a3b8:0x94a3b8;
-    for(let z=8; z>-length-8; z-=4){
-      const idx = Math.floor(Math.abs(z)/4);
-      const pathColor = idx%3===0 ? shadeColor(dirt,10) : idx%3===1 ? dirt : shadeColor(stone, -4);
-      const center = v442Box(3.8,.16,3.7,pathColor,{outlineColor:0x2f1606,outlineOpacity:.08,roughness:.85});
-      center.position.set(0,.22,z); levelGroup.add(center);
-      const left = v442Box(2.3,.18,3.7,shadeColor(grass,(idx%2?8:-6)),{outlineColor:0xd9f99d,outlineOpacity:.07});
-      left.position.set(-3.1,.235,z); levelGroup.add(left);
-      const right = left.clone(); right.position.set(3.1,.235,z); levelGroup.add(right);
-      if(idx%3===0){
-        addV442GrassClump(-4.4,z,world,cfg); addV442GrassClump(4.4,z-.7,world,cfg);
-      }
-      if(idx%7===0){
-        const arrow = v442Box(.34,.08,1.4,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.18,outlineOpacity:.05});
-        arrow.position.set(0,.42,z-.2); levelGroup.add(arrow); premiumVisuals.push(arrow);
-      }
-    }
-  }
-
-  function addV442SideIslands(world,length,cfg){
-    const grass = world==='fire'?0x6b1a12:world==='space'?0x3b2ba4:world==='castle'?0x6b7280:world==='forest'?0x0f7a3b:0x4caf32;
-    const dirt = world==='fire'?0x311111:world==='space'?0x1e1b4b:world==='castle'?0x475569:0x8b4f1f;
-    const stone = world==='fire'?0x160909:world==='space'?0x0f102c:0x6b7280;
-    const count = Math.min(V442_RENDER.maxSideIslands, Math.floor(length/18));
-    for(let i=0;i<count;i++){
-      const z = -18 - i*(length/(count+.4));
-      const side = i%2? -1:1;
-      const x = side*(10 + (i%3)*1.25);
-      const w = 5.5 + (i%3)*1.25;
-      const d = 5 + (i%4)*.85;
-      const y = (i%4===0) ? .95 : .25;
-      const base = v442Box(w,1.1,d,dirt,{outlineColor:0x2f1606,outlineOpacity:.11}); base.position.set(x,y,z); levelGroup.add(base);
-      const cap = v442Box(w+.2,.42,d+.2,grass,{outlineColor:0xd9f99d,outlineOpacity:.10}); cap.position.set(x,y+.76,z); levelGroup.add(cap);
-      const underside = v442Box(w*.72,.8,d*.72,stone,{outlineColor:0x111827,outlineOpacity:.08}); underside.position.set(x,y-.78,z); levelGroup.add(underside);
-      if(world === 'fire'){
-        const lava = v442Box(w*.42,.18,d*.42,0xff4d00,{emissive:0xff2d00,emissiveIntensity:1.05,outlineColor:0xffd000,outlineOpacity:.12}); lava.position.set(x,y+1.03,z); lava.userData.pulseMat=true; levelGroup.add(lava); premiumVisuals.push(lava); addGlowSprite(x,y+1.4,z,0xff5a00,4,.22);
-      } else if(world === 'space'){
-        const crystal = v442Box(.8,1.5,.8,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.75,outlineColor:0xffffff,outlineOpacity:.2}); crystal.position.set(x,y+1.8,z); crystal.rotation.y=.7; crystal.userData.float={baseY:y+1.8,amp:.24,speed:.8}; levelGroup.add(crystal); premiumVisuals.push(crystal); addGlowSprite(x,y+2,z,cfg.accent,4,.16);
-      } else {
-        addV442Tree(x+side*.8,y+1,z,world,cfg);
-        if(i%2===0) addV442Sign(x-side*1.8,y+1.2,z+1.8, side, world, cfg);
-      }
-    }
-  }
-
-  function addV442Tree(x,y,z,world,cfg){
-    const trunkColor = world==='castle'?0x4b5563:0x7c3f1d;
-    const leafColor = world==='forest'?0x065f46:0x22c55e;
-    const trunk = v442Box(.75,2.1,.75,trunkColor,{outlineOpacity:.10}); trunk.position.set(x,y+1.05,z); levelGroup.add(trunk);
-    const leaves = [
-      [0,2.55,0,2.8,1.15,2.8,leafColor],
-      [0,3.15,0,2.2,1.05,2.2,shadeColor(leafColor,14)],
-      [0,3.78,0,1.5,.86,1.5,shadeColor(leafColor,-8)]
-    ];
-    leaves.forEach(p=>{ const b=v442Box(p[3],p[4],p[5],p[6],{outlineColor:0xd9f99d,outlineOpacity:.08}); b.position.set(x+p[0],y+p[1],z+p[2]); levelGroup.add(b); });
-  }
-
-  function addV442Sign(x,y,z,side,world,cfg){
-    const post = v442Box(.28,1.2,.28,0x7c3f1d,{outlineOpacity:.1}); post.position.set(x,y+.55,z); levelGroup.add(post);
-    const face = v442Box(1.4,.75,.18,0xd97706,{outlineColor:0xfef3c7,outlineOpacity:.16}); face.position.set(x,y+1.28,z); levelGroup.add(face);
-    const arrow = v442Box(.72,.12,.08,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.18,outlineOpacity:.05}); arrow.position.set(x + side*.18,y+1.3,z+.12); arrow.rotation.z = side>0?0:Math.PI; levelGroup.add(arrow); premiumVisuals.push(arrow);
-  }
-
-  function addV442PortalRewardArea(world,length,cfg){
-    const z = -length - 8;
-    const stairColor = world==='castle'?0x9ca3af:world==='fire'?0x451a03:0x94a3b8;
-    for(let i=0;i<5;i++){
-      const step = v442Box(5+i*1.2,.25,1.8,shadeColor(stairColor,i*5),{outlineColor:0xffffff,outlineOpacity:.11});
-      step.position.set(0,.25+i*.18,z+6+i*1.2); levelGroup.add(step);
-    }
-    for(let i=-2;i<=2;i++){
-      const gem = v442Box(.55,1.15,.55,i===0?0x38bdf8:cfg.accent,{emissive:i===0?0x38bdf8:cfg.accent,emissiveIntensity:.7,outlineColor:0xffffff,outlineOpacity:.18});
-      gem.position.set(i*1.5,1.25,z+8.5+Math.abs(i)*.8); gem.rotation.y=.8; gem.userData.float={baseY:1.25,amp:.18,speed:.7+Math.abs(i)*.1}; levelGroup.add(gem); premiumVisuals.push(gem);
-    }
-  }
-
-  function addV442CollectibleTrail(world,length,cfg){
-    for(let i=0;i<Math.min(10,Math.floor(length/22));i++){
-      const z = -28 - i*22;
-      const x = [-2.5,0,2.5,0][i%4];
-      const g = v442Box(.38,.38,.38,0x38bdf8,{emissive:0x38bdf8,emissiveIntensity:.85,outlineColor:0xffffff,outlineOpacity:.18});
-      g.position.set(x,1.05,z); g.rotation.set(.5,.75,.2); g.userData.float={baseY:1.05,amp:.16,speed:.9}; levelGroup.add(g); premiumVisuals.push(g); addGlowSprite(x,1.05,z,0x38bdf8,2.3,.12);
-    }
-  }
-
-  function addV442EnemyStageSilhouettes(world,length,cfg){
-    if (world === 'real') return;
-    const positions = [[-10,-40],[10,-86],[-11,-138],[11,-194]];
-    positions.filter(p=>Math.abs(p[1])<length-16).forEach((pos,i)=>{
-      const [x,z]=pos;
-      const color = i%2?0x14532d:0x111827;
-      const body = v442Box(2.1,1.6,2.1,color,{outlineColor:0xffffff,outlineOpacity:.12}); body.position.set(x,1.05,z); levelGroup.add(body);
-      const eye1=v442Box(.26,.18,.08,0xff2222,{emissive:0xff2222,emissiveIntensity:.8,outlineOpacity:0}); eye1.position.set(x-.42,1.38,z+1.08); levelGroup.add(eye1); premiumVisuals.push(eye1);
-      const eye2=eye1.clone(); eye2.position.x=x+.42; levelGroup.add(eye2); premiumVisuals.push(eye2);
-      const spikes = i%2===0 ? 3 : 2;
-      for(let s=0;s<spikes;s++){ const sp=v442Box(.45,.45,.45,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.25,outlineOpacity:.08}); sp.position.set(x-0.7+s*.7,2.05,z); sp.rotation.set(.4,.7,.2); levelGroup.add(sp); premiumVisuals.push(sp); }
-    });
-  }
-
-
-  function applyV45TrueGamePlatformRender(level, length){
-    if (!V45_PLATFORM_RENDER.enabled || realBg || !levelGroup) return;
-    const world = level.world || 'field';
-    const cfg = WORLD[world] || WORLD.field;
-    addV45AmbientLights(world, length, cfg);
-    addV45ChunkyAdventureTerrain(world, length, cfg);
-    addV45PortalTemple(world, length, cfg);
-    addV45HeroCollectibleTrail(world, length, cfg);
-    addV45ReadableEnemies(world, length, cfg);
-    addV45WaterLavaSetPieces(world, length, cfg);
-    v44EnemyMarkers.push({ type:'v45Render', label:V45_PLATFORM_RENDER.label, world, reference:V45_PLATFORM_RENDER.reference });
-  }
-
-  function addV45AmbientLights(world, length, cfg){
-    if (!scene) return;
-    const color = world==='fire'?0xff7a1a:world==='space'?0x7dd3fc:world==='castle'?0xffd08a:0xfff2b8;
-    const side = new THREE.DirectionalLight(color, world==='fire'?1.0:.75);
-    side.position.set(-12,18,-length*.28); levelGroup.add(side); premiumVisuals.push(side);
-    const fill = new THREE.HemisphereLight(world==='space'?0x3b82f6:0xbbe7ff, world==='fire'?0x3b0808:0x2f6a2f, .36);
-    levelGroup.add(fill); premiumVisuals.push(fill);
-  }
-
-  function addV45ChunkyAdventureTerrain(world,length,cfg){
-    const grass = world==='fire'?0x6f1d12:world==='space'?0x3b2b93:world==='castle'?0x6b7280:world==='forest'?0x0f8f3e:0x4ecb42;
-    const dirt = world==='fire'?0x4a120b:world==='space'?0x241a57:world==='castle'?0x475569:0x9b5b25;
-    const stone = world==='fire'?0x2b0d0a:world==='space'?0x14183d:world==='castle'?0x9ca3af:0x7f8b92;
-    // Remove sensação de grid/debug: cobrir com plataformas e bordas volumosas próximas ao caminho.
-    for(let z=10; z>-length-12; z-=6){
-      const k = Math.floor(Math.abs(z)/6);
-      const wav = Math.sin(k*.73);
-      const pathW = 3.8 + (k%4===0? .5:0);
-      const centerColor = k%2 ? 0xb98342 : 0xc89450;
-      const paver = v442Box(pathW,.22,5.7,centerColor,{outlineColor:0xffe6ad,outlineOpacity:.08,roughness:.9});
-      paver.position.set(0,.36,z); levelGroup.add(paver);
-      // stone chips on the path like the approved render
-      if(k%2===0){
-        [-1.25,1.05].forEach((x,i)=>{ const chip=v442Box(.75,.08,.55,stone,{outlineOpacity:.05}); chip.position.set(x,.52,z+(i?.7:-.85)); levelGroup.add(chip); });
-      }
-      [-1,1].forEach(side=>{
-        const x = side*(4.0 + (k%3)*.16);
-        const h = .5 + (k%4)*.22;
-        const cap = v442Box(2.6,.32,5.8,grass,{outlineColor:0xcaff8a,outlineOpacity:.10}); cap.position.set(x,.48+h*.15,z); levelGroup.add(cap);
-        const block = v442Box(2.55,h,5.65,dirt,{outlineColor:0x2f1606,outlineOpacity:.10}); block.position.set(x,.18+h*.5,z); levelGroup.add(block);
-        if(k%2===0) addV45FlowerPatch(x+side*.75,.76+h*.15,z,world,cfg);
-      });
-      if(k%5===1){ addV45Mushroom(-4.9,.78,z-1.4); }
-      if(k%7===2){ addV45Crate(3.9,.72,z-1.2,cfg); }
-    }
-    // framed mini cliffs and floating blocks close enough to be visible
-    for(let i=0;i<12;i++){
-      const z = -18 - i*(length/12);
-      const side = i%2 ? -1 : 1;
-      const x = side*(7.2 + (i%3)*1.3);
-      const y = .7 + (i%4)*.55;
-      const w = 3.4 + (i%3);
-      const d = 3.2 + (i%4)*.5;
-      const base = v442Box(w,1.15,d,dirt,{outlineColor:0x2f1606,outlineOpacity:.12}); base.position.set(x,y,z); levelGroup.add(base);
-      const cap = v442Box(w+.15,.36,d+.15,grass,{outlineColor:0xddff99,outlineOpacity:.12}); cap.position.set(x,y+.72,z); levelGroup.add(cap);
-      if(i%3===0) addV442Tree(x,y+1,z,world,cfg);
-      else if(i%3===1) addV45CrystalCluster(x,y+1.05,z,cfg.accent);
-    }
-  }
-
-  function addV45FlowerPatch(x,y,z,world,cfg){
-    const colors = world==='space' ? [0x7dd3fc,0xc084fc,0xffffff] : [0xffffff,0xfde047,0xf472b6,0x86efac];
-    for(let i=0;i<8;i++){
-      const c=colors[i%colors.length];
-      const stem=v442Box(.08,.35,.08,0x2fb344,{outlineOpacity:0}); stem.position.set(x+(Math.random()-.5)*1.3,y+.17,z+(Math.random()-.5)*1.8); levelGroup.add(stem);
-      const bloom=v442Box(.18,.14,.18,c,{emissive:c,emissiveIntensity:.08,outlineOpacity:0}); bloom.position.set(stem.position.x,y+.42,stem.position.z); levelGroup.add(bloom); premiumVisuals.push(bloom);
-    }
-  }
-  function addV45Mushroom(x,y,z){
-    const stem=v442Box(.38,.55,.38,0xfff7ed,{outlineOpacity:.08}); stem.position.set(x,y+.28,z); levelGroup.add(stem);
-    const cap=v442Box(1.0,.42,1.0,0xef4444,{outlineColor:0xffffff,outlineOpacity:.12}); cap.position.set(x,y+.74,z); levelGroup.add(cap);
-    [[-.22,.16],[.22,-.12],[.06,.20]].forEach(p=>{ const spot=v442Box(.16,.06,.16,0xffffff,{outlineOpacity:0}); spot.position.set(x+p[0],y+.98,z+p[1]); levelGroup.add(spot); });
-  }
-  function addV45Crate(x,y,z,cfg){
-    const crate=v442Box(1.25,1.25,1.25,0xd69a28,{outlineColor:0xfff1a8,outlineOpacity:.16}); crate.position.set(x,y+.63,z); levelGroup.add(crate);
-    const band=v442Box(1.33,.14,1.34,0xfacc15,{emissive:0xfacc15,emissiveIntensity:.14,outlineOpacity:0}); band.position.set(x,y+1.0,z); levelGroup.add(band); premiumVisuals.push(band);
-  }
-  function addV45CrystalCluster(x,y,z,color){
-    for(let i=0;i<4;i++){
-      const c=i%2?0x38bdf8:color;
-      const gem=v442Box(.42,.9,.42,c,{emissive:c,emissiveIntensity:.75,outlineColor:0xffffff,outlineOpacity:.18});
-      gem.position.set(x+(i-1.5)*.38,y+.45+i*.08,z+(i%2-.5)*.45); gem.rotation.set(.45,.8,.2); gem.userData.float={baseY:gem.position.y,amp:.1,speed:.8+i*.1}; levelGroup.add(gem); premiumVisuals.push(gem); addGlowSprite(gem.position.x,gem.position.y,gem.position.z,c,1.8,.14);
-    }
-  }
-
-  function addV45PortalTemple(world,length,cfg){
-    const z = -length - 10;
-    const stone = world==='fire'?0x3b1610:world==='space'?0x242052:0x556070;
-    const glow = world==='fire'?0xff4d00:world==='space'?0x8b5cf6:0xc026d3;
-    // larger temple around original portal
-    for(let i=0;i<6;i++){
-      const step=v442Box(6.2+i*1.25,.28,1.55,shadeColor(stone, i*5),{outlineColor:0xffffff,outlineOpacity:.10});
-      step.position.set(0,.32+i*.18,z+5.2+i*1.05); levelGroup.add(step);
-    }
-    [-1,1].forEach(side=>{
-      const tower=v442Box(1.45,5.8,1.45,stone,{outlineColor:0xffffff,outlineOpacity:.12}); tower.position.set(side*3.3,3.0,z+.2); levelGroup.add(tower);
-      const cap=v442Box(1.8,.75,1.8,shadeColor(stone,18),{outlineColor:0xffffff,outlineOpacity:.12}); cap.position.set(side*3.3,6.2,z+.2); levelGroup.add(cap);
-      const gem=v442Box(.65,1.2,.65,glow,{emissive:glow,emissiveIntensity:.95,outlineColor:0xffffff,outlineOpacity:.24}); gem.position.set(side*3.3,7.1,z+.2); gem.rotation.set(.4,.8,.2); gem.userData.float={baseY:7.1,amp:.18,speed:.8}; levelGroup.add(gem); premiumVisuals.push(gem); addGlowSprite(side*3.3,7.2,z+.2,glow,4,.18);
-    });
-    addGlowSprite(0,3.0,z+.4,glow,10,.22);
-    const rewardBeam = new THREE.PointLight(glow, 2.2, 22); rewardBeam.position.set(0,3.8,z+1); levelGroup.add(rewardBeam); premiumVisuals.push(rewardBeam);
-  }
-
-  function addV45HeroCollectibleTrail(world,length,cfg){
-    // bigger, more satisfying collectible line like the reference
-    for(let i=0;i<9;i++){
-      const z = -20 - i*(length/10);
-      const x = (i%3-1)*1.15;
-      const gem=v442Box(.55,.85,.55,0x22d3ee,{emissive:0x22d3ee,emissiveIntensity:1.05,outlineColor:0xffffff,outlineOpacity:.25});
-      gem.position.set(x,1.35,z); gem.rotation.set(.58,.8,.22); gem.userData.float={baseY:1.35,amp:.18,speed:1.0}; levelGroup.add(gem); premiumVisuals.push(gem); addGlowSprite(x,1.42,z,0x22d3ee,2.9,.18);
-    }
-  }
-
-  function addV45ReadableEnemies(world,length,cfg){
-    if (world==='real') return;
-    const positions=[[-3.8,-42,'golem'],[3.8,-70,'slime'],[-3.5,-106,'flyer'],[3.6,-140,'spiky']];
-    positions.forEach(([x,z,type],i)=>{
-      const color = type==='slime'?0x1f9d3a:type==='golem'?0x7d858c:type==='flyer'?0x4c1d95:0x1f2937;
-      const size = type==='golem'?1.8:type==='flyer'?1.1:1.45;
-      const g = makeEnemyModel(type==='slime'?'walker':type, size, color);
-      g.position.set(x, size/2 + (type==='flyer'?1.9:0), z); g.scale.setScalar(type==='golem'?1.08:1); levelGroup.add(g); premiumVisuals.push(g);
-      addGlowSprite(x, size+1.0, z, type==='slime'?0x22c55e:type==='flyer'?0xa855f7:0xff3030, 3.2, .12);
-      const pad=v442Box(2.6,.08,2.6,type==='slime'?0x14532d:0x7f1d1d,{emissive:type==='slime'?0x22c55e:0xff0000,emissiveIntensity:.18,outlineOpacity:.05}); pad.position.set(x,.55,z); levelGroup.add(pad); premiumVisuals.push(pad);
-    });
-  }
-
-  function addV45WaterLavaSetPieces(world,length,cfg){
-    if (world==='fire'){
-      for(let z=-24; z>-length; z-=32){ const lava=v442Box(2.5,.22,7,0xff4d00,{emissive:0xff3b00,emissiveIntensity:1.1,outlineColor:0xfff000,outlineOpacity:.12}); lava.position.set(6.25,.62,z); lava.userData.pulseMat=true; levelGroup.add(lava); premiumVisuals.push(lava); addGlowSprite(6.25,1.0,z,0xff4d00,4.6,.18); }
-    } else if (world==='space'){
-      for(let z=-20; z>-length; z-=36){ const gate=v442Box(.25,4.2,.25,0x7dd3fc,{emissive:0x7dd3fc,emissiveIntensity:.8,outlineOpacity:.06}); gate.position.set(-5.8,2.5,z); levelGroup.add(gate); premiumVisuals.push(gate); addGlowSprite(-5.8,2.6,z,0x7dd3fc,4,.12); const g2=gate.clone(); g2.position.x=5.8; levelGroup.add(g2); premiumVisuals.push(g2); }
-    } else {
-      for(let z=-30; z>-length; z-=46){ const water=v442Box(1.2,3.8,.18,0x38bdf8,{emissive:0x0ea5e9,emissiveIntensity:.45,outlineColor:0xffffff,outlineOpacity:.10}); water.position.set(-6.2,2.1,z); water.material.transparent=true; water.material.opacity=.78; levelGroup.add(water); premiumVisuals.push(water); addGlowSprite(-6.2,2.2,z,0x38bdf8,3.2,.10); }
-    }
-  }
-
   function createHub(){
     const names = [['field',-5,-24],['fire',0,-34],['forest',5,-24],['castle',-4,-52],['space',4,-52],['arena',0,-72]];
     names.forEach(([w,x,z]) => {
@@ -1206,7 +800,6 @@
   function createGameplay(level){
     const len = level.length || 220; const lanes = [-5,0,5];
     addCheckpoint(3);
-    addCrystal(0, 1.15, -8);
     // Cristais desenhados em caminhos alternativos
     for (let i=0;i<(level.crystals||5);i++) {
       const z = -22 - i * ((len-60) / Math.max(1, (level.crystals||5)-1));
@@ -1223,21 +816,16 @@
     ];
     blocks.filter(b => Math.abs(b[2]) < len-16).forEach((b,i)=> addPlatform(...b, i%2?0x8b5a2b:0x94a3b8));
     // Caixas quebráveis / atalhos
-    const breakableZs = level.id === 'training' ? [-116] : [-56,-116,-188,-248,-318];
-    breakableZs.filter(z => Math.abs(z)<len-20).forEach((z,i)=> addBreakable(lanes[i%3], z));
+    [-56,-116,-188,-248,-318].filter(z => Math.abs(z)<len-20).forEach((z,i)=> addBreakable(lanes[i%3], z));
     // Lava e buracos com desvio lateral
-    const hazardZs = level.id === 'training' ? [-96,-158] : [-38,-74,-112,-162,-216,-278,-340];
-    hazardZs.filter(z => Math.abs(z)<len-22).forEach((z,i)=> {
-      const type = level.world === 'fire' ? (i%2?'pit':'lava') : 'pit';
-      addHazard(type, lanes[(i+1)%3], z, 3.7, 5.3);
-    });
+    [-38,-74,-112,-162,-216,-278,-340].filter(z => Math.abs(z)<len-22).forEach((z,i)=> addHazard(i%2?'pit':'lava', lanes[(i+1)%3], z, 3.7, 5.3));
     // Túneis baixos
     [-92,-194,-290].filter(z => Math.abs(z)<len-25).forEach((z,i)=> addTunnel(lanes[i%3], z));
     // Portões
-    addGate(0, -Math.min(len-42, 138), level.boss || level.world === 'castle' ? 'giant' : 'power');
+    addGate(0, -Math.min(len-42, 138), level.boss ? 'giant' : 'power');
     addCheckpoint(-Math.min(len-30, Math.floor(len*.52)));
     // Inimigos com comportamento variado
-    const enemyTypes = enemyPlanFor(level);
+    const enemyTypes = level.boss ? ['walker','jumper','flyer','spiky','golem','walker','flyer','spiky','boss'] : ['walker','jumper','flyer','spiky','golem','walker','jumper'];
     for (let i=0;i<(level.enemies||4);i++) {
       const z = -34 - i * ((len-70) / Math.max(1,(level.enemies||4)-1));
       addEnemy(enemyTypes[i % enemyTypes.length], lanes[(i+2)%3], z);
@@ -1245,164 +833,7 @@
     // Plataformas bônus e cristais secretos para deixar a fase menos beta/demo
     [-42,-132,-222,-312].filter(z => Math.abs(z)<len-24).forEach((z,i)=>{ addPlatform(i%2?-7:7,2.6,z-6,2.4,.8,2.4,0x0ea5e9); addCrystal(i%2?-7:7,3.7,z-6); });
     [-88,-178,-268].filter(z => Math.abs(z)<len-34).forEach((z,i)=> addEnemy(i%2?'flyer':'walker', i%2?7:-7, z));
-    applyV42LevelDesign(level, len, lanes);
-    applyV44EnemyBossLayer(level, len, lanes);
     if (level.quizGate) addQuizAltar(0, -Math.min(len-56, 210));
-  }
-
-  function enemyPlanFor(level){
-    if (level.boss) return ['walker','jumper','flyer','spiky','golem','walker','flyer','spiky','boss'];
-    if (level.id === 'training') return ['walker','walker','jumper'];
-    if (level.world === 'fire') return ['spiky','jumper','spiky','walker','golem','spiky'];
-    if (level.world === 'forest') return ['jumper','flyer','walker','jumper','flyer','spiky'];
-    if (level.world === 'castle') return ['golem','walker','golem','spiky','golem','flyer'];
-    if (level.world === 'space') return ['flyer','jumper','flyer','spiky','flyer','golem'];
-    return ['walker','jumper','walker','spiky','golem','walker','jumper'];
-  }
-
-
-  function applyV42LevelDesign(level, len, lanes){
-    const cfg = WORLD[level.world] || WORLD.field;
-    const guides = V42_LEVEL_GUIDES[level.id] || ['Começo seguro', 'Primeiro desafio', 'Checkpoint', 'Último desafio', 'Portal'];
-    const positions = [ -12, -48, -Math.max(86, Math.floor(len*.38)), -Math.max(132, Math.floor(len*.64)), -Math.max(172, Math.floor(len*.84)) ];
-    guides.forEach((text, i) => {
-      const z = Math.max(-len + 24, positions[i] || (-18 - i*44));
-      const x = i % 2 ? -7.35 : 7.35;
-      addV42GuideBoard(text, x, z, cfg.accent, i);
-      addV42LaneCue(lanes[i % lanes.length], z + 4, cfg.accent, i);
-    });
-
-    // Plataformas de intenção: começo fácil, meio com recompensa, final com pista clara.
-    if (level.id === 'training') {
-      addV42SafePad(0, -10, 0x4ade80, 'começo');
-      addV42SafePad(-5, -36, 0x22c55e, 'pulo');
-      addV42SafePad(5, -72, 0xfacc15, 'recompensa');
-    } else if (level.id === 'volcano') {
-      [-38,-74,-112,-162].filter(z => Math.abs(z) < len-22).forEach((z,i)=> addV42WarningStrip(lanes[(i+1)%3], z+4, 0xffd000, 'perigo'));
-    } else if (level.id === 'forest') {
-      [-92,-194].filter(z => Math.abs(z) < len-25).forEach((z,i)=> addV42GuideBoard('Y / MINI', lanes[i%3], z+6, 0x22c55e, i+6));
-    } else if (level.id === 'castle') {
-      addV42GuideBoard('X GIGANTE', 0, -Math.min(len-42, 138)+6, 0xf59e0b, 8);
-      addV42WarningStrip(0, -Math.min(len-42, 138)+2, 0xf59e0b, 'portão');
-    } else if (level.id === 'space') {
-      [-42,-132,-222].filter(z => Math.abs(z)<len-24).forEach((z,i)=> addV42LandingLights(i%2?-7:7, z-6, 0x38bdf8));
-    } else if (level.id === 'arena') {
-      addV42GuideBoard('BOSS FINAL', 0, -Math.min(len-70, 320), 0xff2e63, 10);
-      addV42WarningStrip(0, -Math.min(len-70, 320)+8, 0xff2e63, 'boss');
-    }
-
-    addV42PortalRunway(len, cfg);
-  }
-
-  function addV42GuideBoard(text, x, z, color, order=0){
-    const post = box(.34,2.15,.34,0x111827,{ outline:true, outlineColor:color, outlineOpacity:.25 });
-    post.position.set(x,1.08,z); levelGroup.add(post);
-    const board = box(2.75,.72,.22,color,{ emissive:color, emissiveIntensity:.18, outline:true, outlineColor:0xffffff, outlineOpacity:.16 });
-    board.position.set(x,2.15,z); levelGroup.add(board);
-    const sprite = makeV42TextSprite(text, color);
-    sprite.position.set(x,2.22,z + (x < 0 ? .34 : -.34));
-    sprite.material.depthTest = false;
-    levelGroup.add(sprite);
-    v42Markers.push({ type:'guide', text, x, z, order });
-  }
-
-  function makeV42TextSprite(text, color){
-    const canvas = document.createElement('canvas');
-    canvas.width = 384; canvas.height = 96;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,512,144);
-    ctx.fillStyle = 'rgba(3,7,18,.78)';
-    ctx.fillRect(0,0,384,96);
-    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 8; ctx.strokeRect(5,5,374,86);
-    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 34px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const label = String(text || '').toUpperCase().slice(0,10);
-    ctx.fillText(label,192,51);
-    const tex = new THREE.CanvasTexture(canvas); tex.needsUpdate = true;
-    const matSprite = new THREE.SpriteMaterial({ map:tex, transparent:true, opacity:.92, depthWrite:false });
-    const sprite = new THREE.Sprite(matSprite);
-    sprite.scale.set(3.2,.82,1);
-    premiumVisuals.push(sprite);
-    return sprite;
-  }
-
-  function addV42LaneCue(x,z,color,order=0){
-    const base = box(2.2,.10,1.35,color,{ emissive:color, emissiveIntensity:.22, outline:true, outlineColor:0xffffff, outlineOpacity:.13 });
-    base.position.set(x,.18,z); levelGroup.add(base);
-    const tip = box(.55,.12,.55,0xffffff,{ emissive:color, emissiveIntensity:.14 });
-    tip.position.set(x,.26,z-.82); tip.rotation.y = Math.PI/4; levelGroup.add(tip);
-    v42Markers.push({ type:'cue', x, z, order });
-  }
-
-  function addV42SafePad(x,z,color,label){
-    const pad = box(5.2,.16,4.2,color,{ emissive:color, emissiveIntensity:.08, outline:true, outlineColor:0xffffff, outlineOpacity:.12, roughness:.55 });
-    pad.position.set(x,.12,z); levelGroup.add(pad);
-    v42Markers.push({ type:'safePad', label, x, z });
-  }
-
-  function addV42WarningStrip(x,z,color,label){
-    const stripA = box(4.6,.14,.30,color,{ emissive:color, emissiveIntensity:.45, outline:true, outlineColor:0x111827, outlineOpacity:.2 });
-    stripA.position.set(x,.22,z); levelGroup.add(stripA);
-    const stripB = box(4.6,.14,.30,color,{ emissive:color, emissiveIntensity:.22, outline:true, outlineColor:0x111827, outlineOpacity:.2 });
-    stripB.position.set(x,.22,z-2.2); levelGroup.add(stripB);
-    v42Markers.push({ type:'warning', label, x, z });
-  }
-
-  function addV42LandingLights(x,z,color){
-    [-1.1,1.1].forEach(dx=>{
-      const lightPad = box(.55,.16,.55,color,{ emissive:color, emissiveIntensity:.5, outline:true, outlineColor:0xffffff, outlineOpacity:.16 });
-      lightPad.position.set(x+dx,.32,z); levelGroup.add(lightPad); premiumVisuals.push(lightPad);
-    });
-    v42Markers.push({ type:'landingLights', x, z });
-  }
-
-  function addV42PortalRunway(len,cfg){
-    const start = -len + 26;
-    for (let i=0;i<5;i++) {
-      const z = start - i*5;
-      const w = 6.6 - i*.8;
-      const r = box(w,.12,.32,cfg.accent,{ emissive:cfg.accent, emissiveIntensity:.25, outline:true, outlineColor:0xffffff, outlineOpacity:.12 });
-      r.position.set(0,.18,z); levelGroup.add(r);
-    }
-    v42Markers.push({ type:'portalRunway', z:start });
-  }
-
-
-  function applyV44EnemyBossLayer(level, len, lanes){
-    const cfg = WORLD[level.world] || WORLD.field;
-    // Camada V44 do roteiro: somente leitura de adversário, arenas curtas e boss. Sem mexer em controle/AR/Quiz.
-    addV44EnemyDangerZones(level, len, lanes, cfg);
-    addV44BossArenaIfNeeded(level, len, cfg);
-    v44EnemyMarkers.push({ type:'route', label:V44_ENEMY_AI.label, level:level.id, enemies:level.enemies || 0, boss:!!level.boss });
-  }
-
-  function addV44EnemyDangerZones(level, len, lanes, cfg){
-    const total = Math.min(level.enemies || 4, 9);
-    for (let i=0;i<total;i++) {
-      const z = -34 - i * ((len-70) / Math.max(1,(level.enemies||4)-1));
-      if (Math.abs(z) > len-18) continue;
-      const x = lanes[(i+2)%lanes.length];
-      const color = i%3===0 ? 0xef4444 : i%3===1 ? 0xfacc15 : cfg.accent;
-      const pad = box(2.9,.075,2.0,color,{ emissive:color, emissiveIntensity:.13, outline:true, outlineColor:0xffffff, outlineOpacity:.10 });
-      pad.position.set(x,.155,z+1.2); levelGroup.add(pad); premiumVisuals.push(pad);
-      if (i%2===0) {
-        const side = x < 0 ? -1 : 1;
-        const post = box(.28,1.15,.28,color,{ emissive:color, emissiveIntensity:.35, outline:true, outlineOpacity:.10 });
-        post.position.set(x + side*1.75,.7,z+1.2); levelGroup.add(post); premiumVisuals.push(post);
-      }
-    }
-    v44EnemyMarkers.push({ type:'enemyDangerZones', count:total });
-  }
-
-  function addV44BossArenaIfNeeded(level, len, cfg){
-    if (!level.boss) return;
-    const z = -Math.min(len-70, 320);
-    const floor = box(10.2,.10,7.2,0x2e1065,{ emissive:cfg.accent, emissiveIntensity:.12, outline:true, outlineColor:0xff2e63, outlineOpacity:.25 });
-    floor.position.set(0,.16,z); levelGroup.add(floor); premiumVisuals.push(floor);
-    [-5.4,5.4].forEach(x=>{
-      const obelisk = box(.55,3.4,.55,0xff2e63,{ emissive:0xff2e63, emissiveIntensity:.42, outline:true, outlineOpacity:.18 });
-      obelisk.position.set(x,1.75,z); obelisk.userData.float={baseY:1.75, amp:.18, speed:.9}; levelGroup.add(obelisk); premiumVisuals.push(obelisk); addGlowSprite(x,2.35,z,0xff2e63,3.8,.14);
-    });
-    v44EnemyMarkers.push({ type:'bossArena', z });
   }
 
   function addPlatform(x,y,z,w,h,d,color){
@@ -1444,22 +875,7 @@
     const color = { walker:0x84cc16, jumper:0xf97316, flyer:0xa855f7, spiky:0xef4444, golem:0x64748b, boss:0x111827 }[type] || 0x84cc16;
     const size = type==='boss'?2.05:type==='golem'?1.55:1.08;
     const m=makeEnemyModel(type,size,color); m.position.set(x,size/2,z); levelGroup.add(m);
-    const maxHp = type==='boss'?V44_ENEMY_AI.bossHp:type==='golem'?V44_ENEMY_AI.golemHp:type==='spiky'?V44_ENEMY_AI.spikyHp:type==='flyer'?V44_ENEMY_AI.flyerHp:1;
-    attachV44EnemyReadability(m, size, color, maxHp, type);
-    enemies.push({mesh:m,type,x,z,baseX:x,baseZ:z,y:size/2,hp:maxHp,maxHp,dead:false,t:Math.random()*9,size,nextAttackAt:now()+900+Math.random()*1200,alert:0,phase:Math.random()*6.28,vulnerable:type!=='boss',vulnerableUntil:0});
-  }
-
-  function attachV44EnemyReadability(group, size, color, maxHp, type){
-    const groundShadow = new THREE.Mesh(new THREE.CircleGeometry(size*.68,22), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:.22, depthWrite:false }));
-    groundShadow.rotation.x = -Math.PI/2; groundShadow.position.y = -size/2 + .026; group.add(groundShadow);
-    const dangerRing = new THREE.Mesh(new THREE.RingGeometry(size*.72,size*.86,24), new THREE.MeshBasicMaterial({ color:type==='boss'?0xff2e63:color, transparent:true, opacity:.13, side:THREE.DoubleSide, depthWrite:false }));
-    dangerRing.rotation.x = -Math.PI/2; dangerRing.position.y = -size/2 + .035; group.add(dangerRing); group.userData.dangerRing = dangerRing;
-    if (maxHp > 1) {
-      const bg = box(size*1.25,.11,.08,0x111827,{ outline:false });
-      const fill = box(size*1.18,.13,.09,0x22c55e,{ emissive:0x22c55e, emissiveIntensity:.35 });
-      bg.position.set(0,size*.90,size*.60); fill.position.set(0,size*.90,size*.66);
-      group.add(bg,fill); group.userData.hpFill = fill;
-    }
+    enemies.push({mesh:m,type,x,z,baseX:x,baseZ:z,y:size/2,hp:type==='boss'?7:type==='golem'?3:type==='spiky'?2:1,dead:false,t:Math.random()*9,size});
   }
 
   function makeEnemyModel(type,size,color){
@@ -1498,85 +914,40 @@
     const dt = Math.min(.045, clock.getDelta());
     if (mixer) mixer.update(dt);
     if (playing && !paused) update(dt);
-    updateV49Render(dt);
     if (renderer && scene && camera) renderer.render(scene,camera);
   }
 
   function update(dt){
-    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateV44EnemyProjectiles(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
+    updateInput(); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
-  function updateInput(dt=1/60){
-    if (realBg && now() < arSafeUntil) {
-      clearMovementState();
-      if (p) { p.vx = 0; p.vz = 0; }
-      return;
-    }
+  function updateInput(){
     const kx = (keyboard.right?1:0) - (keyboard.left?1:0) + (moveHold.right?1:0) - (moveHold.left?1:0);
     const kz = (keyboard.forward?1:0) - (keyboard.back?1:0) + (moveHold.forward?1:0) - (moveHold.back?1:0);
-    let rawX = clamp(joy.x + kx, -1, 1);
-    let rawZ = clamp(joy.z + kz, -1, 1);
-    const rawMag = Math.hypot(rawX, rawZ);
-    if (rawMag > 1) { rawX /= rawMag; rawZ /= rawMag; }
-    if (rawMag < .035) { rawX = 0; rawZ = 0; }
-    inputTarget.x = rawX;
-    inputTarget.z = rawZ;
-    const rate = Math.hypot(rawX, rawZ) < .035 ? GAME_FEEL.inputRelease : GAME_FEEL.inputSmoothing;
-    const blend = Math.min(1, dt * rate);
-    input.x += (inputTarget.x - input.x) * blend;
-    input.z += (inputTarget.z - input.z) * blend;
-    if (Math.abs(input.x) < .025 && rawX === 0) input.x = 0;
-    if (Math.abs(input.z) < .025 && rawZ === 0) input.z = 0;
+    input.x = clamp(joy.x + kx, -1, 1);
+    input.z = clamp(joy.z + kz, -1, 1);
   }
 
   function updatePlayer(dt){
     const diff = DIFFICULTY[progress.difficulty];
-    const wasGrounded = p.grounded;
-    const prevX = p.x;
-    const prevZ = p.z;
     const mag = Math.hypot(input.x, input.z);
-    const nx = mag > 1 ? input.x / mag : input.x;
-    const nz = mag > 1 ? input.z / mag : input.z;
+    const nx = mag > 1 ? input.x / mag : input.x; const nz = mag > 1 ? input.z / mag : input.z;
     const speed = diff.speed * (input.crouch ? .48 : 1) * (p.scaleMode==='giant' ? .86 : p.scaleMode==='mini' ? 1.08 : 1);
-    const noInput = mag < .045;
+    const noInput = mag < 0.06;
     const targetVx = noInput ? 0 : nx * speed;
     const targetVz = noInput ? 0 : -nz * speed;
-    const accel = noInput
-      ? (p.grounded ? GAME_FEEL.groundDeceleration : GAME_FEEL.airDeceleration)
-      : (p.grounded ? GAME_FEEL.groundAcceleration : GAME_FEEL.airAcceleration);
-    const blend = Math.min(1, dt * accel);
-    p.vx += (targetVx - p.vx) * blend;
-    p.vz += (targetVz - p.vz) * blend;
-    if (noInput && Math.abs(p.vx) < GAME_FEEL.stopThreshold) p.vx = 0;
-    if (noInput && Math.abs(p.vz) < GAME_FEEL.stopThreshold) p.vz = 0;
-    if (realBg && AR_SAFE.freezeWhenIdle && noInput) { p.vx = 0; p.vz = 0; input.x = 0; input.z = 0; inputTarget.x = 0; inputTarget.z = 0; }
-
-    p.x += p.vx * dt;
-    p.z += p.vz * dt;
-    p.x = clamp(p.x, -6.4, 6.4);
-    p.z = clamp(p.z, -currentLevel.length - 14, 8);
-    resolveHorizontalSolids(prevX, prevZ);
-
-    const prevY = p.y;
-    if (!p.grounded) p.vy -= currentGravity(diff) * dt;
+    const response = noInput ? 28 : 14;
+    p.vx += (targetVx - p.vx) * Math.min(1, dt*response);
+    p.vz += (targetVz - p.vz) * Math.min(1, dt*response);
+    if (noInput && Math.abs(p.vx) < 0.035) p.vx = 0;
+    if (noInput && Math.abs(p.vz) < 0.035) p.vz = 0;
+    p.x += p.vx * dt; p.z += p.vz * dt;
+    p.x = clamp(p.x, -6.4, 6.4); p.z = clamp(p.z, -currentLevel.length - 14, 8);
+    if (!p.grounded) p.vy -= diff.gravity * dt;
     p.y += p.vy * dt;
     const ground = findGround(p.x,p.z);
-    const snapWindow = ground.platform ? GAME_FEEL.platformSnap : GAME_FEEL.groundSnap;
-    if (p.vy <= 0 && p.y <= ground.height + snapWindow && prevY >= ground.height - .10) {
-      p.y = ground.height;
-      p.vy = 0;
-      p.grounded = true;
-      lastGroundedAt = now();
-      if (!wasGrounded) {
-        lastLandAt = now();
-        p.vx *= GAME_FEEL.landingHorizontalDamp;
-        p.vz *= GAME_FEEL.landingHorizontalDamp;
-      }
-      if (ground.platform && ground.platform.breakable && ground.platform.hp <= 0) p.grounded = false;
-    } else if (p.y > ground.height + .035) {
-      p.grounded = false;
-    }
-
+    if (p.y <= ground.height && p.vy <= 0) { p.y = ground.height; p.vy = 0; p.grounded = true; lastGroundedAt = now(); if (ground.platform && ground.platform.breakable && ground.platform.hp <= 0) p.grounded = false; }
+    else if (p.y > ground.height + .02) p.grounded = false;
     if (jumpBufferedUntil > now() && canJump()) { doJump(); jumpBufferedUntil = 0; }
     p.height = input.crouch ? 1.25 : 2.4;
     p.targetScale = p.scaleMode==='mini' ? .55 : p.scaleMode==='giant' ? 1.65 : 1;
@@ -1588,25 +959,9 @@
     if (playerModel) playerModel.visible = !(now() < p.invUntil && Math.floor(now()/90)%2===0);
     if (p.y < -10) damagePlayer(1,'Caiu no buraco!');
   }
-  function canJump(){ return p.grounded || (now() - lastGroundedAt < GAME_FEEL.coyoteMs * DIFFICULTY[progress.difficulty].forgiveness); }
-  function currentGravity(diff){
-    const worldScale = currentLevel && currentLevel.world === 'space' ? GAME_FEEL.spaceGravityScale : 1;
-    const fallScale = p.vy < 0 ? GAME_FEEL.fallGravityBoost : 1;
-    return diff.gravity * worldScale * fallScale;
-  }
-  function doJump(){
-    const t = now();
-    if (t - lastJumpAt < GAME_FEEL.jumpCooldownMs) return;
-    lastJumpAt = t;
-    const forward = Math.max(0, input.z);
-    p.vy = DIFFICULTY[progress.difficulty].jump + (forward > .35 ? .95 : 0);
-    p.vz += -forward * GAME_FEEL.jumpForwardBoost;
-    p.vx += input.x * GAME_FEEL.jumpSideBoost;
-    p.grounded=false;
-    toast(forward > .25 ? 'Pulo para o fundo!' : 'Pulo!', 'good');
-    beep(520,70,'square');
-  }
-  function jump(){ if (!playing || paused) return; jumpBufferedUntil = now() + GAME_FEEL.jumpBufferMs; if (canJump()) { doJump(); jumpBufferedUntil = 0; } }
+  function canJump(){ return p.grounded || (now() - lastGroundedAt < 160 * DIFFICULTY[progress.difficulty].forgiveness); }
+  function doJump(){ p.vy = DIFFICULTY[progress.difficulty].jump + (input.z > .35 ? 1.15 : 0); p.grounded=false; p.z += input.z > .25 ? -0.75 : 0; p.x += input.x * .40; toast(input.z > .25 ? 'Pulo para o fundo!' : 'Pulo!', 'good'); beep(520,70,'square'); }
+  function jump(){ if (!playing || paused) return; jumpBufferedUntil = now() + 170; if (canJump()) { doJump(); jumpBufferedUntil = 0; } }
 
   function findGround(x,z){
     let best = { height:0, platform:null };
@@ -1619,173 +974,32 @@
     return best;
   }
 
-  function solidBounds(pl, radius){
-    return {
-      minX: pl.x - pl.w/2 - radius,
-      maxX: pl.x + pl.w/2 + radius,
-      minZ: pl.z - pl.d/2 - radius,
-      maxZ: pl.z + pl.d/2 + radius,
-      bottom: pl.y !== undefined ? pl.y - pl.h/2 : 0,
-      top: pl.top !== undefined ? pl.top : (pl.y || 0) + (pl.h || 0)/2
-    };
-  }
-
-  function isBlockingSolid(pl){
-    if (!pl || (pl.breakable && pl.hp <= 0)) return false;
-    const head = p.y + p.height * p.scale;
-    const bottom = pl.y !== undefined ? pl.y - pl.h/2 : 0;
-    const top = pl.top !== undefined ? pl.top : (pl.y || 0) + (pl.h || 0)/2;
-    if (head <= bottom + .08) return false;
-    if (p.y >= top - .06) return false;
-    return true;
-  }
-
-  function resolveHorizontalSolids(prevX, prevZ){
-    const radius = Math.max(.42, p.radius * p.scale);
-    for (const pl of solids) {
-      if (!isBlockingSolid(pl)) continue;
-      const b = solidBounds(pl, radius);
-      if (p.x <= b.minX || p.x >= b.maxX || p.z <= b.minZ || p.z >= b.maxZ) continue;
-      const wasLeft = prevX <= b.minX;
-      const wasRight = prevX >= b.maxX;
-      const wasFront = prevZ <= b.minZ;
-      const wasBack = prevZ >= b.maxZ;
-      if (wasLeft) { p.x = b.minX; p.vx = Math.min(0, p.vx); continue; }
-      if (wasRight) { p.x = b.maxX; p.vx = Math.max(0, p.vx); continue; }
-      if (wasFront) { p.z = b.minZ; p.vz = Math.min(0, p.vz); continue; }
-      if (wasBack) { p.z = b.maxZ; p.vz = Math.max(0, p.vz); continue; }
-      const pushX = Math.min(Math.abs(p.x - b.minX), Math.abs(b.maxX - p.x));
-      const pushZ = Math.min(Math.abs(p.z - b.minZ), Math.abs(b.maxZ - p.z));
-      if (pushX < pushZ) {
-        p.x = p.x < pl.x ? b.minX : b.maxX;
-        p.vx = 0;
-      } else {
-        p.z = p.z < pl.z ? b.minZ : b.maxZ;
-        p.vz = 0;
-      }
-    }
-  }
-
-
-  function updateV44EnemyHpBar(e){
-    if (!e || !e.mesh || !e.mesh.userData.hpFill || !e.maxHp) return;
-    const pct = clamp(e.hp / e.maxHp, 0, 1);
-    e.mesh.userData.hpFill.scale.x = Math.max(.06, pct);
-    const color = pct > .55 ? 0x22c55e : pct > .25 ? 0xfacc15 : 0xef4444;
-    e.mesh.userData.hpFill.material.color.setHex(color);
-    if (e.mesh.userData.hpFill.material.emissive) e.mesh.userData.hpFill.material.emissive.setHex(color);
-  }
-
-  function v44EnemyDelay(){
-    return progress.difficulty === 'hard' ? V44_ENEMY_AI.hardAttackMs : progress.difficulty === 'medium' ? V44_ENEMY_AI.mediumAttackMs : V44_ENEMY_AI.easyAttackMs;
-  }
-
-  function v44EnemyCanAttack(e){
-    if (!V44_ENEMY_AI.enabled || realBg || !playing || paused || !e || e.dead || !p) return false;
-    if (e.type === 'walker') return false;
-    const d = Math.hypot(e.x-p.x, e.z-p.z);
-    return d < V44_ENEMY_AI.vision && now() > e.nextAttackAt;
-  }
-
-  function v44EnemyAttack(e){
-    e.nextAttackAt = now() + v44EnemyDelay() + Math.random()*650;
-    e.alert = .38;
-    if (e.mesh && e.mesh.userData.dangerRing) e.mesh.userData.dangerRing.material.opacity = .38;
-    if (e.type === 'spiky') return;
-    const dx = p.x - e.x, dz = p.z - e.z;
-    const mag = Math.max(.001, Math.hypot(dx,dz));
-    if (e.type === 'boss') {
-      e.vulnerableUntil = now() + 1350;
-      const base = Math.atan2(dz, dx);
-      [-.34, 0, .34].forEach(offset => {
-        const a = base + offset;
-        addV44EnemyProjectile(e.x, Math.max(1.35, e.y + e.size*.50), e.z, Math.cos(a), Math.sin(a), e.type);
-      });
-      toast('Boss abriu guarda!', 'warn');
-      return;
-    }
-    addV44EnemyProjectile(e.x, Math.max(1.15, e.y + e.size*.45), e.z, dx/mag, dz/mag, e.type);
-  }
-
-  function addV44EnemyProjectile(x,y,z,dx,dz,type){
-    const color = type==='boss'?0xff2e63:type==='flyer'?0xa855f7:type==='golem'?0xfacc15:0xef4444;
-    const m = box(.34,.34,.34,color,{ emissive:color, emissiveIntensity:.80, outline:true, outlineColor:0xffffff, outlineOpacity:.14 });
-    m.position.set(x,y,z); levelGroup.add(m); addGlowSprite(x,y,z,color,1.55,.10);
-    enemyProjectiles.push({ mesh:m, x,y,z, vx:dx*V44_ENEMY_AI.projectileSpeed, vz:dz*V44_ENEMY_AI.projectileSpeed, life:V44_ENEMY_AI.projectileLife, type });
-  }
-
-  function updateV44EnemyProjectiles(dt){
-    for (let i=enemyProjectiles.length-1;i>=0;i--) {
-      const s = enemyProjectiles[i];
-      s.life -= dt; s.x += s.vx*dt; s.z += s.vz*dt; s.mesh.position.set(s.x,s.y,s.z); s.mesh.rotation.y += dt*8;
-      if (Math.abs(p.x-s.x) < .82*p.scale + .36 && Math.abs(p.z-s.z) < .82*p.scale + .36 && p.y < s.y + .7) {
-        damagePlayer(1, s.type==='boss' ? 'Ataque do boss!' : 'Projétil inimigo!');
-        levelGroup.remove(s.mesh); enemyProjectiles.splice(i,1); continue;
-      }
-      if (s.life <= 0) { levelGroup.remove(s.mesh); enemyProjectiles.splice(i,1); }
-    }
-  }
-
   function updateEnemies(dt){
     for (const e of enemies) {
       if (e.dead) continue; e.t += dt;
-      if (e.type==='walker') { e.x = e.baseX + Math.sin(e.t*1.35)*2.15; e.y = e.size/2; }
-      if (e.type==='jumper') { const phase = (e.t*0.5 + e.phase) % 1; const jumpArc = phase < .50 ? Math.sin(phase*Math.PI/.50) : 0; e.x = e.baseX + Math.sin(e.t*.9)*1.45; e.y = e.size/2 + jumpArc*1.75; }
-      if (e.type==='flyer') { e.x = e.baseX + Math.sin(e.t*1.45)*3.45; e.z = e.baseZ + Math.cos(e.t*.75)*1.05; e.y = 3.05 + Math.sin(e.t*2.1)*.58; }
-      if (e.type==='spiky') { e.x = e.baseX + Math.sin(e.t*.75)*1.15; e.y = e.size/2; }
-      if (e.type==='golem') { e.x = e.baseX + Math.sin(e.t*.52)*.95; e.z = e.baseZ + Math.sin(e.t*.38)*.55; e.y = e.size/2; }
-      if (e.type==='boss') updateBossEnemy(e);
-      e.mesh.position.set(e.x,e.y,e.z); e.mesh.rotation.y += dt*(e.type==='boss'?1.45:e.type==='flyer'?1.7:.9);
-      if (v44EnemyCanAttack(e)) v44EnemyAttack(e);
-      if (e.alert > 0) { e.alert -= dt; if (e.mesh.userData.dangerRing) e.mesh.userData.dangerRing.material.opacity = .13 + Math.max(0,e.alert)*.58; }
+      if (e.type==='walker') e.x = e.baseX + Math.sin(e.t*1.5)*2.3;
+      if (e.type==='jumper') { e.x = e.baseX + Math.sin(e.t*1.15)*1.7; e.y = e.size/2 + Math.abs(Math.sin(e.t*3.1))*1.35; }
+      if (e.type==='flyer') { e.x = e.baseX + Math.sin(e.t*2.0)*2.8; e.y = 2.7 + Math.sin(e.t*2.3)*.75; }
+      if (e.type==='spiky') e.x = e.baseX + Math.sin(e.t*1.2)*1.8;
+      if (e.type==='golem') e.x = e.baseX + Math.sin(e.t*.75)*1.2;
+      if (e.type==='boss') { e.x = Math.sin(e.t*.9)*3.8; e.y = e.size/2 + Math.abs(Math.sin(e.t*1.8))*.4; }
+      e.mesh.position.set(e.x,e.y,e.z); e.mesh.rotation.y += dt*(e.type==='boss'?2.0:1.1);
       if (touchEnemy(e)) resolveEnemy(e);
-    }
-  }
-  function updateBossEnemy(e){
-    const cycle = (e.t + e.phase) % 7.2;
-    e.vulnerable = now() < e.vulnerableUntil || cycle > 5.1;
-    e.x = Math.sin(e.t*.65)*4.15;
-    e.z = e.baseZ + Math.sin(e.t*.44)*1.25;
-    e.y = e.size/2 + Math.abs(Math.sin(e.t*1.25))*.36;
-    if (e.mesh && e.mesh.userData.dangerRing) {
-      e.mesh.userData.dangerRing.material.opacity = e.vulnerable ? .34 : .15;
-      e.mesh.userData.dangerRing.material.color.setHex(e.vulnerable ? 0x22c55e : 0xff2e63);
-    }
-    if (e.mesh && e.mesh.userData.hpFill && e.mesh.userData.hpFill.material) {
-      const color = e.vulnerable ? 0x22c55e : 0xff2e63;
-      e.mesh.userData.hpFill.material.color.setHex(color);
-      if (e.mesh.userData.hpFill.material.emissive) e.mesh.userData.hpFill.material.emissive.setHex(color);
     }
   }
   function touchEnemy(e){ const r = p.radius*p.scale + e.size*.58; return Math.abs(p.x-e.x)<r && Math.abs(p.z-e.z)<r && p.y < e.y+e.size*1.05 && p.y+p.height*p.scale > e.y-e.size*.55; }
   function resolveEnemy(e){ const stomp = p.vy < -1 && p.y > e.y + e.size*.18 && e.type !== 'spiky' && e.type !== 'flyer'; if (stomp) { damageEnemy(e, e.type==='boss'?1:99); p.vy=8.5; toast('Pisou no inimigo!', 'good'); beep(640,80); } else damagePlayer(DIFFICULTY[progress.difficulty].damage, e.type==='spiky'?'Espinho! Use B Poder.':'Inimigo acertou!'); }
-  function damageEnemy(e,dmg){
-    if (e.type === 'boss' && !e.vulnerable) {
-      dmg = Math.min(dmg, .25);
-      toast('Boss defendeu! Ataque quando ficar verde.', 'warn');
-    }
-    e.hp -= dmg; updateV44EnemyHpBar(e); addParticles(e.x,e.y,e.z,0xff8a00,16);
-    if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; progress.totalEnemies=(progress.totalEnemies||0)+1; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); saveProgress(); toast(e.type==='boss'?`Boss derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); }
-  }
+  function damageEnemy(e,dmg){ e.hp -= dmg; addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; progress.totalEnemies=(progress.totalEnemies||0)+1; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); saveProgress(); toast(e.type==='boss'?`Guardião derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); } }
 
   function power(){
     if (!playing || paused) return;
     const t = now();
     if (t < powerReadyAt) { toast('Poder carregando!', 'warn'); return; }
-    const cooldown = 520;
-    powerReadyAt = t + cooldown;
-    if (els.powerBtn) {
-      els.powerBtn.classList.add('cooldown');
-      els.powerBtn.setAttribute('aria-disabled','true');
-      els.powerBtn.dataset.cooldown = String(cooldown);
-      setTimeout(() => { els.powerBtn.classList.remove('cooldown'); els.powerBtn.removeAttribute('aria-disabled'); delete els.powerBtn.dataset.cooldown; }, cooldown);
-    }
-    const m=box(.42,.42,.42,0xff7a00,{ emissive:0xff4d00, emissiveIntensity:.75, outline:true, outlineColor:0xfff7ad, outlineOpacity:.24 });
-    m.position.set(p.x,p.y+1.25,p.z-.9); levelGroup.add(m);
-    const aimX = Math.abs(input.x) > .08 ? input.x * .42 : Math.sin(p.facing) * .18;
-    const aimZ = input.z < -.45 ? .35 : -1;
-    const dir = new THREE.Vector3(aimX,0,aimZ).normalize();
-    fireballs.push({mesh:m,x:m.position.x,y:m.position.y,z:m.position.z,vx:dir.x*7.5 + p.vx*.08,vz:dir.z*23,life:1.65});
+    powerReadyAt = t + 450;
+    if (els.powerBtn) { els.powerBtn.classList.add('cooldown'); setTimeout(() => els.powerBtn.classList.remove('cooldown'), 450); }
+    const m=box(.38,.38,.38,0xff7a00); m.position.set(p.x,p.y+1.25,p.z-.9); levelGroup.add(m);
+    const dir = new THREE.Vector3(input.x*.25,0,-1).normalize();
+    fireballs.push({mesh:m,x:m.position.x,y:m.position.y,z:m.position.z,vx:dir.x*6 + p.vx*.1,vz:dir.z*22,life:1.5});
     addParticles(p.x,p.y+1.3,p.z,0xffa000,12); vibrate(35); beep(210,100,'sawtooth');
   }
   function updateFireballs(dt){
@@ -1845,47 +1059,7 @@
     if (!progress.bestTime || elapsed < progress.bestTime) progress.bestTime = elapsed;
     progress.level = Math.min(LEVELS.length - 1, currentLevelIndex + 1); saveProgress();
     toast('Portal concluído!', 'good'); speak('Portal concluído! Próxima fase liberada.');
-    showLevelComplete(elapsed);
-  }
-
-  function showLevelComplete(elapsed){
-    hardStopAllInput('level-complete');
-    const nextIndex = Math.min(LEVELS.length - 1, progress.level || 0);
-    const isLast = currentLevelIndex >= LEVELS.length - 1;
-    els.modalTitle.textContent = 'Fase concluida!';
-    els.modalBody.innerHTML = `
-      <div class="answer phase-complete">
-        <b>Portal ativado.</b><br>
-        XP bonus: +75<br>
-        Tempo: ${elapsed}s<br>
-        Cristais: ${runtime.crystals}/${runtime.requiredCrystals}<br>
-        Inimigos: ${runtime.defeated}/${runtime.requiredEnemies}
-      </div>
-      <div class="quiz-result-actions phase-actions">
-        <button id="phaseNextBtn" class="pixel-btn primary" type="button">${isLast ? 'Jogar arena de novo' : 'Proxima fase'}</button>
-        <button id="phaseReplayBtn" class="pixel-btn" type="button">Repetir fase</button>
-        <button id="phaseLobbyBtn" class="pixel-btn" type="button">Menu</button>
-      </div>`;
-    showModal();
-    const nextBtn = $('#phaseNextBtn');
-    const replayBtn = $('#phaseReplayBtn');
-    const lobbyBtn = $('#phaseLobbyBtn');
-    if (nextBtn) nextBtn.onclick = () => {
-      closeModal();
-      currentLevelIndex = isLast ? LEVELS.length - 1 : nextIndex;
-      currentLevel = LEVELS[currentLevelIndex];
-      buildLevel(currentLevel);
-      speak(currentLevel.objective);
-    };
-    if (replayBtn) replayBtn.onclick = () => {
-      closeModal();
-      buildLevel(currentLevel);
-      speak(currentLevel.objective);
-    };
-    if (lobbyBtn) lobbyBtn.onclick = () => {
-      closeModal();
-      exitGame();
-    };
+    setTimeout(() => { currentLevelIndex = progress.level; currentLevel = LEVELS[currentLevelIndex]; buildLevel(currentLevel); speak(currentLevel.objective); }, 1800);
   }
   function damagePlayer(amount,msg){
     p.combo = 0;
@@ -1918,37 +1092,12 @@
   }
 
   function updateCamera(dt){
-    const landscape = innerWidth > innerHeight && innerHeight < 740;
-    const speedForward = clamp(Math.abs(p.vz) / 10, 0, 1);
-    const lateral = clamp(p.x / 6.5, -1, 1);
-    const jumpLift = p.grounded ? 0 : GAMEPLAY_CAMERA.cameraJumpOffset;
-    const followDistance = GAMEPLAY_CAMERA.cameraFollowDistance + (landscape ? -1.4 : 0) + speedForward * 2.0;
-    const cameraHeight = GAMEPLAY_CAMERA.cameraHeight + (landscape ? -.45 : .18) + speedForward * .36 + jumpLift;
-    const lookAhead = GAMEPLAY_CAMERA.cameraLookAhead + (landscape ? -2.0 : 0) + speedForward * 2.2;
-    const desiredFov = (landscape ? 54 : 49) + speedForward * 1.4;
-    camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 3.0);
-    camera.updateProjectionMatrix();
-
-    const desiredPos = new THREE.Vector3(
-      p.x * .34 + (landscape ? 1.1 : 0),
-      p.y + cameraHeight,
-      p.z + followDistance
-    );
-    const desiredLook = new THREE.Vector3(
-      p.x * .58 + lateral * .18,
-      p.y + 1.25,
-      p.z - lookAhead
-    );
-    if (!cameraRig.initialized || !cameraRig.pos || !cameraRig.look) {
-      cameraRig.initialized = true;
-      cameraRig.pos = desiredPos.clone();
-      cameraRig.look = desiredLook.clone();
-    }
-    cameraRig.pos.lerp(desiredPos, Math.min(1, dt * GAMEPLAY_CAMERA.cameraSmoothing));
-    cameraRig.look.lerp(desiredLook, Math.min(1, dt * (GAMEPLAY_CAMERA.cameraSmoothing + .5)));
-    camera.position.copy(cameraRig.pos);
-    camera.lookAt(cameraRig.look);
-    sunLight.position.set(p.x + (currentLevel?.world === 'space' ? -14 : 8), 24, p.z + 7);
+    const landscape = innerWidth > innerHeight && innerHeight < 720;
+    const speedPush = clamp(Math.abs(p.vz)/10,0,1);
+    const target = new THREE.Vector3(p.x*.54 + (landscape?1.6:0), p.y+5.15+speedPush*.55, p.z + (landscape?10.5:11.8));
+    const look = new THREE.Vector3(p.x*.76, p.y+1.55, p.z - 15.2 - speedPush*2.3);
+    camera.fov += ((landscape?58:55) + speedPush*2 - camera.fov) * Math.min(1, dt*2.8); camera.updateProjectionMatrix();
+    camera.position.lerp(target, Math.min(1,dt*4.8)); camera.lookAt(look); sunLight.position.set(p.x+10,22,p.z+10);
   }
 
   function spin(){ p.spinUntil = now()+850; addXP(1); toast('Giro!', 'good'); }
@@ -1958,7 +1107,7 @@
     if (mode==='hub') { const nearest = LEVELS.find(l => Math.abs(p.z + (40 + LEVELS.indexOf(l)*12)) < 8); if (nearest) { currentLevelIndex = LEVELS.indexOf(nearest); buildLevel(nearest); } }
     else toast('Nada para interagir aqui.', 'warn');
   }
-  function togglePause(){ paused=!paused; resetAllInputs(paused?'pause':'resume'); els.pauseBtn.innerHTML = paused ? '▶<span>Voltar</span>' : '⏸<span>Pausa</span>'; toast(paused?'Pausado':'Voltando', 'warn'); }
+  function togglePause(){ paused=!paused; els.pauseBtn.innerHTML = paused ? '▶<span>Voltar</span>' : '⏸<span>Pausa</span>'; toast(paused?'Pausado':'Voltando', 'warn'); }
   function toggleCrouch(v){ input.crouch = v; }
 
   function showTutorial(){
@@ -1969,100 +1118,13 @@
   }
 
   function openQuiz(fromGame=false){
-    hardStopAllInput('quiz-open');
-    const round = quizData.slice().sort(() => Math.random() - .5).slice(0,5);
-    let step = 0, right = 0, wrong = 0, answered = false;
-
-    const renderQuestion = () => {
-      answered = false;
-      const q = round[step] || quizData[0];
-      els.modalTitle.textContent = 'Quiz do Athos';
-      els.modalBody.innerHTML = `
-        <div class="quiz-round-head">
-          <b>${step + 1}/5</b>
-          <span>✅ ${right}</span>
-          <span>❌ ${wrong}</span>
-        </div>
-        <div class="quiz-progress"><span style="width:${((step)/5)*100}%"></span></div>
-        <div class="answer quiz-question"><b>${escapeHtml(q.q)}</b></div>
-        <div class="modal-list quiz-options"></div>
-        <div id="quizFeedback" class="quiz-feedback" hidden></div>
-        <button id="quizNextBtn" class="pixel-btn primary" type="button" hidden>${step >= 4 ? 'Ver resultado' : 'Próxima'}</button>`;
-      const list = els.modalBody.querySelector('.quiz-options');
-      const feedback = $('#quizFeedback');
-      const next = $('#quizNextBtn');
-      q.opts.forEach((opt,i)=>{
-        const b=document.createElement('button');
-        b.className='pixel-btn choice quiz-option';
-        b.type='button';
-        b.dataset.test='quiz-option';
-        b.dataset.answer=String(i);
-        b.dataset.correct=String(i===q.ans);
-        b.setAttribute('aria-label', `Opção do quiz: ${opt}`);
-        b.textContent=opt;
-        b.onclick=()=>{
-          if(answered) return;
-          answered = true;
-          progress.quizAnswered=(progress.quizAnswered||0)+1;
-          const ok = i === q.ans;
-          if(ok){
-            right++;
-            progress.quizRight=(progress.quizRight||0)+1;
-            addXP(10);
-            b.classList.add('correct');
-            feedback.textContent='Acertou!';
-            feedback.className='quiz-feedback good';
-            toast('Acertou!', 'good');
-            speak('Acertou!');
-          } else {
-            wrong++;
-            b.classList.add('wrong');
-            const correct = list.querySelector('[data-correct="true"]');
-            if(correct) correct.classList.add('correct');
-            feedback.textContent='Quase! Veja a certa e continue.';
-            feedback.className='quiz-feedback bad';
-            toast('Quase!', 'warn');
-          }
-          feedback.hidden=false;
-          next.hidden=false;
-          list.querySelectorAll('button').forEach(x=>x.disabled=true);
-          saveProgress();
-          updateHud();
-        };
-        list.appendChild(b);
-      });
-      next.onclick=()=>{
-        if(step < round.length-1){ step++; renderQuestion(); }
-        else renderResult();
-      };
-      showModal();
-    };
-
-    const renderResult = () => {
-      const passed = right >= 3;
-      if(passed){
-        addXP(25 + right * 5);
-        if(progress.quizRight>=5)addMedal('Campeão do Quiz');
-        if(fromGame && runtime){ runtime.quizSolved=true; checkGates(); }
-      }
-      saveProgress(); updateHud();
-      els.modalTitle.textContent = 'Resultado do Quiz';
-      els.modalBody.innerHTML = `
-        <div class="answer quiz-result">
-          <b>${passed ? 'Muito bem!' : 'Boa tentativa!'}</b><br>
-          Acertos: ${right}/5<br>
-          ${passed ? 'Bônus liberado.' : 'Tente outra rodada.'}
-        </div>
-        <div class="quiz-result-actions">
-          <button id="quizAgainBtn" class="pixel-btn primary" type="button">Jogar de novo</button>
-          <button id="quizDoneBtn" class="pixel-btn" type="button">Fechar</button>
-        </div>`;
-      $('#quizAgainBtn').onclick=()=>openQuiz(fromGame);
-      $('#quizDoneBtn').onclick=closeModal;
-      showModal();
-    };
-
-    renderQuestion();
+    const q = quizData[Math.floor(Math.random()*quizData.length)];
+    els.modalTitle.textContent = 'Quiz dos Portais';
+    els.modalBody.innerHTML = `<div class="answer"><small>${escapeHtml(q.cat || 'athos')} • ${escapeHtml(q.diff || 'facil')}</small><br><b>${escapeHtml(q.q)}</b></div><div class="modal-list"></div>`;
+    const list = els.modalBody.querySelector('.modal-list');
+    let answered = false;
+    q.opts.forEach((opt,i)=>{ const b=document.createElement('button'); b.className='pixel-btn choice quiz-option'; b.type='button'; b.dataset.test='quiz-option'; b.dataset.answer=String(i); b.dataset.correct=String(i===q.ans); b.setAttribute('aria-label', `Opção do quiz: ${opt}`); b.textContent=opt; b.onclick=()=>{ if(answered) return; progress.quizAnswered=(progress.quizAnswered||0)+1; if(i===q.ans){ answered=true; b.classList.add('correct'); progress.quizRight=(progress.quizRight||0)+1; addXP(12); if(progress.quizRight>=5)addMedal('Campeão do Quiz'); if(runtime) runtime.quizSolved=true; saveProgress(); toast('Resposta certa!', 'good'); speak('Resposta certa!'); setTimeout(closeModal,650); } else { b.classList.add('wrong'); saveProgress(); toast('Quase! Tente outra.', 'bad'); } updateHud(); }; list.appendChild(b); });
+    showModal();
   }
   function openAsk(){
     els.modalTitle.textContent = 'Falar com Athos';
@@ -2088,17 +1150,14 @@
   function stopCamera(){ if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } els.cameraFeed.srcObject=null; }
   function requestFullscreenLandscape(){ /* V37: não força fullscreen nem trava orientação. O fullscreen quebrava layout/inputs em alguns Androids. */ }
 
-  function updateWorldButtons(world){ $$('.world-chip').forEach(b=>{ const active = b.dataset.world===world; b.classList.toggle('active', active); if(active && b.scrollIntoView) setTimeout(()=>b.scrollIntoView({block:'nearest',inline:'nearest'}),50); }); }
+  function updateWorldButtons(world){ $$('.world-chip').forEach(b=>b.classList.toggle('active', b.dataset.world===world)); }
   function setupJoystick(){
     const ring = els.joystick.querySelector('.joy-ring');
     if (!ring) return;
     const end = (e) => {
       if (e && joy.pointerId !== null && e.pointerId !== joy.pointerId) return;
-      safePointerRelease(ring, e);
       joy.active=false; joy.pointerId=null; joy.x=0; joy.z=0;
-      inputTarget.x = 0; inputTarget.z = 0;
       if (els.joyKnob) els.joyKnob.style.transform='translate(0px,0px)';
-      stopHorizontalIfNoDirectionalInput();
     };
     const move = (e) => {
       if(!joy.active || e.pointerId !== joy.pointerId) return;
@@ -2107,19 +1166,15 @@
       const len=Math.hypot(dx,dy); const max=joy.max;
       const sx=len>max?dx/len*max:dx, sy=len>max?dy/len*max:dy;
       if (els.joyKnob) els.joyKnob.style.transform=`translate(${sx}px,${sy}px)`;
-      const nx = sx / max;
-      const ny = sy / max;
-      const mag = Math.min(1, Math.hypot(nx, ny));
-      if (mag < GAME_FEEL.joystickDeadzone) { joy.x = 0; joy.z = 0; return; }
-      const scaled = Math.pow((mag - GAME_FEEL.joystickDeadzone) / (1 - GAME_FEEL.joystickDeadzone), GAME_FEEL.joystickCurve);
-      joy.x = clamp((nx / mag) * scaled, -1, 1);
-      joy.z = clamp((-ny / mag) * scaled, -1, 1);
+      const dead = .10;
+      joy.x = Math.abs(dx/max) < dead ? 0 : clamp(dx/max,-1,1);
+      joy.z = Math.abs(dy/max) < dead ? 0 : clamp(-dy/max,-1,1);
     };
     ring.addEventListener('pointerdown',(e)=>{
       e.preventDefault(); e.stopPropagation();
       joy.active=true; joy.pointerId=e.pointerId;
       const r=ring.getBoundingClientRect(); joy.cx=r.left+r.width/2; joy.cy=r.top+r.height/2;
-      safePointerCapture(ring, e);
+      ring.setPointerCapture && ring.setPointerCapture(e.pointerId);
       move(e);
     }, { passive:false });
     document.addEventListener('pointermove', move, { passive:false });
@@ -2127,31 +1182,6 @@
     document.addEventListener('pointercancel', end, { passive:false });
     window.addEventListener('blur', () => { hardStopAllInput('blur'); });
     window.addEventListener('pagehide', () => { hardStopAllInput('pagehide'); });
-    document.addEventListener('visibilitychange', () => { if (document.hidden) hardStopAllInput('visibility-hidden'); });
-  }
-
-  function hasDirectionalInput(){
-    return joy.active || joy.x !== 0 || joy.z !== 0 || keyboard.left || keyboard.right || keyboard.forward || keyboard.back || moveHold.left || moveHold.right || moveHold.forward || moveHold.back;
-  }
-
-  function stopHorizontalIfNoDirectionalInput(){
-    if (!p || hasDirectionalInput()) return;
-    input.x = 0; input.z = 0; inputTarget.x = 0; inputTarget.z = 0;
-    clearVelocityHorizontal('no-directional-input');
-  }
-
-  function clearVelocityHorizontal(reason='manual'){
-    if (!p) return false;
-    p.vx = 0;
-    p.vz = 0;
-    return true;
-  }
-
-  function setMoveHold(direction, value){
-    if (!Object.prototype.hasOwnProperty.call(moveHold, direction)) return false;
-    moveHold[direction] = !!value;
-    if (!value) stopHorizontalIfNoDirectionalInput();
-    return true;
   }
 
   function clearMovementState(){
@@ -2159,8 +1189,6 @@
     keyboard.left = keyboard.right = keyboard.forward = keyboard.back = false;
     input.x = 0;
     input.z = 0;
-    inputTarget.x = 0;
-    inputTarget.z = 0;
     input.crouch = false;
     joy.active = false;
     joy.pointerId = null;
@@ -2173,266 +1201,21 @@
   function hardStopAllInput(reason='manual'){
     clearMovementState();
     if (p) {
-      clearVelocityHorizontal(reason);
+      p.vx = 0;
+      p.vz = 0;
       if (reason !== 'jump') jumpBufferedUntil = 0;
-    }
-  }
-
-  function resetAllInputs(reason='manual'){
-    hardStopAllInput(reason);
-  }
-
-  function enterARSafeMode(reason='ar'){
-    hardStopAllInput(reason);
-    arSafeUntil = now() + AR_SAFE.lockMs;
-    if (p) { p.vx = 0; p.vz = 0; p.vy = Math.min(p.vy || 0, 0); }
-    if (els.game) els.game.classList.add('ar-safe-mode');
-    window.setTimeout(() => { if (now() >= arSafeUntil && els.game) els.game.classList.remove('ar-safe-mode'); }, AR_SAFE.lockMs + 60);
-    toast('AR seguro: Athos parado. Toque no controle para mover.', 'warn');
-  }
-
-
-  function safePointerCapture(el, event){
-    if (!el || !event || typeof event.pointerId !== 'number') return false;
-    if (!el.setPointerCapture) return false;
-    try {
-      el.setPointerCapture(event.pointerId);
-      return true;
-    } catch (err) {
-      // Alguns testes sintéticos e navegadores Android podem disparar pointerdown sem ponteiro ativo.
-      // Não pode virar erro fatal nem travar o controle.
-      return false;
-    }
-  }
-
-  function safePointerRelease(el, event){
-    if (!el || !event || typeof event.pointerId !== 'number') return false;
-    if (!el.releasePointerCapture) return false;
-    try {
-      if (el.hasPointerCapture && !el.hasPointerCapture(event.pointerId)) return false;
-      el.releasePointerCapture(event.pointerId);
-      return true;
-    } catch (err) {
-      return false;
-    }
-  }
-
-
-  function getARViewer(){
-    // V46.2 HOTFIX: prioriza o model-viewer principal já carregado.
-    // O arAnchorViewer oculto pode disparar erro interno do model-viewer em desktop:
-    // ARRenderer null.add. Ele fica apenas como fallback.
-    return els.nativeViewer || els.arAnchorViewer;
-  }
-  function prepareARViewer(viewer){
-    if (!viewer) return;
-    viewer.setAttribute('src','./athos.glb');
-    viewer.setAttribute('ar','');
-    viewer.setAttribute('ar-modes','scene-viewer webxr quick-look');
-    viewer.setAttribute('ar-placement','floor');
-    viewer.setAttribute('ar-scale','fixed');
-    viewer.setAttribute('shadow-intensity','1');
-    viewer.setAttribute('exposure','1');
-    viewer.setAttribute('environment-image','neutral');
-    viewer.setAttribute('interaction-prompt','none');
-    try {
-      viewer.setAttribute('camera-orbit', `${VIEWER_3D.orbit}deg ${VIEWER_3D.elevation}deg ${VIEWER_3D.distance.toFixed(2)}m`);
-      viewer.setAttribute('camera-target', `${VIEWER_3D.targetX.toFixed(2)}m ${VIEWER_3D.targetY.toFixed(2)}m ${VIEWER_3D.targetZ.toFixed(2)}m`);
-      viewer.setAttribute('scale', `${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)}`);
-    } catch {}
-  }
-  function prepareARActivationSurface(viewer){
-    if (!viewer) return;
-    try {
-      viewer.classList.add('ar-activation-surface');
-      viewer.style.position = 'fixed';
-      viewer.style.left = '0';
-      viewer.style.top = '0';
-      viewer.style.width = '100vw';
-      viewer.style.height = '100vh';
-      viewer.style.opacity = '0.001';
-      viewer.style.pointerEvents = 'none';
-      viewer.style.zIndex = '1';
-    } catch {}
-  }
-  function restoreARActivationSurface(viewer){
-    if (!viewer) return;
-    try {
-      viewer.classList.remove('ar-activation-surface');
-      viewer.removeAttribute('style');
-    } catch {}
-  }
-
-  function canSafelyActivateNativeAR(viewer){
-    if (!viewer || typeof viewer.activateAR !== 'function') return false;
-    // Em desktop ou navegador sem AR, model-viewer pode lançar erro interno em ARRenderer.
-    // Só chamamos activateAR quando o próprio model-viewer confirma capacidade real.
-    try {
-      if (viewer.canActivateAR === true) return true;
-      return false;
-    } catch { return false; }
-  }
-
-  function markNativeARUnavailable(){
-    hardStopAllInput('native-ar-unavailable');
-    arSafeUntil = now() + AR_SAFE.lockMs;
-    if (p) { p.vx = 0; p.vz = 0; p.vy = Math.min(p.vy || 0, 0); }
-    toast('AR nativo só abre em celular/navegador compatível. Câmera falsa não será usada.', 'warn');
-  }
-
-  function openNativeAR(reason='native-ar'){
-    hardStopAllInput(reason);
-    stopCamera();
-    realBg = false;
-    if (els.game) {
-      els.game.classList.add('ar-safe-mode');
-      els.game.classList.remove('real-bg');
-    }
-    arSafeUntil = now() + AR_SAFE.lockMs;
-    rebuildV49Render('real');
-    const viewer = getARViewer();
-    prepareARViewer(viewer);
-    // Não abrimos câmera fake. Em computador, não chamamos activateAR para evitar erro interno do model-viewer.
-    if (!canSafelyActivateNativeAR(viewer)) {
-      markNativeARUnavailable();
-      return false;
-    }
-    prepareARActivationSurface(viewer);
-    try {
-      const r = viewer.activateAR();
-      toast('Abrindo AR nativo ancorado: posicione Athos no chão.', 'good');
-      window.setTimeout(() => restoreARActivationSurface(viewer), 4500);
-      if (r && typeof r.catch === 'function') {
-        r.catch(() => {
-          markNativeARUnavailable();
-          restoreARActivationSurface(viewer);
-        });
-      }
-      return true;
-    } catch (err) {
-      markNativeARUnavailable();
-      restoreARActivationSurface(viewer);
-      return false;
     }
   }
 
   function setupInputs(){
     setupJoystick();
-    $$('[data-move]').forEach(btn=>{
-      const key=btn.dataset.move;
-      const on=(e)=>{ e.preventDefault(); e.stopPropagation(); safePointerCapture(btn, e); btn.classList.add('holding'); setMoveHold(key, true); };
-      const off=(e)=>{ e.preventDefault(); safePointerRelease(btn, e); btn.classList.remove('holding'); setMoveHold(key, false); };
-      btn.addEventListener('pointerdown',on,{passive:false});
-      ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false}));
-    });
-    $$('[data-hold]').forEach(btn=>{
-      const key=btn.dataset.hold;
-      btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); safePointerCapture(btn, e); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false});
-      ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); safePointerRelease(btn, e); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false}));
-    });
-    $$('[data-action]').filter(btn=>!btn.dataset.move && !btn.dataset.hold).forEach(btn=>{
-      const run = (e) => { e.preventDefault(); e.stopPropagation(); if (canPressAction(btn.dataset.action)) handleAction(btn.dataset.action); };
-      btn.addEventListener('pointerdown', run, { passive:false });
-      btn.addEventListener('click', run, { passive:false });
-    });
-    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ if (!canPressAction('world')) return; resetAllInputs('world'); if(btn.dataset.world==='real'){ updateWorldButtons('real'); openNativeAR('world-chip-real'); return; } if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
-    document.addEventListener('pointerup', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
-    document.addEventListener('pointercancel', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
-    window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ' && canPressAction('jump')) jump(); if(['b','B'].includes(e.key) && canPressAction('power')) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
-    window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; stopHorizontalIfNoDirectionalInput(); });
+    $$('[data-move]').forEach(btn=>{ const key=btn.dataset.move; const on=(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; }; const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; }; btn.addEventListener('pointerdown',on,{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false})); });
+    $$('[data-hold]').forEach(btn=>{ const key=btn.dataset.hold; btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false})); });
+    $$('[data-action]').filter(btn=>!btn.dataset.move).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
+    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
+    window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
+    window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
   }
-
-  function canPressAction(action){
-    const key = action === 'power' ? 'power' : action === 'world' ? 'world' : 'action';
-    const delay = INPUT_DEBOUNCE_MS[key] || INPUT_DEBOUNCE_MS.action;
-    const t = now();
-    if (t - (actionPressAt[key] || 0) < delay) return false;
-    actionPressAt[key] = t;
-    return true;
-  }
-  async function startViewerCamera(){
-    if (viewerCameraStream || !els.viewerCameraFeed || !navigator.mediaDevices) return false;
-    try {
-      viewerCameraStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:720 } }, audio:false });
-      els.viewerCameraFeed.srcObject = viewerCameraStream;
-      await els.viewerCameraFeed.play().catch(()=>{});
-      VIEWER_3D.cameraPreview = true;
-      document.querySelector('.viewer-panel')?.classList.add('viewer-camera-on');
-      if (els.modelStatus) els.modelStatus.textContent = 'Câmera real na prévia. AR fixo abre no botão verde.';
-      toast('Câmera real ligada na prévia 3D.', 'good');
-      return true;
-    } catch (err) {
-      VIEWER_3D.cameraPreview = false;
-      toast('Câmera bloqueada no navegador. O AR fixo continua no botão AR.', 'warn');
-      return false;
-    }
-  }
-  function stopViewerCamera(){
-    if (viewerCameraStream) {
-      viewerCameraStream.getTracks().forEach(t=>t.stop());
-      viewerCameraStream = null;
-    }
-    if (els.viewerCameraFeed) els.viewerCameraFeed.srcObject = null;
-    VIEWER_3D.cameraPreview = false;
-    document.querySelector('.viewer-panel')?.classList.remove('viewer-camera-on');
-    if (els.modelStatus) els.modelStatus.textContent = 'Fixo e estável no mundo real.';
-  }
-  async function toggleViewerCamera(){
-    hardStopAllInput('viewer-camera');
-    if (viewerCameraStream) { stopViewerCamera(); toast('Câmera real desligada.', 'good'); return; }
-    await startViewerCamera();
-  }
-
-  function applyViewer3DState(){
-    const v = els.nativeViewer;
-    if(!v) return;
-    VIEWER_3D.distance = clamp(VIEWER_3D.distance, 1.15, 8.5);
-    VIEWER_3D.elevation = clamp(VIEWER_3D.elevation, 40, 85);
-    VIEWER_3D.targetX = clamp(VIEWER_3D.targetX, -1.6, 1.6);
-    VIEWER_3D.targetY = clamp(VIEWER_3D.targetY, -0.8, 2.5);
-    VIEWER_3D.targetZ = clamp(VIEWER_3D.targetZ, -1.2, 1.2);
-    VIEWER_3D.scale = clamp(VIEWER_3D.scale, .55, 2.2);
-    VIEWER_3D.fov = clamp(VIEWER_3D.fov || 30, 18, 45);
-    v.setAttribute('camera-orbit', `${VIEWER_3D.orbit}deg ${VIEWER_3D.elevation}deg ${VIEWER_3D.distance.toFixed(2)}m`);
-    v.setAttribute('camera-target', `${VIEWER_3D.targetX.toFixed(2)}m ${VIEWER_3D.targetY.toFixed(2)}m ${VIEWER_3D.targetZ.toFixed(2)}m`);
-    v.setAttribute('field-of-view', `${VIEWER_3D.fov.toFixed(1)}deg`);
-    v.setAttribute('scale', `${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)} ${VIEWER_3D.scale.toFixed(2)}`);
-    v.style.setProperty('--athos-viewer-scale', VIEWER_3D.scale.toFixed(2));
-    try { if (typeof v.updateFraming === 'function') v.updateFraming(); } catch {}
-  }
-  function resetViewer3D(){
-    VIEWER_3D.orbit = 25; VIEWER_3D.elevation = 68; VIEWER_3D.distance = 3.8;
-    VIEWER_3D.targetX = 0; VIEWER_3D.targetY = .8; VIEWER_3D.targetZ = 0; VIEWER_3D.scale = 1; VIEWER_3D.fov = 30;
-    applyViewer3DState();
-    toast('Athos 3D resetado.', 'good');
-  }
-  function setupViewer3DControls(){
-    const bind = (id, fn) => {
-      const el = document.getElementById(id);
-      if(el) el.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); hardStopAllInput('viewer-3d'); fn(); applyViewer3DState(); };
-    };
-    bind('viewerRotateLeftBtn', () => VIEWER_3D.orbit -= 18);
-    bind('viewerRotateRightBtn', () => VIEWER_3D.orbit += 18);
-    // V46.3: + e - agora mudam distância E campo de visão, para o efeito ser visível no celular.
-    bind('viewerZoomInBtn', () => { VIEWER_3D.distance = clamp(VIEWER_3D.distance - .55, 1.15, 8.5); VIEWER_3D.fov = clamp((VIEWER_3D.fov||30) - 2.5, 18, 45); });
-    bind('viewerZoomOutBtn', () => { VIEWER_3D.distance = clamp(VIEWER_3D.distance + .55, 1.15, 8.5); VIEWER_3D.fov = clamp((VIEWER_3D.fov||30) + 2.5, 18, 45); });
-    // V46.3: botões corrigidos pela percepção visual do usuário. Subir sobe o boneco na tela; descer desce.
-    bind('viewerMoveUpBtn', () => VIEWER_3D.targetY = clamp(VIEWER_3D.targetY - .14, -.8, 2.5));
-    bind('viewerMoveDownBtn', () => VIEWER_3D.targetY = clamp(VIEWER_3D.targetY + .14, -.8, 2.5));
-    bind('viewerMoveLeftBtn', () => VIEWER_3D.targetX = clamp(VIEWER_3D.targetX + .14, -1.6, 1.6));
-    bind('viewerMoveRightBtn', () => VIEWER_3D.targetX = clamp(VIEWER_3D.targetX - .14, -1.6, 1.6));
-    const camBtn = document.getElementById('viewerCameraBtn');
-    if(camBtn) camBtn.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); toggleViewerCamera(); };
-    const arFixed = document.getElementById('viewerArFixedBtn');
-    if(arFixed) arFixed.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); openNativeAR('viewer-ar-fixed'); };
-    const big = document.getElementById('viewerBigBtn');
-    if(big) big.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); const panel = document.querySelector('.viewer-panel'); if(panel){ const on = !panel.classList.contains('viewer-fullscreen'); panel.classList.toggle('viewer-fullscreen', on); document.body.classList.toggle('viewer-fullscreen-open', on); setTimeout(applyViewer3DState, 120); } };
-    const reset = document.getElementById('viewerResetBtn');
-    if(reset) reset.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); resetViewer3D(); };
-    document.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape'){ const panel=document.querySelector('.viewer-panel.viewer-fullscreen'); if(panel){ panel.classList.remove('viewer-fullscreen'); document.body.classList.remove('viewer-fullscreen-open'); stopViewerCamera(); } } });
-    applyViewer3DState();
-  }
-
   function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz' || a==='ask') return; else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
   function setupUI(){
     const bindStart = (el, target) => { if (!el) return; el.onclick = () => { closeModal(); start(target || el.dataset.play || 'missions'); }; };
@@ -2448,13 +1231,15 @@
     if (els.modalClose) els.modalClose.onclick=closeModal;
     if (els.modal) els.modal.addEventListener('click',(e)=>{ if(e.target===els.modal) closeModal(); });
     if (els.difficultySelect) els.difficultySelect.onchange=()=>{ progress.difficulty=els.difficultySelect.value; saveProgress(); toast(`Dificuldade: ${DIFFICULTY[progress.difficulty].name}`,'good'); };
-    setupViewer3DControls();
-    if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=()=>openNativeAR('lobby-ar-button');
+    const openNativeAR = () => {
+      if (!els.nativeViewer || typeof els.nativeViewer.activateAR !== 'function') { toast('AR nativo indisponível neste navegador. Use Brincar Livre AR.', 'warn'); return; }
+      try { const r = els.nativeViewer.activateAR(); if (r && typeof r.catch === 'function') r.catch(()=>toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn')); } catch { toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn'); }
+    };
+    if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=openNativeAR;
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
-    if(els.arAnchorViewer){ els.arAnchorViewer.addEventListener('ar-status',(e)=>{ if(e.detail && e.detail.status==='not-presenting') hardStopAllInput('ar-closed'); }); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=45-plataforma-10-render-ar').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=50-recuperacao-render').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -2465,14 +1250,6 @@
   function normalize(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
   function escapeHtml(s){ return String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
-  Object.assign(window, {
-    resetAllInputs,
-    safePointerCapture,
-    safePointerRelease,
-    setMoveHold,
-    clearVelocityHorizontal
-  });
-
   window.ATHOS_TEST_API = {
     getQuizCount: () => quizData.length,
     getLevelCount: () => LEVELS.length,
@@ -2480,39 +1257,13 @@
     getCurrentLevel: () => currentLevel,
     hasPowerButton: () => !!document.querySelector('#powerBtn[data-action="power"]'),
     getInputState: () => ({
-      input: { x: input.x, z: input.z, crouch: input.crouch, targetX: inputTarget.x, targetZ: inputTarget.z },
+      input: { x: input.x, z: input.z, crouch: input.crouch },
       joy: { active: joy.active, pointerId: joy.pointerId, x: joy.x, z: joy.z },
       moveHold: { ...moveHold },
       keyboard: { ...keyboard }
     }),
-    getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode, lastLandAt }) : null,
-    getGameFeel: () => ({ ...GAME_FEEL }),
-    getCameraTuning: () => ({ ...GAMEPLAY_CAMERA }),
-    getGameplayState: () => ({
-      mode, paused, playing,
-      enemies: enemies.map(e => ({ type:e.type, hp:e.hp, maxHp:e.maxHp, dead:e.dead, vulnerable:e.vulnerable })),
-      boss: enemies.find(e => e.type === 'boss') ? { ...enemies.find(e => e.type === 'boss'), mesh:undefined } : null,
-      fireballs: fireballs.length,
-      enemyProjectiles: enemyProjectiles.length,
-      portalUnlocked: !!(runtime && objectivesDone()),
-      powerCooldownMs: Math.max(0, Math.round(powerReadyAt - now()))
-    }),
-    getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
-    getARSafety: () => ({ realBg, arSafeUntil, locked: now() < arSafeUntil, label: AR_SAFE.label, nativeAR:true, fakeCamera:false }),
-    getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds, v45:V45_PLATFORM_RENDER.label }),
-    getV49Render: () => (window.ATHOS_V492_STATUS || (window.ATHOS_V49_RENDER_EXIGIDO && window.ATHOS_V49_RENDER_EXIGIDO.getStatus ? window.ATHOS_V49_RENDER_EXIGIDO.getStatus() : null)),
-    getV47Render: () => (window.ATHOS_V492_STATUS || (window.ATHOS_V49_RENDER_EXIGIDO && window.ATHOS_V49_RENDER_EXIGIDO.getStatus ? window.ATHOS_V49_RENDER_EXIGIDO.getStatus() : null)),
-    getV46Render: () => (window.ATHOS_V492_STATUS || (window.ATHOS_V49_RENDER_EXIGIDO && window.ATHOS_V49_RENDER_EXIGIDO.getStatus ? window.ATHOS_V49_RENDER_EXIGIDO.getStatus() : null)),
-    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V48_RENDER_TARGET_GAMEPLAY', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
-    getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
-    hardStopAllInput: () => hardStopAllInput('test-api'),
-    resetAllInputs: () => resetAllInputs('test-api'),
-    setMoveHold: (direction, value) => setMoveHold(direction, value),
-    clearVelocityHorizontal: () => clearVelocityHorizontal('test-api'),
-    jump: () => jump(),
-    power: () => power(),
-    buildLevelById: (id) => { const idx = LEVELS.findIndex(l => l.id === id || l.world === id); if (idx < 0) return false; currentLevelIndex = idx; buildLevel(LEVELS[idx]); return true; },
-    forcePortalReady: () => { if (!runtime) return false; runtime.crystals = runtime.requiredCrystals; runtime.defeated = runtime.requiredEnemies; runtime.quizSolved = true; runtime.portalAnnounced = false; updateHud(); return objectivesDone(); }
+    getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode }) : null,
+    hardStopAllInput: () => hardStopAllInput('test-api')
   };
 
   setupInputs(); setupUI(); updateLobbyStats(); refreshServiceWorker();
