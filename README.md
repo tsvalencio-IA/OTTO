@@ -1,24 +1,26 @@
-# Athos: Guardião dos Portais V40 — Render e Câmera
+# Athos: Guardião dos Portais V41 — Game Feel / Jogabilidade
 
-Esta versão parte da V39 estável e mexe somente na camada visual/câmera.
+Esta versão parte da V40 válida e mexe somente na camada de jogabilidade/sensação de controle.
 
 ## Regra desta versão
 
-Não foram alterados os controles, IDs, data-actions, data-move, data-world, AR, model-viewer, athos.glb, quiz/falar no lobby, dock mobile ou fluxo de entrada/saída.
+Não foram alterados layout dos botões, dock mobile, IDs, data-actions, data-move, data-world, AR, model-viewer, athos.glb, Quiz/Falar no lobby, render/câmera V40 ou estrutura HTML dos controles.
 
 ## Melhorias aplicadas
 
-- câmera mais cinematográfica, mais alta e com melhor visão da profundidade;
-- suavização de câmera com rig interno;
-- luz e exposição calibradas por mundo;
-- horizonte visual para tirar aparência de vazio/debug;
-- silhuetas e elementos de fundo por cenário;
-- luzes discretas nas bordas da pista;
-- runway visual antes do portal;
-- spotlights suaves por fase;
-- polimento de material do athos.glb sem alterar o arquivo;
-- sombra de contato no personagem;
-- mantido layout V39: Quiz/Falar somente no lobby.
+- joystick com deadzone radial real, curva progressiva e retorno limpo ao centro;
+- input suavizado, com liberação rápida para o Athos parar ao soltar;
+- aceleração e desaceleração separadas para chão e ar;
+- correção de botão Y/Abaixar para não disputar `data-hold` com `data-action`;
+- botões de movimento com `setPointerCapture` para reduzir controle preso;
+- parada horizontal segura quando não há joystick, teclado ou botão direcional ativo;
+- pulo arcade sem teleporte brusco, com impulso para frente/lado por velocidade;
+- coyote time calibrado;
+- jump buffer preservado e calibrado;
+- cooldown curto contra duplo pulo acidental;
+- snap de plataforma ao cair perto do topo da caixa;
+- amortecimento horizontal leve na aterrissagem;
+- API de teste expõe `getGameFeel()` e estado de input.
 
 ## Como subir
 
@@ -26,7 +28,17 @@ Suba todos os arquivos deste ZIP na raiz do repositório `OTTO`, mantendo as pas
 
 ## Teste
 
-Use `F12_TESTE_ATHOS_V40_RENDER_CAMERA.js` no Console do navegador após o deploy.
+Use `F12_TESTE_ATHOS_V41_GAME_FEEL.js` no Console do navegador após o deploy.
+
+Teste manual principal:
+
+1. Entrar em Jogar Fases 3D.
+2. Não tocar em nada: Athos precisa ficar parado.
+3. Segurar joystick para o fundo e soltar: precisa parar sem escorregar.
+4. Apertar A perto da borda/caixa: pulo precisa responder.
+5. Segurar A pouco antes de tocar na plataforma: jump buffer/coyote deve ajudar.
+6. Segurar Y e soltar: Athos precisa abaixar e voltar sem travar.
+7. Abrir/fechar modal, trocar mundo e voltar: não pode andar sozinho.
 
 ## O que NÃO foi mexido
 
@@ -34,7 +46,7 @@ Use `F12_TESTE_ATHOS_V40_RENDER_CAMERA.js` no Console do navegador após o deplo
 - AR Nativo;
 - Brincar Livre AR;
 - Three.js/model-viewer;
-- botões A/B/Y/X/N/R/I/Pausa/Sair;
-- joystick e dock mobile;
-- Quiz/Falar no lobby;
+- dock mobile e controles V39;
+- Quiz/Falar somente no lobby;
+- render/câmera V40;
 - lógica de fases, inimigos, poder e progresso.

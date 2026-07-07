@@ -1,13 +1,13 @@
 {
-  "name": "Athos: Guardião dos Portais V40 Render e Câmera",
-  "short_name": "Athos V40",
-  "start_url": "./index.html?v=37-auditoria-total",
+  "name": "Athos: Guardião dos Portais V41 Game Feel",
+  "short_name": "Athos V41",
+  "start_url": "./index.html?v=41-game-feel",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Athos: Guardião dos Portais V40 — render e câmera premium sobre a base V39 estável, sem alterar controles.",
+  "description": "Athos: Guardião dos Portais V41 — game feel calibrado sobre a base V40, sem alterar layout, AR ou Quiz/Falar do lobby.",
   "icons": [
     {
       "src": "./icons/icon-192.png",

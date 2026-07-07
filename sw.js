@@ -1,6 +1,6 @@
-// Athos V40 RENDER E CAMERA — Service Worker leve para GitHub Pages.
+// Athos V41 GAME FEEL — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v40-render-camera-no-cache';
+const CACHE_VERSION = 'athos-v41-game-feel-no-cache';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

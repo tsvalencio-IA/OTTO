@@ -21,8 +21,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v37_auditoria_total_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v41_game_feel_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v37_auditoria_total_progress','athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -43,6 +43,27 @@
     easy: { name:'Fácil', hearts:6, speed:8.3, jump:12.8, gravity:22, timer:0, damage:1, bonus:1, forgiveness:1.35 },
     medium: { name:'Médio', hearts:5, speed:9.0, jump:12.2, gravity:24, timer:210, damage:1, bonus:1.25, forgiveness:1.0 },
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
+  };
+
+  // V41 GAME FEEL: camada isolada de jogabilidade. Não mexe em HTML, AR, dock, Quiz/Falar ou render V40.
+  const GAME_FEEL = {
+    joystickDeadzone: .17,
+    joystickCurve: 1.22,
+    inputSmoothing: 18,
+    inputRelease: 36,
+    groundAcceleration: 17.5,
+    groundDeceleration: 34,
+    airAcceleration: 8.5,
+    airDeceleration: 11.5,
+    stopThreshold: .055,
+    platformSnap: .34,
+    groundSnap: .20,
+    coyoteMs: 155,
+    jumpBufferMs: 170,
+    jumpCooldownMs: 110,
+    jumpForwardBoost: 3.6,
+    jumpSideBoost: 1.35,
+    landingHorizontalDamp: .86
   };
 
   const LEVELS = [
@@ -209,11 +230,12 @@
   let runtime = null, realBg = false, cameraStream = null;
   let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [];
   let input = { x:0, z:0, crouch:false };
+  let inputTarget = { x:0, z:0 };
   let keyboard = { left:false, right:false, forward:false, back:false };
   let moveHold = { left:false, right:false, forward:false, back:false };
   let joy = { active:false, pointerId:null, cx:0, cy:0, max:42, x:0, z:0 };
   let p = defaultPlayer();
-  let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0, powerReadyAt = 0;
+  let lastDamageAt = 0, jumpBufferedUntil = 0, lastGroundedAt = 0, lastJumpAt = 0, lastLandAt = 0, powerReadyAt = 0;
 
   function defaultPlayer(){
     return { x:0, y:0, z:4, vx:0, vy:0, vz:0, grounded:true, scaleMode:'normal', scale:1, targetScale:1, height:2.4, radius:.55, spinUntil:0, invUntil:0, combo:0, facing:Math.PI };
@@ -566,7 +588,7 @@
     return { hearts:diff.hearts, crystals:0, defeated:0, requiredCrystals:currentLevel.crystals||0, requiredEnemies:currentLevel.enemies||0, timer:(mode==='missions'?diff.timer:0), checkpoint:4, quizSolved:!currentLevel.quizGate, completed:false, tutorialStep:0, startedAt:now() };
   }
 
-  function resetPlayer(){ p = defaultPlayer(); p.z = (runtime && runtime.checkpoint) || 4; player.position.set(p.x,p.y,p.z); player.rotation.y = Math.PI; clearMovementState(); }
+  function resetPlayer(){ p = defaultPlayer(); p.z = (runtime && runtime.checkpoint) || 4; player.position.set(p.x,p.y,p.z); player.rotation.y = Math.PI; lastGroundedAt = now(); lastJumpAt = 0; lastLandAt = now(); jumpBufferedUntil = 0; clearMovementState(); }
   function clearLevel(){
     if (!levelGroup) return;
     while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
@@ -852,36 +874,71 @@
   }
 
   function update(dt){
-    updateInput(); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
+    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
-  function updateInput(){
+  function updateInput(dt=1/60){
     const kx = (keyboard.right?1:0) - (keyboard.left?1:0) + (moveHold.right?1:0) - (moveHold.left?1:0);
     const kz = (keyboard.forward?1:0) - (keyboard.back?1:0) + (moveHold.forward?1:0) - (moveHold.back?1:0);
-    input.x = clamp(joy.x + kx, -1, 1);
-    input.z = clamp(joy.z + kz, -1, 1);
+    let rawX = clamp(joy.x + kx, -1, 1);
+    let rawZ = clamp(joy.z + kz, -1, 1);
+    const rawMag = Math.hypot(rawX, rawZ);
+    if (rawMag > 1) { rawX /= rawMag; rawZ /= rawMag; }
+    if (rawMag < .035) { rawX = 0; rawZ = 0; }
+    inputTarget.x = rawX;
+    inputTarget.z = rawZ;
+    const rate = Math.hypot(rawX, rawZ) < .035 ? GAME_FEEL.inputRelease : GAME_FEEL.inputSmoothing;
+    const blend = Math.min(1, dt * rate);
+    input.x += (inputTarget.x - input.x) * blend;
+    input.z += (inputTarget.z - input.z) * blend;
+    if (Math.abs(input.x) < .025 && rawX === 0) input.x = 0;
+    if (Math.abs(input.z) < .025 && rawZ === 0) input.z = 0;
   }
 
   function updatePlayer(dt){
     const diff = DIFFICULTY[progress.difficulty];
+    const wasGrounded = p.grounded;
     const mag = Math.hypot(input.x, input.z);
-    const nx = mag > 1 ? input.x / mag : input.x; const nz = mag > 1 ? input.z / mag : input.z;
+    const nx = mag > 1 ? input.x / mag : input.x;
+    const nz = mag > 1 ? input.z / mag : input.z;
     const speed = diff.speed * (input.crouch ? .48 : 1) * (p.scaleMode==='giant' ? .86 : p.scaleMode==='mini' ? 1.08 : 1);
-    const noInput = mag < 0.06;
+    const noInput = mag < .045;
     const targetVx = noInput ? 0 : nx * speed;
     const targetVz = noInput ? 0 : -nz * speed;
-    const response = noInput ? 28 : 14;
-    p.vx += (targetVx - p.vx) * Math.min(1, dt*response);
-    p.vz += (targetVz - p.vz) * Math.min(1, dt*response);
-    if (noInput && Math.abs(p.vx) < 0.035) p.vx = 0;
-    if (noInput && Math.abs(p.vz) < 0.035) p.vz = 0;
-    p.x += p.vx * dt; p.z += p.vz * dt;
-    p.x = clamp(p.x, -6.4, 6.4); p.z = clamp(p.z, -currentLevel.length - 14, 8);
+    const accel = noInput
+      ? (p.grounded ? GAME_FEEL.groundDeceleration : GAME_FEEL.airDeceleration)
+      : (p.grounded ? GAME_FEEL.groundAcceleration : GAME_FEEL.airAcceleration);
+    const blend = Math.min(1, dt * accel);
+    p.vx += (targetVx - p.vx) * blend;
+    p.vz += (targetVz - p.vz) * blend;
+    if (noInput && Math.abs(p.vx) < GAME_FEEL.stopThreshold) p.vx = 0;
+    if (noInput && Math.abs(p.vz) < GAME_FEEL.stopThreshold) p.vz = 0;
+
+    p.x += p.vx * dt;
+    p.z += p.vz * dt;
+    p.x = clamp(p.x, -6.4, 6.4);
+    p.z = clamp(p.z, -currentLevel.length - 14, 8);
+
+    const prevY = p.y;
     if (!p.grounded) p.vy -= diff.gravity * dt;
     p.y += p.vy * dt;
     const ground = findGround(p.x,p.z);
-    if (p.y <= ground.height && p.vy <= 0) { p.y = ground.height; p.vy = 0; p.grounded = true; lastGroundedAt = now(); if (ground.platform && ground.platform.breakable && ground.platform.hp <= 0) p.grounded = false; }
-    else if (p.y > ground.height + .02) p.grounded = false;
+    const snapWindow = ground.platform ? GAME_FEEL.platformSnap : GAME_FEEL.groundSnap;
+    if (p.vy <= 0 && p.y <= ground.height + snapWindow && prevY >= ground.height - .10) {
+      p.y = ground.height;
+      p.vy = 0;
+      p.grounded = true;
+      lastGroundedAt = now();
+      if (!wasGrounded) {
+        lastLandAt = now();
+        p.vx *= GAME_FEEL.landingHorizontalDamp;
+        p.vz *= GAME_FEEL.landingHorizontalDamp;
+      }
+      if (ground.platform && ground.platform.breakable && ground.platform.hp <= 0) p.grounded = false;
+    } else if (p.y > ground.height + .035) {
+      p.grounded = false;
+    }
+
     if (jumpBufferedUntil > now() && canJump()) { doJump(); jumpBufferedUntil = 0; }
     p.height = input.crouch ? 1.25 : 2.4;
     p.targetScale = p.scaleMode==='mini' ? .55 : p.scaleMode==='giant' ? 1.65 : 1;
@@ -893,9 +950,20 @@
     if (playerModel) playerModel.visible = !(now() < p.invUntil && Math.floor(now()/90)%2===0);
     if (p.y < -10) damagePlayer(1,'Caiu no buraco!');
   }
-  function canJump(){ return p.grounded || (now() - lastGroundedAt < 160 * DIFFICULTY[progress.difficulty].forgiveness); }
-  function doJump(){ p.vy = DIFFICULTY[progress.difficulty].jump + (input.z > .35 ? 1.15 : 0); p.grounded=false; p.z += input.z > .25 ? -0.75 : 0; p.x += input.x * .40; toast(input.z > .25 ? 'Pulo para o fundo!' : 'Pulo!', 'good'); beep(520,70,'square'); }
-  function jump(){ if (!playing || paused) return; jumpBufferedUntil = now() + 170; if (canJump()) { doJump(); jumpBufferedUntil = 0; } }
+  function canJump(){ return p.grounded || (now() - lastGroundedAt < GAME_FEEL.coyoteMs * DIFFICULTY[progress.difficulty].forgiveness); }
+  function doJump(){
+    const t = now();
+    if (t - lastJumpAt < GAME_FEEL.jumpCooldownMs) return;
+    lastJumpAt = t;
+    const forward = Math.max(0, input.z);
+    p.vy = DIFFICULTY[progress.difficulty].jump + (forward > .35 ? .95 : 0);
+    p.vz += -forward * GAME_FEEL.jumpForwardBoost;
+    p.vx += input.x * GAME_FEEL.jumpSideBoost;
+    p.grounded=false;
+    toast(forward > .25 ? 'Pulo para o fundo!' : 'Pulo!', 'good');
+    beep(520,70,'square');
+  }
+  function jump(){ if (!playing || paused) return; jumpBufferedUntil = now() + GAME_FEEL.jumpBufferMs; if (canJump()) { doJump(); jumpBufferedUntil = 0; } }
 
   function findGround(x,z){
     let best = { height:0, platform:null };
@@ -1112,7 +1180,9 @@
     const end = (e) => {
       if (e && joy.pointerId !== null && e.pointerId !== joy.pointerId) return;
       joy.active=false; joy.pointerId=null; joy.x=0; joy.z=0;
+      inputTarget.x = 0; inputTarget.z = 0;
       if (els.joyKnob) els.joyKnob.style.transform='translate(0px,0px)';
+      stopHorizontalIfNoDirectionalInput();
     };
     const move = (e) => {
       if(!joy.active || e.pointerId !== joy.pointerId) return;
@@ -1121,9 +1191,13 @@
       const len=Math.hypot(dx,dy); const max=joy.max;
       const sx=len>max?dx/len*max:dx, sy=len>max?dy/len*max:dy;
       if (els.joyKnob) els.joyKnob.style.transform=`translate(${sx}px,${sy}px)`;
-      const dead = .10;
-      joy.x = Math.abs(dx/max) < dead ? 0 : clamp(dx/max,-1,1);
-      joy.z = Math.abs(dy/max) < dead ? 0 : clamp(-dy/max,-1,1);
+      const nx = sx / max;
+      const ny = sy / max;
+      const mag = Math.min(1, Math.hypot(nx, ny));
+      if (mag < GAME_FEEL.joystickDeadzone) { joy.x = 0; joy.z = 0; return; }
+      const scaled = Math.pow((mag - GAME_FEEL.joystickDeadzone) / (1 - GAME_FEEL.joystickDeadzone), GAME_FEEL.joystickCurve);
+      joy.x = clamp((nx / mag) * scaled, -1, 1);
+      joy.z = clamp((-ny / mag) * scaled, -1, 1);
     };
     ring.addEventListener('pointerdown',(e)=>{
       e.preventDefault(); e.stopPropagation();
@@ -1139,11 +1213,23 @@
     window.addEventListener('pagehide', () => { hardStopAllInput('pagehide'); });
   }
 
+  function hasDirectionalInput(){
+    return joy.active || joy.x !== 0 || joy.z !== 0 || keyboard.left || keyboard.right || keyboard.forward || keyboard.back || moveHold.left || moveHold.right || moveHold.forward || moveHold.back;
+  }
+
+  function stopHorizontalIfNoDirectionalInput(){
+    if (!p || hasDirectionalInput()) return;
+    input.x = 0; input.z = 0; inputTarget.x = 0; inputTarget.z = 0;
+    p.vx = 0; p.vz = 0;
+  }
+
   function clearMovementState(){
     moveHold.left = moveHold.right = moveHold.forward = moveHold.back = false;
     keyboard.left = keyboard.right = keyboard.forward = keyboard.back = false;
     input.x = 0;
     input.z = 0;
+    inputTarget.x = 0;
+    inputTarget.z = 0;
     input.crouch = false;
     joy.active = false;
     joy.pointerId = null;
@@ -1164,12 +1250,24 @@
 
   function setupInputs(){
     setupJoystick();
-    $$('[data-move]').forEach(btn=>{ const key=btn.dataset.move; const on=(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; }; const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; }; btn.addEventListener('pointerdown',on,{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false})); });
-    $$('[data-hold]').forEach(btn=>{ const key=btn.dataset.hold; btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false}); ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false})); });
-    $$('[data-action]').filter(btn=>!btn.dataset.move).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
+    $$('[data-move]').forEach(btn=>{
+      const key=btn.dataset.move;
+      const on=(e)=>{ e.preventDefault(); e.stopPropagation(); btn.setPointerCapture && btn.setPointerCapture(e.pointerId); btn.classList.add('holding'); if(key in moveHold) moveHold[key]=true; };
+      const off=(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key in moveHold) moveHold[key]=false; stopHorizontalIfNoDirectionalInput(); };
+      btn.addEventListener('pointerdown',on,{passive:false});
+      ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,off,{passive:false}));
+    });
+    $$('[data-hold]').forEach(btn=>{
+      const key=btn.dataset.hold;
+      btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); btn.setPointerCapture && btn.setPointerCapture(e.pointerId); btn.classList.add('holding'); if(key==='crouch') toggleCrouch(true); },{passive:false});
+      ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false}));
+    });
+    $$('[data-action]').filter(btn=>!btn.dataset.move && !btn.dataset.hold).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
     $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
+    document.addEventListener('pointerup', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
+    document.addEventListener('pointercancel', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
-    window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
+    window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; stopHorizontalIfNoDirectionalInput(); });
   }
   function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz' || a==='ask') return; else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
   function setupUI(){
@@ -1194,7 +1292,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=38').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=41-game-feel').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1212,12 +1310,13 @@
     getCurrentLevel: () => currentLevel,
     hasPowerButton: () => !!document.querySelector('#powerBtn[data-action="power"]'),
     getInputState: () => ({
-      input: { x: input.x, z: input.z, crouch: input.crouch },
+      input: { x: input.x, z: input.z, crouch: input.crouch, targetX: inputTarget.x, targetZ: inputTarget.z },
       joy: { active: joy.active, pointerId: joy.pointerId, x: joy.x, z: joy.z },
       moveHold: { ...moveHold },
       keyboard: { ...keyboard }
     }),
-    getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode }) : null,
+    getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode, lastLandAt }) : null,
+    getGameFeel: () => ({ ...GAME_FEEL }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };
 
