@@ -1,47 +1,40 @@
-# Athos: Guardião dos Portais V39 — Controles Limpos
+# Athos: Guardião dos Portais V40 — Render e Câmera
 
-Correção cirúrgica em cima da V38.
+Esta versão parte da V39 estável e mexe somente na camada visual/câmera.
 
-## O que mudou
+## Regra desta versão
 
-- `Quiz` e `Falar` foram removidos do controle durante o jogo.
-- `Quiz` e `Falar` continuam existindo na tela inicial/lobby.
-- A grade do controle durante o jogo agora fica com 9 botões:
-  - A Pular
-  - B Poder
-  - Y Abaixar
-  - X Tamanho
-  - N Normal
-  - R Girar
-  - I Ação
-  - Pausa
-  - Sair
-- Foi adicionada regra CSS de segurança para esconder qualquer botão antigo `data-action="quiz"` ou `data-action="ask"` dentro do controle do jogo, caso o navegador ainda esteja com algum HTML velho em cache.
-- O `handleAction()` também não abre mais Quiz/Falar por ação de controle durante o jogo.
+Não foram alterados os controles, IDs, data-actions, data-move, data-world, AR, model-viewer, athos.glb, quiz/falar no lobby, dock mobile ou fluxo de entrada/saída.
 
-## O que NÃO foi removido
+## Melhorias aplicadas
 
-- `athos.glb`
-- AR Nativo
-- Brincar Livre AR
-- Three.js
-- Render premium
-- Fases
-- Inimigos
-- Cristais
-- Portais
-- Quiz no lobby
-- Falar com Athos no lobby
-- Medalhas/progresso
+- câmera mais cinematográfica, mais alta e com melhor visão da profundidade;
+- suavização de câmera com rig interno;
+- luz e exposição calibradas por mundo;
+- horizonte visual para tirar aparência de vazio/debug;
+- silhuetas e elementos de fundo por cenário;
+- luzes discretas nas bordas da pista;
+- runway visual antes do portal;
+- spotlights suaves por fase;
+- polimento de material do athos.glb sem alterar o arquivo;
+- sombra de contato no personagem;
+- mantido layout V39: Quiz/Falar somente no lobby.
 
 ## Como subir
 
-Suba todo o conteúdo deste ZIP na raiz do repositório OTTO, mantendo as pastas `icons/`, `assets/` e `moldes/`.
+Suba todos os arquivos deste ZIP na raiz do repositório `OTTO`, mantendo as pastas `icons/`, `assets/` e `moldes/`.
 
-## Teste F12
+## Teste
 
-Após o deploy, abra o jogo, pressione F12 > Console e cole o conteúdo de:
+Use `F12_TESTE_ATHOS_V40_RENDER_CAMERA.js` no Console do navegador após o deploy.
 
-`F12_TESTE_ATHOS_V39_CONTROLES_LIMPOS.js`
+## O que NÃO foi mexido
 
-O teste confirma que Quiz/Falar aparecem no lobby, mas não aparecem no controle durante o jogo.
+- `athos.glb`;
+- AR Nativo;
+- Brincar Livre AR;
+- Three.js/model-viewer;
+- botões A/B/Y/X/N/R/I/Pausa/Sair;
+- joystick e dock mobile;
+- Quiz/Falar no lobby;
+- lógica de fases, inimigos, poder e progresso.

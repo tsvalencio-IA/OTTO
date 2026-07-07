@@ -204,6 +204,7 @@
 
   const progress = loadProgress();
   let scene, camera, renderer, clock, root, levelGroup, player, playerModel, mixer, ambientLight, sunLight, portalMesh, skyMesh;
+  let cameraRig = { initialized:false, pos:null, look:null }; // V40: câmera cinematográfica suave sem mexer nos controles
   let initialized = false, animReq = 0, playing = false, paused = false, mode = 'lobby', currentLevelIndex = 0, currentLevel = null;
   let runtime = null, realBg = false, cameraStream = null;
   let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [];
@@ -344,16 +345,16 @@
     initialized = true;
     scene = new THREE.Scene(); clock = new THREE.Clock();
     const rect = stageSize();
-    camera = new THREE.PerspectiveCamera(62, Math.max(1, rect.width) / Math.max(1, rect.height), .1, 900);
+    camera = new THREE.PerspectiveCamera(64, Math.max(1, rect.width) / Math.max(1, rect.height), .1, 900);
     renderer = new THREE.WebGLRenderer({ alpha:true, antialias:true, powerPreference:'high-performance', logarithmicDepthBuffer:false });
     renderer.domElement.id = 'three-canvas';
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.85));
     renderer.setSize(rect.width, rect.height);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputEncoding = THREE.sRGBEncoding;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.08;
+    renderer.toneMappingExposure = 1.12;
     renderer.physicallyCorrectLights = true;
     els.stage.innerHTML = ''; els.stage.appendChild(renderer.domElement);
     ambientLight = new THREE.AmbientLight(0xffffff, .42); scene.add(ambientLight);
@@ -386,7 +387,7 @@
     addPart(g,1.05,1.25,.72,0,1.55,0,black); addPart(g,.38,1.25,.38,-.82,1.55,0,orange); addPart(g,.38,.38,.42,-.82,.84,0,yellow);
     addPart(g,.38,1.25,.38,.82,1.55,0,orange); addPart(g,.38,.38,.42,.82,.84,0,yellow);
     addPart(g,.42,1.25,.42,-.28,.28,0,black); addPart(g,.42,.38,.44,-.28,-.42,0,orange); addPart(g,.42,1.25,.42,.28,.28,0,black); addPart(g,.42,.38,.44,.28,-.42,0,orange);
-    playerModel = g; player.add(playerModel);
+    playerModel = g; player.add(playerModel); ensurePlayerContactShadow();
   }
   function addPart(group,w,h,d,x,y,z,material){ const m = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), material); m.position.set(x,y,z); m.castShadow = true; m.receiveShadow = true; group.add(m); return m; }
   function loadAthosGLB(){
@@ -394,11 +395,12 @@
     loader.load('./athos.glb', (gltf) => {
       if (playerModel) player.remove(playerModel);
       playerModel = gltf.scene;
-      playerModel.traverse((o) => { if (o.isMesh) { o.castShadow=true; o.receiveShadow=true; } });
+      playerModel.traverse((o) => { if (o.isMesh) { o.castShadow=true; o.receiveShadow=true; polishAthosMaterial(o); } });
       const box = new THREE.Box3().setFromObject(playerModel); const size = new THREE.Vector3(); box.getSize(size);
       const s = size.y > 0 ? 2.65 / size.y : 1; playerModel.scale.setScalar(s);
       const b2 = new THREE.Box3().setFromObject(playerModel); playerModel.position.y -= b2.min.y;
       player.add(playerModel);
+      ensurePlayerContactShadow();
       if (gltf.animations && gltf.animations.length) { mixer = new THREE.AnimationMixer(playerModel); mixer.clipAction(gltf.animations[0]).play(); }
       els.modelStatus.textContent = 'athos.glb carregado.';
     }, undefined, () => { els.modelStatus.textContent = 'Fallback voxel ativo; athos.glb não carregou.'; });
@@ -453,6 +455,87 @@
     return glow;
   }
 
+
+  function polishAthosMaterial(mesh){
+    if (!mesh || !mesh.material) return;
+    const list = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    list.forEach(m => {
+      if (!m) return;
+      if ('roughness' in m) m.roughness = Math.min(.72, m.roughness ?? .58);
+      if ('metalness' in m) m.metalness = Math.min(.12, m.metalness ?? .04);
+      if ('envMapIntensity' in m) m.envMapIntensity = 1.15;
+      if ('emissiveIntensity' in m && m.emissive) m.emissiveIntensity = Math.max(m.emissiveIntensity || 0, .08);
+      m.needsUpdate = true;
+    });
+  }
+
+  function ensurePlayerContactShadow(){
+    if (!player || player.userData.contactShadow || !window.THREE) return;
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(.82, 32),
+      new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:.22, depthWrite:false })
+    );
+    shadow.name = 'athosContactShadowV40';
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = .018;
+    shadow.renderOrder = 4;
+    player.add(shadow);
+    player.userData.contactShadow = shadow;
+  }
+
+  function addV40BackdropSilhouettes(world, length, cfg){
+    if (realBg) return;
+    const farColor = world === 'fire' ? 0x3b0a0a : world === 'space' ? 0x111827 : world === 'castle' ? 0x1f2937 : world === 'forest' ? 0x064e3b : 0x1d4ed8;
+    for (let i=0;i<9;i++) {
+      const side = i % 2 ? -1 : 1;
+      const z = -28 - i * Math.max(20, length / 9);
+      const h = 3.5 + (i % 3) * 1.2;
+      const w = world === 'castle' ? 3.6 : world === 'space' ? 2.4 : 4.8;
+      const m = box(w, h, .75, shadeColor(farColor, (i%2)*12), { roughness:.9, outline:false, emissive: world === 'space' ? cfg.accent : 0x000000, emissiveIntensity: world === 'space' ? .16 : 0 });
+      m.position.set(side*(12.5 + (i%3)*1.6), h/2 - .05, z);
+      m.material.transparent = true; m.material.opacity = world === 'space' ? .55 : .42;
+      levelGroup.add(m); premiumVisuals.push(m);
+    }
+  }
+
+  function applyV40RenderPass(world,length){
+    const cfg = WORLD[world] || WORLD.field;
+    addV40LaneReadability(length, cfg);
+    addV40PortalRunway(length, cfg);
+    addV40SoftSpotlights(world, length, cfg);
+  }
+
+  function addV40LaneReadability(length, cfg){
+    // Luzes baixas nas bordas e marcas discretas deixam a criança entender a profundidade sem texto.
+    for (let z=-6; z>-length; z-=18) {
+      [-6.85, 6.85].forEach((x,idx)=>{
+        const pebble = box(.42,.14,.42, idx ? shadeColor(cfg.accent, 18) : shadeColor(cfg.grid, 28), { emissive:cfg.accent, emissiveIntensity:.18, roughness:.45 });
+        pebble.position.set(x,.18,z);
+        pebble.userData.pulseMat = true;
+        levelGroup.add(pebble); premiumVisuals.push(pebble);
+      });
+    }
+  }
+
+  function addV40PortalRunway(length, cfg){
+    const start = -Math.max(30, length - 54);
+    for (let z=start; z>-length-6; z-=10) {
+      const beacon = new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,.62,8), mat(cfg.accent, cfg.accent, { emissiveIntensity:.42, roughness:.35 }));
+      beacon.position.set(-3.15,.55,z); beacon.castShadow = true; levelGroup.add(beacon); premiumVisuals.push(beacon);
+      const beacon2 = beacon.clone(); beacon2.position.x = 3.15; levelGroup.add(beacon2); premiumVisuals.push(beacon2);
+    }
+  }
+
+  function addV40SoftSpotlights(world, length, cfg){
+    if (realBg) return;
+    const points = [-48, -Math.max(90, length*.45), -Math.max(150, length*.72)].filter(z => Math.abs(z) < length + 10);
+    points.forEach((z,i)=>{
+      const light = new THREE.PointLight(world === 'fire' ? 0xff6b00 : cfg.accent, world === 'space' ? .55 : .38, 18);
+      light.position.set(i%2 ? -5.8 : 5.8, 4.2, z);
+      levelGroup.add(light); premiumVisuals.push(light);
+    });
+  }
+
   async function start(modeName){
     mode = modeName; paused = false; playing = true;
     hardStopAllInput('start');
@@ -492,12 +575,13 @@
 
   function buildLevel(level, worldOverride){
     currentLevel = { ...level, world:worldOverride || level.world };
-    clearLevel(); runtime = newRuntime(); resetPlayer(); configureWorld(currentLevel.world);
+    clearLevel(); runtime = newRuntime(); resetPlayer(); cameraRig.initialized = false; cameraRig.pos = null; cameraRig.look = null; configureWorld(currentLevel.world);
     createPremiumAtmosphere(currentLevel.world, currentLevel.length || 220);
     createTrack(currentLevel.length || 220);
     createDecor(currentLevel.world, currentLevel.length || 220);
     if (currentLevel.id === 'hub') createHub(); else createGameplay(currentLevel);
     createPortal(currentLevel.length || 220);
+    applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
 
@@ -505,31 +589,44 @@
     const cfg = WORLD[world] || WORLD.field;
     realBg = world === 'real'; els.game.classList.toggle('real-bg', realBg);
     if (skyMesh && scene) { scene.remove(skyMesh); skyMesh = null; }
-    scene.background = realBg ? null : new THREE.Color(shadeColor(cfg.sky || 0x101827, -6));
-    scene.fog = realBg ? null : new THREE.FogExp2(cfg.fog || cfg.sky, world === 'space' ? .006 : world === 'fire' ? .012 : .009);
-    ambientLight.color.setHex(cfg.light); ambientLight.intensity = realBg ? .96 : .5;
-    sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : 1.22;
-    renderer.toneMappingExposure = world === 'fire' ? 1.18 : world === 'space' ? 1.26 : 1.08;
+    scene.background = realBg ? null : new THREE.Color(world === 'space' ? 0x020617 : shadeColor(cfg.sky || 0x101827, world === 'fire' ? -18 : -4));
+    const fogDensity = world === 'space' ? .0048 : world === 'fire' ? .0105 : world === 'castle' ? .008 : .0072;
+    scene.fog = realBg ? null : new THREE.FogExp2(cfg.fog || cfg.sky, fogDensity);
+    ambientLight.color.setHex(cfg.light); ambientLight.intensity = realBg ? 1.0 : world === 'space' ? .38 : world === 'fire' ? .34 : .48;
+    sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
+    sunLight.position.set(world === 'space' ? -12 : 10, world === 'fire' ? 18 : 22, world === 'castle' ? 4 : 12);
+    renderer.toneMappingExposure = world === 'fire' ? 1.20 : world === 'space' ? 1.28 : world === 'castle' ? 1.10 : 1.14;
     if (realBg) startCamera(); else stopCamera();
   }
 
   function createPremiumAtmosphere(world,length){
     const cfg = WORLD[world] || WORLD.field;
     if (!realBg) {
-      const skyGeo = new THREE.SphereGeometry(420, 32, 18);
-      const skyMat = new THREE.MeshBasicMaterial({ color: shadeColor(cfg.sky || 0x101827, world === 'space' ? -28 : 6), side: THREE.BackSide });
-      skyMesh = new THREE.Mesh(skyGeo, skyMat); skyMesh.position.set(0,35,-length/2); scene.add(skyMesh);
+      const skyGeo = new THREE.SphereGeometry(440, 36, 20);
+      const skyTop = world === 'space' ? 0x020617 : shadeColor(cfg.sky || 0x101827, world === 'fire' ? -22 : 2);
+      const skyMat = new THREE.MeshBasicMaterial({ color: skyTop, side: THREE.BackSide });
+      skyMesh = new THREE.Mesh(skyGeo, skyMat); skyMesh.position.set(0,36,-length/2); scene.add(skyMesh);
+      // V40: camada de horizonte, para tirar aparência de vazio/debug.
+      const horizonColor = world === 'fire' ? 0x7f1d1d : world === 'space' ? 0x1e1b4b : world === 'castle' ? 0x334155 : world === 'forest' ? 0x166534 : 0x60a5fa;
+      const horizon = new THREE.Mesh(
+        new THREE.PlaneGeometry(96, 22),
+        new THREE.MeshBasicMaterial({ color:horizonColor, transparent:true, opacity: world === 'space' ? .20 : .26, depthWrite:false, side:THREE.DoubleSide })
+      );
+      horizon.position.set(0,8,-length*.66); horizon.rotation.x = 0; levelGroup.add(horizon); premiumVisuals.push(horizon);
+      horizon.userData.float = { baseY:8, amp:.12, speed:.35 };
     }
-    const sunColor = world === 'fire' ? 0xff7a00 : world === 'space' ? 0x8b5cf6 : cfg.accent;
-    const sun = new THREE.Mesh(new THREE.SphereGeometry(world==='space'?4.5:3.2,24,16), new THREE.MeshBasicMaterial({ color:sunColor, transparent:true, opacity:.55 }));
-    sun.position.set(world==='space'?-18:18, world==='space'?28:25, -length*.55); sun.userData.float = { baseY:sun.position.y, amp:.35, speed:.42 }; levelGroup.add(sun); premiumVisuals.push(sun);
-    addGlowSprite(sun.position.x, sun.position.y, sun.position.z, sunColor, world==='space'?13:9, .18);
-    for (let i=0;i<(world==='space'?80:28);i++) {
-      const starColor = world==='fire' ? (Math.random()>.4?0xffd000:0xff4d00) : world==='space' ? (Math.random()>.5?0xffffff:0x7dd3fc) : 0xffffff;
-      const star = new THREE.Mesh(new THREE.BoxGeometry(.12,.12,.12), new THREE.MeshBasicMaterial({ color:starColor, transparent:true, opacity: world==='space'?.9:.38 }));
-      star.position.set((Math.random()-.5)*70, 10+Math.random()*26, -Math.random()*length-12); star.userData.twinkle = { base:.35+Math.random()*.55, speed:.7+Math.random()*1.6, phase:Math.random()*6.28 };
+    const sunColor = world === 'fire' ? 0xff7a00 : world === 'space' ? 0x8b5cf6 : world === 'castle' ? 0xfbbf24 : cfg.accent;
+    const sun = new THREE.Mesh(new THREE.SphereGeometry(world==='space'?4.6:3.15,28,18), new THREE.MeshBasicMaterial({ color:sunColor, transparent:true, opacity: world==='space'?.48:.58 }));
+    sun.position.set(world==='space'?-18:18, world==='space'?28:25, -length*.58); sun.userData.float = { baseY:sun.position.y, amp:.35, speed:.42 }; levelGroup.add(sun); premiumVisuals.push(sun);
+    addGlowSprite(sun.position.x, sun.position.y, sun.position.z, sunColor, world==='space'?14:10, .18);
+    const count = world==='space'?96:world==='fire'?44:34;
+    for (let i=0;i<count;i++) {
+      const starColor = world==='fire' ? (Math.random()>.4?0xffd000:0xff4d00) : world==='space' ? (Math.random()>.5?0xffffff:0x7dd3fc) : (Math.random()>.7?cfg.accent:0xffffff);
+      const star = new THREE.Mesh(new THREE.BoxGeometry(.12,.12,.12), new THREE.MeshBasicMaterial({ color:starColor, transparent:true, opacity: world==='space'?.92:.34 }));
+      star.position.set((Math.random()-.5)*76, 10+Math.random()*28, -Math.random()*length-12); star.userData.twinkle = { base:.35+Math.random()*.55, speed:.7+Math.random()*1.6, phase:Math.random()*6.28 };
       levelGroup.add(star); premiumVisuals.push(star);
     }
+    addV40BackdropSilhouettes(world, length, cfg);
   }
 
   function createTrack(length){
@@ -930,11 +1027,32 @@
 
   function updateCamera(dt){
     const landscape = innerWidth > innerHeight && innerHeight < 720;
-    const speedPush = clamp(Math.abs(p.vz)/10,0,1);
-    const target = new THREE.Vector3(p.x*.62 + (landscape?2.2:0), p.y+4.25+speedPush*.45, p.z + (landscape?12.2:14.2));
-    const look = new THREE.Vector3(p.x*.86, p.y+1.35, p.z - 13.5 - speedPush*2.0);
-    camera.fov += ((landscape?66:62) + speedPush*3 - camera.fov) * Math.min(1, dt*2.5); camera.updateProjectionMatrix();
-    camera.position.lerp(target, Math.min(1,dt*4.6)); camera.lookAt(look); sunLight.position.set(p.x+10,22,p.z+10);
+    const speedForward = clamp(Math.abs(p.vz) / 10, 0, 1);
+    const lateral = clamp(p.x / 6.5, -1, 1);
+    const desiredFov = (landscape ? 68 : 64) + speedForward * 3.5;
+    camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 2.6);
+    camera.updateProjectionMatrix();
+
+    const desiredPos = new THREE.Vector3(
+      p.x * .46 + (landscape ? 2.15 : 0),
+      p.y + (landscape ? 4.55 : 5.05) + speedForward * .45,
+      p.z + (landscape ? 14.0 : 16.2)
+    );
+    const desiredLook = new THREE.Vector3(
+      p.x * .74 + lateral * .35,
+      p.y + 1.35,
+      p.z - (landscape ? 17.0 : 18.8) - speedForward * 2.2
+    );
+    if (!cameraRig.initialized || !cameraRig.pos || !cameraRig.look) {
+      cameraRig.initialized = true;
+      cameraRig.pos = desiredPos.clone();
+      cameraRig.look = desiredLook.clone();
+    }
+    cameraRig.pos.lerp(desiredPos, Math.min(1, dt * 3.7));
+    cameraRig.look.lerp(desiredLook, Math.min(1, dt * 4.5));
+    camera.position.copy(cameraRig.pos);
+    camera.lookAt(cameraRig.look);
+    sunLight.position.set(p.x + (currentLevel?.world === 'space' ? -12 : 10), 22, p.z + 9);
   }
 
   function spin(){ p.spinUntil = now()+850; addXP(1); toast('Giro!', 'good'); }

@@ -1,6 +1,6 @@
-// Athos V39 CONTROLES LIMPOS — Service Worker leve para GitHub Pages.
+// Athos V40 RENDER E CAMERA — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v39-layout-mobile-no-cache';
+const CACHE_VERSION = 'athos-v40-render-camera-no-cache';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
