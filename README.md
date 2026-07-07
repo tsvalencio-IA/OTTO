@@ -1,9 +1,15 @@
-# Athos V44.2 — Render Minecraft/Mario Adventure + AR Safe
+# Athos V45 — Plataforma 10/10 / Render real + AR nativo ancorado
 
-Base: V44.1 estável.
+Base: V44.2 preservada, com render e AR corrigidos conforme o padrão visual aprovado.
 
-Foco: melhorar render/menu para parecer jogo voxel divertido, inspirado em Minecraft/Mario sem copiar marcas; reforçar AR sem drift; não simplificar controles, AR, model-viewer, Quiz ou B Poder.
+## O que mudou
+- Transformação visual do jogo real para o padrão voxel/fantasia premium aprovado.
+- Gameplay com terreno mais rico: blocos, grama, flores, cogumelos, cristais grandes, portal-templo, ilhas laterais, inimigos mais legíveis.
+- Menu mobile reformulado com imagem/estética do padrão aprovado, sem painel espremido.
+- Câmera mais próxima e cinematográfica.
+- Botão Real agora abre AR nativo ancorado via model-viewer dedicado, sem usar câmera falsa como AR principal.
+- Mantidos: athos.glb, model-viewer, AR nativo, joystick, B Poder, data-action, data-move, data-world, quiz em rodada, inimigos/boss, progresso/localStorage.
 
-Teste: F12_TESTE_ATHOS_V442_RENDER_MINECRAFT_MARIO_AR.js
+Abra com: `?v=45-plataforma-10-render-ar`
 
-Abrir com: ?v=442-minecraft-adventure
+Teste: `F12_TESTE_ATHOS_V45_PLATAFORMA_10_RENDER_AR.js`

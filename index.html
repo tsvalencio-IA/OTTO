@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
-  <title>Athos: Guardião dos Portais V44.2 MINECRAFT ADVENTURE</title>
+  <title>Athos: Guardião dos Portais V45 PLATAFORMA 10/10</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=442-minecraft-adventure" />
+  <link rel="stylesheet" href="./style.css?v=45-plataforma-10-render-ar" />
 
 </head>
 <body>
@@ -22,9 +22,9 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V44.2 • Mundo Voxel</p>
+            <p class="eyebrow">V45 • Plataforma 10/10</p>
             <h1>Athos Adventure 3D+</h1>
-            <p class="subtitle">Explore mundos em blocos, vença monstros e ative portais.</p>
+            <p class="subtitle">Explore mundos vivos, vença monstros e ative portais.</p>
             <div class="hero-actions">
               <button id="heroPlayBtn" class="pixel-btn primary huge play-alias" data-play="missions" data-test="play-missions" aria-label="Jogar Fases 3D iniciar missões" type="button">🎮 JOGAR</button>
               <button id="heroFreeBtn" class="pixel-btn huge" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 LIVRE</button>
@@ -37,7 +37,7 @@
             <div class="panel-head">
               <div>
                 <strong>Athos 3D</strong>
-                <span id="modelStatus">Gire, aproxime e abra em AR.</span>
+                <span id="modelStatus">Fixo e estável no mundo real.</span>
               </div>
               <em>3D + AR</em>
             </div>
@@ -52,6 +52,7 @@
               ar
               ar-modes="webxr scene-viewer quick-look"
               ar-placement="floor"
+              ar-scale="fixed"
               shadow-intensity="1"
               exposure="1"
               environment-image="neutral"
@@ -102,7 +103,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V44.2</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V45 Plataforma 10/10</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -175,6 +176,22 @@
       </div>
     </section>
 
+    <model-viewer
+      id="arAnchorViewer"
+      class="ar-anchor-viewer"
+      src="./athos.glb"
+      alt="Athos AR ancorado"
+      ar
+      ar-modes="webxr scene-viewer quick-look"
+      ar-placement="floor"
+      ar-scale="fixed"
+      interaction-prompt="none"
+      camera-controls
+      shadow-intensity="1"
+      exposure="1"
+      environment-image="neutral">
+    </model-viewer>
+
     <div id="modal" class="modal" hidden>
       <div class="modal-card panel">
         <div class="modal-top">
@@ -186,6 +203,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=44-inimigos-boss-real"></script>
+  <script src="./app.js?v=45-plataforma-10-render-ar"></script>
 </body>
 </html>

@@ -11,7 +11,7 @@
 
   const els = {
     app: $('#app'), lobby: $('#lobby'), game: $('#game'), stage: $('#threeStage'), cameraFeed: $('#cameraFeed'), flash: $('#screenFlash'),
-    nativeViewer: $('#nativeViewer'), modelStatus: $('#modelStatus'), difficultySelect: $('#difficultySelect'),
+    nativeViewer: $('#nativeViewer'), arAnchorViewer: $('#arAnchorViewer'), modelStatus: $('#modelStatus'), difficultySelect: $('#difficultySelect'),
     playBtn: $('#playBtn'), heroPlayBtn: $('#heroPlayBtn'), heroFreeBtn: $('#heroFreeBtn'), hubBtn: $('#hubBtn'), freeBtn: $('#freeBtn'), quizBtn: $('#quizBtn'), askBtn: $('#askBtn'), collectionBtn: $('#collectionBtn'), resetBtn: $('#resetBtn'), arNativeExternalBtn: $('#arNativeExternalBtn'),
     statXP: $('#statXP'), statLevel: $('#statLevel'), statMedals: $('#statMedals'), statBest: $('#statBest'),
     hudHearts: $('#hudHearts'), hudXP: $('#hudXP'), hudCrystals: $('#hudCrystals'), hudEnemies: $('#hudEnemies'), hudTime: $('#hudTime'),
@@ -68,14 +68,14 @@
 
 
   const AR_SAFE = {
-    lockMs: 2200,
+    lockMs: 3200,
     freezeWhenIdle: true,
-    label: 'V442_AR_SAFE_NO_DRIFT_LOCKED'
+    label: 'V45_NATIVE_AR_ANCHORED_NO_FAKE_CAMERA'
   };
 
 
   const V44_ENEMY_AI = {
-    label: 'V442_MINECRAFT_MARIO_ADVENTURE_RENDER',
+    label: 'V45_TRUE_GAME_PLATFORM_RENDER',
     enabled: true,
     vision: 13,
     projectileSpeed: 7.0,
@@ -92,12 +92,21 @@
 
 
   const V442_RENDER = {
-    label: 'V442_MINECRAFT_MARIO_ADVENTURE_RENDER',
-    target: 'voxel_minecraft_pseudo3d_mario_world',
+    label: 'V45_TRUE_GAME_PLATFORM_RENDER',
+    target: 'approved_reference_voxel_portal_adventure_10_10',
     enabled: true,
-    maxSideIslands: 18,
-    clouds: 18,
-    flowers: 70
+    maxSideIslands: 28,
+    clouds: 26,
+    flowers: 140
+  };
+
+
+  const V45_PLATFORM_RENDER = {
+    label: 'V45_TRUE_GAME_PLATFORM_10_10',
+    enabled: true,
+    nativeAR: true,
+    noFakeCameraAR: true,
+    reference: 'approved_voxel_portal_adventure'
   };
 
   const VIEWER_3D = {
@@ -617,7 +626,7 @@
     hardStopAllInput('start');
     els.game.classList.remove('compact-hud');
     if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub e escolha uma fase pelos portais. Para aventura real, toque em JOGAR FASES.' };
-    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'AR seguro: câmera real com Athos parado ao abrir. Toque no joystick só quando quiser mover.' };
+    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre', world:'field', length:260, crystals:10, enemies:7, objective:'Explore livremente. Para AR fixo, toque no botão Real.' };
     else { currentLevelIndex = Math.min(progress.level || 0, LEVELS.length - 1); currentLevel = LEVELS[currentLevelIndex]; }
     showScreen('game');
     if (!await initThree()) { showScreen('lobby'); playing = false; return; }
@@ -658,6 +667,7 @@
     if (currentLevel.id === 'hub') createHub(); else createGameplay(currentLevel);
     createPortal(currentLevel.length || 220);
     applyV442MinecraftAdventureRender(currentLevel, currentLevel.length || 220);
+    applyV45TrueGamePlatformRender(currentLevel, currentLevel.length || 220);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
@@ -673,7 +683,7 @@
     sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
     sunLight.position.set(world === 'space' ? -12 : 10, world === 'fire' ? 18 : 22, world === 'castle' ? 4 : 12);
     renderer.toneMappingExposure = world === 'fire' ? 1.20 : world === 'space' ? 1.28 : world === 'castle' ? 1.10 : 1.14;
-    if (realBg) { resetPlayer(); enterARSafeMode('world-real'); startCamera(); } else { arSafeUntil = 0; stopCamera(); }
+    if (realBg) { resetPlayer(); enterARSafeMode('world-real'); stopCamera(); } else { arSafeUntil = 0; stopCamera(); }
   }
 
   function createPremiumAtmosphere(world,length){
@@ -709,7 +719,7 @@
   function createTrack(length){
     const cfg = WORLD[currentLevel.world] || WORLD.field;
     const base = box(18,.45,length+44,cfg.ground); base.position.set(0,-.25,-length/2+4); levelGroup.add(base);
-    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.46; levelGroup.add(grid);
+    const grid = new THREE.GridHelper(Math.max(110,length+44), Math.max(24, Math.round((length+44)/4)), cfg.grid, cfg.grid); grid.position.set(0,.035,-length/2+4); grid.material.transparent=true; grid.material.opacity=.08; levelGroup.add(grid);
     for (let z=8; z>-length-12; z-=8) {
       const stripe = box(.08,.08,1.25,cfg.grid); stripe.position.set(0,.09,z); levelGroup.add(stripe);
       if (Math.abs(z)%32===0) { const mark=box(1.3,.09,.18,cfg.accent); mark.position.set(-6.8,.12,z); levelGroup.add(mark); const mark2=box(1.3,.09,.18,cfg.accent); mark2.position.set(6.8,.12,z); levelGroup.add(mark2); }
@@ -949,6 +959,146 @@
       const spikes = i%2===0 ? 3 : 2;
       for(let s=0;s<spikes;s++){ const sp=v442Box(.45,.45,.45,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.25,outlineOpacity:.08}); sp.position.set(x-0.7+s*.7,2.05,z); sp.rotation.set(.4,.7,.2); levelGroup.add(sp); premiumVisuals.push(sp); }
     });
+  }
+
+
+  function applyV45TrueGamePlatformRender(level, length){
+    if (!V45_PLATFORM_RENDER.enabled || realBg || !levelGroup) return;
+    const world = level.world || 'field';
+    const cfg = WORLD[world] || WORLD.field;
+    addV45AmbientLights(world, length, cfg);
+    addV45ChunkyAdventureTerrain(world, length, cfg);
+    addV45PortalTemple(world, length, cfg);
+    addV45HeroCollectibleTrail(world, length, cfg);
+    addV45ReadableEnemies(world, length, cfg);
+    addV45WaterLavaSetPieces(world, length, cfg);
+    v44EnemyMarkers.push({ type:'v45Render', label:V45_PLATFORM_RENDER.label, world, reference:V45_PLATFORM_RENDER.reference });
+  }
+
+  function addV45AmbientLights(world, length, cfg){
+    if (!scene) return;
+    const color = world==='fire'?0xff7a1a:world==='space'?0x7dd3fc:world==='castle'?0xffd08a:0xfff2b8;
+    const side = new THREE.DirectionalLight(color, world==='fire'?1.0:.75);
+    side.position.set(-12,18,-length*.28); levelGroup.add(side); premiumVisuals.push(side);
+    const fill = new THREE.HemisphereLight(world==='space'?0x3b82f6:0xbbe7ff, world==='fire'?0x3b0808:0x2f6a2f, .36);
+    levelGroup.add(fill); premiumVisuals.push(fill);
+  }
+
+  function addV45ChunkyAdventureTerrain(world,length,cfg){
+    const grass = world==='fire'?0x6f1d12:world==='space'?0x3b2b93:world==='castle'?0x6b7280:world==='forest'?0x0f8f3e:0x4ecb42;
+    const dirt = world==='fire'?0x4a120b:world==='space'?0x241a57:world==='castle'?0x475569:0x9b5b25;
+    const stone = world==='fire'?0x2b0d0a:world==='space'?0x14183d:world==='castle'?0x9ca3af:0x7f8b92;
+    // Remove sensação de grid/debug: cobrir com plataformas e bordas volumosas próximas ao caminho.
+    for(let z=10; z>-length-12; z-=6){
+      const k = Math.floor(Math.abs(z)/6);
+      const wav = Math.sin(k*.73);
+      const pathW = 3.8 + (k%4===0? .5:0);
+      const centerColor = k%2 ? 0xb98342 : 0xc89450;
+      const paver = v442Box(pathW,.22,5.7,centerColor,{outlineColor:0xffe6ad,outlineOpacity:.08,roughness:.9});
+      paver.position.set(0,.36,z); levelGroup.add(paver);
+      // stone chips on the path like the approved render
+      if(k%2===0){
+        [-1.25,1.05].forEach((x,i)=>{ const chip=v442Box(.75,.08,.55,stone,{outlineOpacity:.05}); chip.position.set(x,.52,z+(i?.7:-.85)); levelGroup.add(chip); });
+      }
+      [-1,1].forEach(side=>{
+        const x = side*(4.0 + (k%3)*.16);
+        const h = .5 + (k%4)*.22;
+        const cap = v442Box(2.6,.32,5.8,grass,{outlineColor:0xcaff8a,outlineOpacity:.10}); cap.position.set(x,.48+h*.15,z); levelGroup.add(cap);
+        const block = v442Box(2.55,h,5.65,dirt,{outlineColor:0x2f1606,outlineOpacity:.10}); block.position.set(x,.18+h*.5,z); levelGroup.add(block);
+        if(k%2===0) addV45FlowerPatch(x+side*.75,.76+h*.15,z,world,cfg);
+      });
+      if(k%5===1){ addV45Mushroom(-4.9,.78,z-1.4); }
+      if(k%7===2){ addV45Crate(3.9,.72,z-1.2,cfg); }
+    }
+    // framed mini cliffs and floating blocks close enough to be visible
+    for(let i=0;i<12;i++){
+      const z = -18 - i*(length/12);
+      const side = i%2 ? -1 : 1;
+      const x = side*(7.2 + (i%3)*1.3);
+      const y = .7 + (i%4)*.55;
+      const w = 3.4 + (i%3);
+      const d = 3.2 + (i%4)*.5;
+      const base = v442Box(w,1.15,d,dirt,{outlineColor:0x2f1606,outlineOpacity:.12}); base.position.set(x,y,z); levelGroup.add(base);
+      const cap = v442Box(w+.15,.36,d+.15,grass,{outlineColor:0xddff99,outlineOpacity:.12}); cap.position.set(x,y+.72,z); levelGroup.add(cap);
+      if(i%3===0) addV442Tree(x,y+1,z,world,cfg);
+      else if(i%3===1) addV45CrystalCluster(x,y+1.05,z,cfg.accent);
+    }
+  }
+
+  function addV45FlowerPatch(x,y,z,world,cfg){
+    const colors = world==='space' ? [0x7dd3fc,0xc084fc,0xffffff] : [0xffffff,0xfde047,0xf472b6,0x86efac];
+    for(let i=0;i<8;i++){
+      const c=colors[i%colors.length];
+      const stem=v442Box(.08,.35,.08,0x2fb344,{outlineOpacity:0}); stem.position.set(x+(Math.random()-.5)*1.3,y+.17,z+(Math.random()-.5)*1.8); levelGroup.add(stem);
+      const bloom=v442Box(.18,.14,.18,c,{emissive:c,emissiveIntensity:.08,outlineOpacity:0}); bloom.position.set(stem.position.x,y+.42,stem.position.z); levelGroup.add(bloom); premiumVisuals.push(bloom);
+    }
+  }
+  function addV45Mushroom(x,y,z){
+    const stem=v442Box(.38,.55,.38,0xfff7ed,{outlineOpacity:.08}); stem.position.set(x,y+.28,z); levelGroup.add(stem);
+    const cap=v442Box(1.0,.42,1.0,0xef4444,{outlineColor:0xffffff,outlineOpacity:.12}); cap.position.set(x,y+.74,z); levelGroup.add(cap);
+    [[-.22,.16],[.22,-.12],[.06,.20]].forEach(p=>{ const spot=v442Box(.16,.06,.16,0xffffff,{outlineOpacity:0}); spot.position.set(x+p[0],y+.98,z+p[1]); levelGroup.add(spot); });
+  }
+  function addV45Crate(x,y,z,cfg){
+    const crate=v442Box(1.25,1.25,1.25,0xd69a28,{outlineColor:0xfff1a8,outlineOpacity:.16}); crate.position.set(x,y+.63,z); levelGroup.add(crate);
+    const band=v442Box(1.33,.14,1.34,0xfacc15,{emissive:0xfacc15,emissiveIntensity:.14,outlineOpacity:0}); band.position.set(x,y+1.0,z); levelGroup.add(band); premiumVisuals.push(band);
+  }
+  function addV45CrystalCluster(x,y,z,color){
+    for(let i=0;i<4;i++){
+      const c=i%2?0x38bdf8:color;
+      const gem=v442Box(.42,.9,.42,c,{emissive:c,emissiveIntensity:.75,outlineColor:0xffffff,outlineOpacity:.18});
+      gem.position.set(x+(i-1.5)*.38,y+.45+i*.08,z+(i%2-.5)*.45); gem.rotation.set(.45,.8,.2); gem.userData.float={baseY:gem.position.y,amp:.1,speed:.8+i*.1}; levelGroup.add(gem); premiumVisuals.push(gem); addGlowSprite(gem.position.x,gem.position.y,gem.position.z,c,1.8,.14);
+    }
+  }
+
+  function addV45PortalTemple(world,length,cfg){
+    const z = -length - 10;
+    const stone = world==='fire'?0x3b1610:world==='space'?0x242052:0x556070;
+    const glow = world==='fire'?0xff4d00:world==='space'?0x8b5cf6:0xc026d3;
+    // larger temple around original portal
+    for(let i=0;i<6;i++){
+      const step=v442Box(6.2+i*1.25,.28,1.55,shadeColor(stone, i*5),{outlineColor:0xffffff,outlineOpacity:.10});
+      step.position.set(0,.32+i*.18,z+5.2+i*1.05); levelGroup.add(step);
+    }
+    [-1,1].forEach(side=>{
+      const tower=v442Box(1.45,5.8,1.45,stone,{outlineColor:0xffffff,outlineOpacity:.12}); tower.position.set(side*3.3,3.0,z+.2); levelGroup.add(tower);
+      const cap=v442Box(1.8,.75,1.8,shadeColor(stone,18),{outlineColor:0xffffff,outlineOpacity:.12}); cap.position.set(side*3.3,6.2,z+.2); levelGroup.add(cap);
+      const gem=v442Box(.65,1.2,.65,glow,{emissive:glow,emissiveIntensity:.95,outlineColor:0xffffff,outlineOpacity:.24}); gem.position.set(side*3.3,7.1,z+.2); gem.rotation.set(.4,.8,.2); gem.userData.float={baseY:7.1,amp:.18,speed:.8}; levelGroup.add(gem); premiumVisuals.push(gem); addGlowSprite(side*3.3,7.2,z+.2,glow,4,.18);
+    });
+    addGlowSprite(0,3.0,z+.4,glow,10,.22);
+    const rewardBeam = new THREE.PointLight(glow, 2.2, 22); rewardBeam.position.set(0,3.8,z+1); levelGroup.add(rewardBeam); premiumVisuals.push(rewardBeam);
+  }
+
+  function addV45HeroCollectibleTrail(world,length,cfg){
+    // bigger, more satisfying collectible line like the reference
+    for(let i=0;i<9;i++){
+      const z = -20 - i*(length/10);
+      const x = (i%3-1)*1.15;
+      const gem=v442Box(.55,.85,.55,0x22d3ee,{emissive:0x22d3ee,emissiveIntensity:1.05,outlineColor:0xffffff,outlineOpacity:.25});
+      gem.position.set(x,1.35,z); gem.rotation.set(.58,.8,.22); gem.userData.float={baseY:1.35,amp:.18,speed:1.0}; levelGroup.add(gem); premiumVisuals.push(gem); addGlowSprite(x,1.42,z,0x22d3ee,2.9,.18);
+    }
+  }
+
+  function addV45ReadableEnemies(world,length,cfg){
+    if (world==='real') return;
+    const positions=[[-3.8,-42,'golem'],[3.8,-70,'slime'],[-3.5,-106,'flyer'],[3.6,-140,'spiky']];
+    positions.forEach(([x,z,type],i)=>{
+      const color = type==='slime'?0x1f9d3a:type==='golem'?0x7d858c:type==='flyer'?0x4c1d95:0x1f2937;
+      const size = type==='golem'?1.8:type==='flyer'?1.1:1.45;
+      const g = makeEnemyModel(type==='slime'?'walker':type, size, color);
+      g.position.set(x, size/2 + (type==='flyer'?1.9:0), z); g.scale.setScalar(type==='golem'?1.08:1); levelGroup.add(g); premiumVisuals.push(g);
+      addGlowSprite(x, size+1.0, z, type==='slime'?0x22c55e:type==='flyer'?0xa855f7:0xff3030, 3.2, .12);
+      const pad=v442Box(2.6,.08,2.6,type==='slime'?0x14532d:0x7f1d1d,{emissive:type==='slime'?0x22c55e:0xff0000,emissiveIntensity:.18,outlineOpacity:.05}); pad.position.set(x,.55,z); levelGroup.add(pad); premiumVisuals.push(pad);
+    });
+  }
+
+  function addV45WaterLavaSetPieces(world,length,cfg){
+    if (world==='fire'){
+      for(let z=-24; z>-length; z-=32){ const lava=v442Box(2.5,.22,7,0xff4d00,{emissive:0xff3b00,emissiveIntensity:1.1,outlineColor:0xfff000,outlineOpacity:.12}); lava.position.set(6.25,.62,z); lava.userData.pulseMat=true; levelGroup.add(lava); premiumVisuals.push(lava); addGlowSprite(6.25,1.0,z,0xff4d00,4.6,.18); }
+    } else if (world==='space'){
+      for(let z=-20; z>-length; z-=36){ const gate=v442Box(.25,4.2,.25,0x7dd3fc,{emissive:0x7dd3fc,emissiveIntensity:.8,outlineOpacity:.06}); gate.position.set(-5.8,2.5,z); levelGroup.add(gate); premiumVisuals.push(gate); addGlowSprite(-5.8,2.6,z,0x7dd3fc,4,.12); const g2=gate.clone(); g2.position.x=5.8; levelGroup.add(g2); premiumVisuals.push(g2); }
+    } else {
+      for(let z=-30; z>-length; z-=46){ const water=v442Box(1.2,3.8,.18,0x38bdf8,{emissive:0x0ea5e9,emissiveIntensity:.45,outlineColor:0xffffff,outlineOpacity:.10}); water.position.set(-6.2,2.1,z); water.material.transparent=true; water.material.opacity=.78; levelGroup.add(water); premiumVisuals.push(water); addGlowSprite(-6.2,2.2,z,0x38bdf8,3.2,.10); }
+    }
   }
 
   function createHub(){
@@ -1522,33 +1672,34 @@
   }
 
   function updateCamera(dt){
-    const landscape = innerWidth > innerHeight && innerHeight < 720;
+    const landscape = innerWidth > innerHeight && innerHeight < 740;
     const speedForward = clamp(Math.abs(p.vz) / 10, 0, 1);
     const lateral = clamp(p.x / 6.5, -1, 1);
-    const desiredFov = (landscape ? 68 : 64) + speedForward * 3.5;
-    camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 2.6);
+    const desiredFov = (landscape ? 62 : 58) + speedForward * 2.0;
+    camera.fov += (desiredFov - camera.fov) * Math.min(1, dt * 3.0);
     camera.updateProjectionMatrix();
 
+    // V45: câmera de jogo premium, mais próxima, baixa e com caminho visível, estilo referência aprovada.
     const desiredPos = new THREE.Vector3(
-      p.x * .40 + (landscape ? 1.55 : 0),
-      p.y + (landscape ? 5.25 : 6.05) + speedForward * .72,
-      p.z + (landscape ? 16.4 : 18.4)
+      p.x * .34 + (landscape ? 1.1 : 0),
+      p.y + (landscape ? 4.65 : 5.25) + speedForward * .48,
+      p.z + (landscape ? 12.4 : 13.8)
     );
     const desiredLook = new THREE.Vector3(
-      p.x * .64 + lateral * .22,
-      p.y + 1.55,
-      p.z - (landscape ? 19.0 : 22.0) - speedForward * 2.8
+      p.x * .58 + lateral * .18,
+      p.y + 1.25,
+      p.z - (landscape ? 16.0 : 18.0) - speedForward * 2.0
     );
     if (!cameraRig.initialized || !cameraRig.pos || !cameraRig.look) {
       cameraRig.initialized = true;
       cameraRig.pos = desiredPos.clone();
       cameraRig.look = desiredLook.clone();
     }
-    cameraRig.pos.lerp(desiredPos, Math.min(1, dt * 3.7));
-    cameraRig.look.lerp(desiredLook, Math.min(1, dt * 4.5));
+    cameraRig.pos.lerp(desiredPos, Math.min(1, dt * 4.2));
+    cameraRig.look.lerp(desiredLook, Math.min(1, dt * 5.0));
     camera.position.copy(cameraRig.pos);
     camera.lookAt(cameraRig.look);
-    sunLight.position.set(p.x + (currentLevel?.world === 'space' ? -12 : 10), 22, p.z + 9);
+    sunLight.position.set(p.x + (currentLevel?.world === 'space' ? -14 : 8), 24, p.z + 7);
   }
 
   function spin(){ p.spinUntil = now()+850; addXP(1); toast('Giro!', 'good'); }
@@ -1786,6 +1937,47 @@
     }
   }
 
+
+  function getARViewer(){
+    return els.arAnchorViewer || els.nativeViewer;
+  }
+  function prepareARViewer(viewer){
+    if (!viewer) return;
+    viewer.setAttribute('src','./athos.glb');
+    viewer.setAttribute('ar-placement','floor');
+    viewer.setAttribute('ar-scale','fixed');
+    viewer.setAttribute('shadow-intensity','1');
+    viewer.setAttribute('exposure','1');
+    viewer.setAttribute('environment-image','neutral');
+    try {
+      viewer.setAttribute('camera-orbit', `${VIEWER_3D.orbit}deg ${VIEWER_3D.elevation}deg ${VIEWER_3D.distance.toFixed(2)}m`);
+      viewer.setAttribute('camera-target', `${VIEWER_3D.targetX.toFixed(2)}m ${VIEWER_3D.targetY.toFixed(2)}m ${VIEWER_3D.targetZ.toFixed(2)}m`);
+    } catch {}
+  }
+  function openNativeAR(reason='native-ar'){
+    hardStopAllInput(reason);
+    stopCamera();
+    if (els.game) els.game.classList.add('ar-safe-mode');
+    arSafeUntil = now() + AR_SAFE.lockMs;
+    const viewer = getARViewer();
+    prepareARViewer(viewer);
+    if (!viewer || typeof viewer.activateAR !== 'function') {
+      toast('AR nativo precisa de celular compatível. No jogo, Athos fica parado.', 'warn');
+      return false;
+    }
+    try {
+      const r = viewer.activateAR();
+      toast('Abrindo AR real: posicione Athos no chão.', 'good');
+      if (r && typeof r.catch === 'function') {
+        r.catch(() => toast('AR nativo não abriu neste aparelho/navegador.', 'warn'));
+      }
+      return true;
+    } catch (err) {
+      toast('AR nativo não abriu neste aparelho/navegador.', 'warn');
+      return false;
+    }
+  }
+
   function setupInputs(){
     setupJoystick();
     $$('[data-move]').forEach(btn=>{
@@ -1801,7 +1993,7 @@
       ['pointerup','pointercancel','pointerleave','lostpointercapture'].forEach(ev=>btn.addEventListener(ev,(e)=>{ e.preventDefault(); btn.classList.remove('holding'); if(key==='crouch') toggleCrouch(false); },{passive:false}));
     });
     $$('[data-action]').filter(btn=>!btn.dataset.move && !btn.dataset.hold).forEach(btn=>btn.addEventListener('pointerdown',(e)=>{ e.preventDefault(); e.stopPropagation(); handleAction(btn.dataset.action); }, { passive:false }));
-    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
+    $$('.world-chip').forEach(btn=>btn.addEventListener('click',()=>{ hardStopAllInput('world'); if(btn.dataset.world==='real'){ updateWorldButtons('real'); openNativeAR('world-chip-real'); return; } if(!currentLevel) currentLevel=LEVELS[0]; buildLevel(currentLevel,btn.dataset.world); }));
     document.addEventListener('pointerup', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     document.addEventListener('pointercancel', () => { if (!joy.active) stopHorizontalIfNoDirectionalInput(); }, { passive:true });
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
@@ -1852,18 +2044,12 @@
     if (els.modal) els.modal.addEventListener('click',(e)=>{ if(e.target===els.modal) closeModal(); });
     if (els.difficultySelect) els.difficultySelect.onchange=()=>{ progress.difficulty=els.difficultySelect.value; saveProgress(); toast(`Dificuldade: ${DIFFICULTY[progress.difficulty].name}`,'good'); };
     setupViewer3DControls();
-    const openNativeAR = () => {
-      hardStopAllInput('native-ar');
-      applyViewer3DState();
-      arSafeUntil = now() + AR_SAFE.lockMs;
-      if (!els.nativeViewer || typeof els.nativeViewer.activateAR !== 'function') { toast('AR nativo indisponível neste navegador. Use Brincar Livre AR.', 'warn'); return; }
-      try { const r = els.nativeViewer.activateAR(); if (r && typeof r.catch === 'function') r.catch(()=>toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn')); } catch { toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn'); }
-    };
-    if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=openNativeAR;
+    if (els.arNativeExternalBtn) els.arNativeExternalBtn.onclick=()=>openNativeAR('lobby-ar-button');
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
+    if(els.arAnchorViewer){ els.arAnchorViewer.addEventListener('ar-status',(e)=>{ if(e.detail && e.detail.status==='not-presenting') hardStopAllInput('ar-closed'); }); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=442-minecraft-adventure').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=45-plataforma-10-render-ar').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1889,9 +2075,9 @@
     getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode, lastLandAt }) : null,
     getGameFeel: () => ({ ...GAME_FEEL }),
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
-    getARSafety: () => ({ realBg, arSafeUntil, locked: realBg && now() < arSafeUntil, label: AR_SAFE.label }),
-    getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds }),
-    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V44.2_MINECRAFT_MARIO_ADVENTURE', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
+    getARSafety: () => ({ realBg, arSafeUntil, locked: now() < arSafeUntil, label: AR_SAFE.label, nativeAR:true, fakeCamera:false }),
+    getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds, v45:V45_PLATFORM_RENDER.label }),
+    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V45_TRUE_GAME_PLATFORM_10_10', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };

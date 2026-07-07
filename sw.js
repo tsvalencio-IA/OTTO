@@ -1,6 +1,6 @@
 // Athos V44.1 MINECRAFT CLEAN — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v442-minecraft-adventure';
+const CACHE_VERSION = 'athos-v45-plataforma-10-render-ar';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
