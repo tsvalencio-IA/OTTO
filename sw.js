@@ -1,6 +1,6 @@
-// Athos V474 FINAL — Service Worker leve para GitHub Pages.
+// Athos V48 FINAL — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v474-render-shader-light-safe';
+const CACHE_VERSION = 'athos-v48-render-alvo-10';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -22,7 +22,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  const isCore = /\/(index\.html|app\.js|style\.css|manifest\.webmanifest|sw\.js)$/.test(url.pathname) || /\/assets\/render-v47\//.test(url.pathname);
+  const isCore = /\/(index\.html|app\.js|style\.css|manifest\.webmanifest|sw\.js)$/.test(url.pathname) || /\/assets\/render-v48\//.test(url.pathname);
   if (isCore) {
     event.respondWith(fetch(req, { cache: 'no-store' }).catch(() => caches.match(req)));
   }

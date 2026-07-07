@@ -1,23 +1,14 @@
-# Athos Adventure 3D+ — V47.4 Render Shader/Light Safe + Controles Jogáveis
+# Athos Adventure 3D+ — V48 Render-alvo 10/10
 
-ZIP completo para subir direto no GitHub.
+Pacote completo para subir direto no GitHub Pages.
 
-## O que esta versão corrige
+Base: motor de gameplay Codex + AR/model-viewer preservado + camada visual V48 shader-safe.
 
-- remove o estouro `MAX_TEXTURE_IMAGE_UNITS(16)` que apareceu na V47.3;
-- limita luzes reais no Three.js para não quebrar shader em celular;
-- mantém o visual voxel por geometria, materiais emissivos, portal, cristais e cenário;
-- mantém joystick, B Poder, Real, Quiz/Falar, model-viewer e athos.glb;
-- mantém o motor Gameplay Engine 10;
-- mantém controles reorganizados para celular.
+Arquivos de teste incluídos:
 
-## Testes incluídos
+- F12_TESTE_ATHOS_V48_RENDER_ALVO_10.js
+- F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js
 
-- `F12_TESTE_ATHOS_V474_RENDER_CONTROLES.js`
-- `F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js`
-
-Abra com:
-
-`?v=474-render-shader-light-safe`
+Abra com: `?v=48-render-alvo-10`
 
 Powered by thIAguinho Soluções Digitais.
