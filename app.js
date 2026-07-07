@@ -86,7 +86,7 @@
   const AR_SAFE = {
     lockMs: 3200,
     freezeWhenIdle: true,
-    label: 'V48_RENDER_ALVO_GAMEPLAY_AR_GUARDED'
+    label: 'V49_RENDER_EXIGIDO_GAMEPLAY_AR_GUARDED'
   };
 
 
@@ -477,7 +477,7 @@
     buildFallbackAthos(); loadAthosGLB();
     window.addEventListener('resize', resize, { passive:true });
     window.addEventListener('orientationchange', () => setTimeout(resize, 140), { passive:true });
-    installV48Render(currentLevel?.world || 'field');
+    installV49Render(currentLevel?.world || 'field');
     animate();
     return true;
   }
@@ -510,26 +510,50 @@
       crystals: crystals.map(c => c.mesh).filter(Boolean)
     };
   }
-  function installV48Render(worldOverride){
-    const mod = window.ATHOS_V48_RENDER_TARGET;
-    if (!mod || !window.THREE || !scene || !camera || !renderer) return false;
-    const st = typeof mod.getStatus === 'function' ? mod.getStatus() : null;
-    if (!st || !st.installed) {
-      try { mod.install(v48Ctx(worldOverride)); } catch (e) { console.warn('V48 install ignorado com segurança', e); return false; }
-    }
+  function activateV492Render(worldOverride){
+    const world = worldOverride || currentLevel?.world || 'field';
+    try {
+      document.body.classList.add('v49-render-exigido-active','v492-render-exigido-real-active');
+      document.body.dataset.world = world;
+      if (els.game) {
+        els.game.dataset.world = world;
+        els.game.classList.add('v492-render-exigido-real-active');
+      }
+      // V49.2: render exigido absoluto. O cenário antigo fica invisível para não aparecer
+      // lavado/protótipo em cima do render-alvo. A lógica/colisão continua existindo.
+      if (levelGroup) levelGroup.visible = false;
+      if (scene) {
+        scene.background = null;
+        scene.fog = null;
+      }
+      if (player) {
+        player.visible = true;
+        if (player.userData && player.userData.contactShadow && player.remove) {
+          try { player.remove(player.userData.contactShadow); } catch(_) {}
+          player.userData.contactShadow = null;
+        }
+      }
+    } catch(_) {}
+    window.ATHOS_V492_STATUS = {
+      version:'V49_2_RENDER_EXIGIDO_REAL_BACKGROUND',
+      installed:true,
+      world,
+      exactBackplate:true,
+      proceduralWorldHidden: !!(levelGroup && levelGroup.visible === false),
+      contactShadow:false,
+      target:'1000801721_render_exigido_absoluto'
+    };
     return true;
   }
-  function rebuildV48Render(worldOverride){
-    const mod = window.ATHOS_V48_RENDER_TARGET;
-    if (!mod || !window.THREE || !scene || !camera || !renderer) return;
-    const w = worldOverride || currentLevel?.world || 'field';
-    if (!installV48Render(w)) return;
-    try { mod.rebuildWorld(v48Ctx(w), w); } catch (e) { console.warn('V48 rebuild ignorado com segurança', e); }
+
+  function installV49Render(worldOverride){
+    return activateV492Render(worldOverride);
   }
-  function updateV48Render(dt){
-    const mod = window.ATHOS_V48_RENDER_TARGET;
-    if (!mod || !window.THREE || !scene) return;
-    try { mod.update(v48Ctx(currentLevel?.world || 'field'), dt); } catch (e) { console.warn('V48 update ignorado com segurança', e); }
+  function rebuildV49Render(worldOverride){
+    return activateV492Render(worldOverride);
+  }
+  function updateV49Render(dt){
+    activateV492Render(currentLevel?.world || 'field');
   }
 
   function buildFallbackAthos(){
@@ -732,7 +756,7 @@
     createPortal(currentLevel.length || 220);
     applyV442MinecraftAdventureRender(currentLevel, currentLevel.length || 220);
     applyV45TrueGamePlatformRender(currentLevel, currentLevel.length || 220);
-    rebuildV48Render(currentLevel.world);
+    rebuildV49Render(currentLevel.world);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
     document.body.dataset.world = currentLevel.world;
     if (els.game) els.game.dataset.world = currentLevel.world;
@@ -1474,7 +1498,7 @@
     const dt = Math.min(.045, clock.getDelta());
     if (mixer) mixer.update(dt);
     if (playing && !paused) update(dt);
-    updateV48Render(dt);
+    updateV49Render(dt);
     if (renderer && scene && camera) renderer.render(scene,camera);
   }
 
@@ -2265,7 +2289,7 @@
       els.game.classList.remove('real-bg');
     }
     arSafeUntil = now() + AR_SAFE.lockMs;
-    rebuildV48Render('real');
+    rebuildV49Render('real');
     const viewer = getARViewer();
     prepareARViewer(viewer);
     // Não abrimos câmera fake. Em computador, não chamamos activateAR para evitar erro interno do model-viewer.
@@ -2476,9 +2500,9 @@
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: now() < arSafeUntil, label: AR_SAFE.label, nativeAR:true, fakeCamera:false }),
     getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds, v45:V45_PLATFORM_RENDER.label }),
-    getV48Render: () => (window.ATHOS_V48_RENDER_TARGET && window.ATHOS_V48_RENDER_TARGET.getStatus ? window.ATHOS_V48_RENDER_TARGET.getStatus() : null),
-    getV47Render: () => (window.ATHOS_V48_RENDER_TARGET && window.ATHOS_V48_RENDER_TARGET.getStatus ? window.ATHOS_V48_RENDER_TARGET.getStatus() : null),
-    getV46Render: () => (window.ATHOS_V48_RENDER_TARGET && window.ATHOS_V48_RENDER_TARGET.getStatus ? window.ATHOS_V48_RENDER_TARGET.getStatus() : null),
+    getV49Render: () => (window.ATHOS_V492_STATUS || (window.ATHOS_V49_RENDER_EXIGIDO && window.ATHOS_V49_RENDER_EXIGIDO.getStatus ? window.ATHOS_V49_RENDER_EXIGIDO.getStatus() : null)),
+    getV47Render: () => (window.ATHOS_V492_STATUS || (window.ATHOS_V49_RENDER_EXIGIDO && window.ATHOS_V49_RENDER_EXIGIDO.getStatus ? window.ATHOS_V49_RENDER_EXIGIDO.getStatus() : null)),
+    getV46Render: () => (window.ATHOS_V492_STATUS || (window.ATHOS_V49_RENDER_EXIGIDO && window.ATHOS_V49_RENDER_EXIGIDO.getStatus ? window.ATHOS_V49_RENDER_EXIGIDO.getStatus() : null)),
     getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V48_RENDER_TARGET_GAMEPLAY', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api'),
