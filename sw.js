@@ -1,6 +1,6 @@
-// Athos V42 FASES + AR SEGURO — Service Worker leve para GitHub Pages.
+// Athos V43 QUIZ PRO + ESTÚDIO 3D — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v42-level-design-ar-safe-no-cache';
+const CACHE_VERSION = 'athos-v43-quiz-studio-render2-no-cache';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
