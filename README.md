@@ -1,16 +1,9 @@
-# Athos V44.1 — Minecraft Clean UI
+# Athos V44.2 — Render Minecraft/Mario Adventure + AR Safe
 
-Base: V43.1 estável + V44 inimigos/boss do roteiro.
+Base: V44.1 estável.
 
-Correção cirúrgica desta versão:
-- menu/lobby menos poluído;
-- visual mais Minecraft/voxel;
-- textos de objetivo e placas reduzidos;
-- HUD mais limpo;
-- botão Real preservado e visível;
-- inimigos/boss da V44 preservados;
-- AR seguro preservado;
-- Quiz em rodada preservado.
+Foco: melhorar render/menu para parecer jogo voxel divertido, inspirado em Minecraft/Mario sem copiar marcas; reforçar AR sem drift; não simplificar controles, AR, model-viewer, Quiz ou B Poder.
 
-Subir na raiz do GitHub Pages e abrir com:
-?v=441-minecraft-clean
+Teste: F12_TESTE_ATHOS_V442_RENDER_MINECRAFT_MARIO_AR.js
+
+Abrir com: ?v=442-minecraft-adventure

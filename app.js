@@ -68,14 +68,14 @@
 
 
   const AR_SAFE = {
-    lockMs: 1350,
+    lockMs: 2200,
     freezeWhenIdle: true,
-    label: 'V44_AR_SAFE_NO_DRIFT'
+    label: 'V442_AR_SAFE_NO_DRIFT_LOCKED'
   };
 
 
   const V44_ENEMY_AI = {
-    label: 'V441_ROUTE_ENEMIES_BOSS_MINECRAFT_CLEAN',
+    label: 'V442_MINECRAFT_MARIO_ADVENTURE_RENDER',
     enabled: true,
     vision: 13,
     projectileSpeed: 7.0,
@@ -89,6 +89,16 @@
     spikyHp: 2
   };
 
+
+
+  const V442_RENDER = {
+    label: 'V442_MINECRAFT_MARIO_ADVENTURE_RENDER',
+    target: 'voxel_minecraft_pseudo3d_mario_world',
+    enabled: true,
+    maxSideIslands: 18,
+    clouds: 18,
+    flowers: 70
+  };
 
   const VIEWER_3D = {
     orbit: 25,
@@ -647,6 +657,7 @@
     createDecor(currentLevel.world, currentLevel.length || 220);
     if (currentLevel.id === 'hub') createHub(); else createGameplay(currentLevel);
     createPortal(currentLevel.length || 220);
+    applyV442MinecraftAdventureRender(currentLevel, currentLevel.length || 220);
     applyV40RenderPass(currentLevel.world, currentLevel.length || 220);
     updateWorldButtons(currentLevel.world); updateHud(); showTutorial();
   }
@@ -662,7 +673,7 @@
     sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
     sunLight.position.set(world === 'space' ? -12 : 10, world === 'fire' ? 18 : 22, world === 'castle' ? 4 : 12);
     renderer.toneMappingExposure = world === 'fire' ? 1.20 : world === 'space' ? 1.28 : world === 'castle' ? 1.10 : 1.14;
-    if (realBg) { enterARSafeMode('world-real'); startCamera(); } else { arSafeUntil = 0; stopCamera(); }
+    if (realBg) { resetPlayer(); enterARSafeMode('world-real'); startCamera(); } else { arSafeUntil = 0; stopCamera(); }
   }
 
   function createPremiumAtmosphere(world,length){
@@ -785,6 +796,159 @@
         const obelisk = box(1.25,6,1.25,cfg.accent,{ emissive:cfg.accent, emissiveIntensity:.32, outline:true, outlineOpacity:.2 }); obelisk.position.set(side*12,3,z); obelisk.userData.float={baseY:3,amp:.2,speed:.9}; levelGroup.add(obelisk); premiumVisuals.push(obelisk); addGlowSprite(side*12,4.2,z,cfg.accent,5.5,.18);
       }
     }
+  }
+
+
+  function applyV442MinecraftAdventureRender(level, length){
+    if (!V442_RENDER.enabled || realBg) return;
+    const world = level.world || 'field';
+    const cfg = WORLD[world] || WORLD.field;
+    addV442SkyBlocks(world, length, cfg);
+    addV442AdventurePath(world, length, cfg);
+    addV442SideIslands(world, length, cfg);
+    addV442PortalRewardArea(world, length, cfg);
+    addV442CollectibleTrail(world, length, cfg);
+    addV442EnemyStageSilhouettes(world, length, cfg);
+    v44EnemyMarkers.push({ type:'render', label:V442_RENDER.label, world, target:V442_RENDER.target });
+  }
+
+  function v442Box(w,h,d,color,opts={}){
+    const mesh = box(w,h,d,color, { outline:true, outlineColor:opts.outlineColor || 0xffffff, outlineOpacity: opts.outlineOpacity ?? .12, emissive:opts.emissive || 0x000000, emissiveIntensity:opts.emissiveIntensity || 0, roughness:opts.roughness ?? .76 });
+    mesh.castShadow = opts.castShadow !== false;
+    mesh.receiveShadow = opts.receiveShadow !== false;
+    if (opts.name) mesh.name = opts.name;
+    return mesh;
+  }
+
+  function addV442GrassClump(x,z,world,cfg){
+    const colors = world === 'fire' ? [0x7c2d12,0xf97316,0xfacc15] : world === 'space' ? [0x60a5fa,0x8b5cf6,0x22d3ee] : world === 'castle' ? [0x94a3b8,0xfbbf24,0x64748b] : [0x16a34a,0x84cc16,0xfde047,0xffffff,0xf472b6];
+    for(let i=0;i<3;i++){
+      const c = colors[Math.floor(Math.random()*colors.length)];
+      const h = .28 + Math.random()*.45;
+      const stem = v442Box(.12,h,.12,c,{emissive:c, emissiveIntensity:i===2?.12:0, outlineOpacity:.04});
+      stem.position.set(x+(Math.random()-.5)*.9,h/2+.13,z+(Math.random()-.5)*.9);
+      levelGroup.add(stem); premiumVisuals.push(stem);
+    }
+  }
+
+  function addV442SkyBlocks(world,length,cfg){
+    if (world === 'space') return;
+    for(let i=0;i<V442_RENDER.clouds;i++){
+      const z = -10 - i*(length/(V442_RENDER.clouds+1)) + (Math.random()-.5)*8;
+      const x = (i%2? -1:1) * (9 + Math.random()*12);
+      const y = 10 + Math.random()*7;
+      const g = new THREE.Group();
+      const cloudColor = world==='fire' ? 0x5b1b1b : world==='castle'?0xcbd5e1:0xf8fafc;
+      const opacity = world==='fire' ? .30 : .55;
+      [[0,0,0,2.4,.45,.9],[-1.6,.05,.1,1.8,.4,.75],[1.7,.08,-.05,2.1,.48,.8],[.35,.28,.1,1.65,.45,.75]].forEach(p=>{
+        const b = v442Box(p[3],p[4],p[5],cloudColor,{outlineOpacity:.05, castShadow:false});
+        b.material.transparent = true; b.material.opacity = opacity; b.position.set(p[0],p[1],p[2]); g.add(b);
+      });
+      g.position.set(x,y,z); g.userData.float={baseY:y, amp:.35, speed:.18+Math.random()*.18};
+      levelGroup.add(g); premiumVisuals.push(g);
+    }
+  }
+
+  function addV442AdventurePath(world,length,cfg){
+    const grass = world==='fire'?0x4b1515:world==='space'?0x312e81:world==='castle'?0x64748b:world==='forest'?0x15803d:0x35a634;
+    const dirt = world==='fire'?0x7f1d1d:world==='space'?0x4338ca:world==='castle'?0x475569:0x9a5b22;
+    const stone = world==='fire'?0x2b0909:world==='space'?0x1e1b4b:world==='castle'?0x94a3b8:0x94a3b8;
+    for(let z=8; z>-length-8; z-=4){
+      const idx = Math.floor(Math.abs(z)/4);
+      const pathColor = idx%3===0 ? shadeColor(dirt,10) : idx%3===1 ? dirt : shadeColor(stone, -4);
+      const center = v442Box(3.8,.16,3.7,pathColor,{outlineColor:0x2f1606,outlineOpacity:.08,roughness:.85});
+      center.position.set(0,.22,z); levelGroup.add(center);
+      const left = v442Box(2.3,.18,3.7,shadeColor(grass,(idx%2?8:-6)),{outlineColor:0xd9f99d,outlineOpacity:.07});
+      left.position.set(-3.1,.235,z); levelGroup.add(left);
+      const right = left.clone(); right.position.set(3.1,.235,z); levelGroup.add(right);
+      if(idx%3===0){
+        addV442GrassClump(-4.4,z,world,cfg); addV442GrassClump(4.4,z-.7,world,cfg);
+      }
+      if(idx%7===0){
+        const arrow = v442Box(.34,.08,1.4,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.18,outlineOpacity:.05});
+        arrow.position.set(0,.42,z-.2); levelGroup.add(arrow); premiumVisuals.push(arrow);
+      }
+    }
+  }
+
+  function addV442SideIslands(world,length,cfg){
+    const grass = world==='fire'?0x6b1a12:world==='space'?0x3b2ba4:world==='castle'?0x6b7280:world==='forest'?0x0f7a3b:0x4caf32;
+    const dirt = world==='fire'?0x311111:world==='space'?0x1e1b4b:world==='castle'?0x475569:0x8b4f1f;
+    const stone = world==='fire'?0x160909:world==='space'?0x0f102c:0x6b7280;
+    const count = Math.min(V442_RENDER.maxSideIslands, Math.floor(length/18));
+    for(let i=0;i<count;i++){
+      const z = -18 - i*(length/(count+.4));
+      const side = i%2? -1:1;
+      const x = side*(10 + (i%3)*1.25);
+      const w = 5.5 + (i%3)*1.25;
+      const d = 5 + (i%4)*.85;
+      const y = (i%4===0) ? .95 : .25;
+      const base = v442Box(w,1.1,d,dirt,{outlineColor:0x2f1606,outlineOpacity:.11}); base.position.set(x,y,z); levelGroup.add(base);
+      const cap = v442Box(w+.2,.42,d+.2,grass,{outlineColor:0xd9f99d,outlineOpacity:.10}); cap.position.set(x,y+.76,z); levelGroup.add(cap);
+      const underside = v442Box(w*.72,.8,d*.72,stone,{outlineColor:0x111827,outlineOpacity:.08}); underside.position.set(x,y-.78,z); levelGroup.add(underside);
+      if(world === 'fire'){
+        const lava = v442Box(w*.42,.18,d*.42,0xff4d00,{emissive:0xff2d00,emissiveIntensity:1.05,outlineColor:0xffd000,outlineOpacity:.12}); lava.position.set(x,y+1.03,z); lava.userData.pulseMat=true; levelGroup.add(lava); premiumVisuals.push(lava); addGlowSprite(x,y+1.4,z,0xff5a00,4,.22);
+      } else if(world === 'space'){
+        const crystal = v442Box(.8,1.5,.8,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.75,outlineColor:0xffffff,outlineOpacity:.2}); crystal.position.set(x,y+1.8,z); crystal.rotation.y=.7; crystal.userData.float={baseY:y+1.8,amp:.24,speed:.8}; levelGroup.add(crystal); premiumVisuals.push(crystal); addGlowSprite(x,y+2,z,cfg.accent,4,.16);
+      } else {
+        addV442Tree(x+side*.8,y+1,z,world,cfg);
+        if(i%2===0) addV442Sign(x-side*1.8,y+1.2,z+1.8, side, world, cfg);
+      }
+    }
+  }
+
+  function addV442Tree(x,y,z,world,cfg){
+    const trunkColor = world==='castle'?0x4b5563:0x7c3f1d;
+    const leafColor = world==='forest'?0x065f46:0x22c55e;
+    const trunk = v442Box(.75,2.1,.75,trunkColor,{outlineOpacity:.10}); trunk.position.set(x,y+1.05,z); levelGroup.add(trunk);
+    const leaves = [
+      [0,2.55,0,2.8,1.15,2.8,leafColor],
+      [0,3.15,0,2.2,1.05,2.2,shadeColor(leafColor,14)],
+      [0,3.78,0,1.5,.86,1.5,shadeColor(leafColor,-8)]
+    ];
+    leaves.forEach(p=>{ const b=v442Box(p[3],p[4],p[5],p[6],{outlineColor:0xd9f99d,outlineOpacity:.08}); b.position.set(x+p[0],y+p[1],z+p[2]); levelGroup.add(b); });
+  }
+
+  function addV442Sign(x,y,z,side,world,cfg){
+    const post = v442Box(.28,1.2,.28,0x7c3f1d,{outlineOpacity:.1}); post.position.set(x,y+.55,z); levelGroup.add(post);
+    const face = v442Box(1.4,.75,.18,0xd97706,{outlineColor:0xfef3c7,outlineOpacity:.16}); face.position.set(x,y+1.28,z); levelGroup.add(face);
+    const arrow = v442Box(.72,.12,.08,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.18,outlineOpacity:.05}); arrow.position.set(x + side*.18,y+1.3,z+.12); arrow.rotation.z = side>0?0:Math.PI; levelGroup.add(arrow); premiumVisuals.push(arrow);
+  }
+
+  function addV442PortalRewardArea(world,length,cfg){
+    const z = -length - 8;
+    const stairColor = world==='castle'?0x9ca3af:world==='fire'?0x451a03:0x94a3b8;
+    for(let i=0;i<5;i++){
+      const step = v442Box(5+i*1.2,.25,1.8,shadeColor(stairColor,i*5),{outlineColor:0xffffff,outlineOpacity:.11});
+      step.position.set(0,.25+i*.18,z+6+i*1.2); levelGroup.add(step);
+    }
+    for(let i=-2;i<=2;i++){
+      const gem = v442Box(.55,1.15,.55,i===0?0x38bdf8:cfg.accent,{emissive:i===0?0x38bdf8:cfg.accent,emissiveIntensity:.7,outlineColor:0xffffff,outlineOpacity:.18});
+      gem.position.set(i*1.5,1.25,z+8.5+Math.abs(i)*.8); gem.rotation.y=.8; gem.userData.float={baseY:1.25,amp:.18,speed:.7+Math.abs(i)*.1}; levelGroup.add(gem); premiumVisuals.push(gem);
+    }
+  }
+
+  function addV442CollectibleTrail(world,length,cfg){
+    for(let i=0;i<Math.min(10,Math.floor(length/22));i++){
+      const z = -28 - i*22;
+      const x = [-2.5,0,2.5,0][i%4];
+      const g = v442Box(.38,.38,.38,0x38bdf8,{emissive:0x38bdf8,emissiveIntensity:.85,outlineColor:0xffffff,outlineOpacity:.18});
+      g.position.set(x,1.05,z); g.rotation.set(.5,.75,.2); g.userData.float={baseY:1.05,amp:.16,speed:.9}; levelGroup.add(g); premiumVisuals.push(g); addGlowSprite(x,1.05,z,0x38bdf8,2.3,.12);
+    }
+  }
+
+  function addV442EnemyStageSilhouettes(world,length,cfg){
+    if (world === 'real') return;
+    const positions = [[-10,-40],[10,-86],[-11,-138],[11,-194]];
+    positions.filter(p=>Math.abs(p[1])<length-16).forEach((pos,i)=>{
+      const [x,z]=pos;
+      const color = i%2?0x14532d:0x111827;
+      const body = v442Box(2.1,1.6,2.1,color,{outlineColor:0xffffff,outlineOpacity:.12}); body.position.set(x,1.05,z); levelGroup.add(body);
+      const eye1=v442Box(.26,.18,.08,0xff2222,{emissive:0xff2222,emissiveIntensity:.8,outlineOpacity:0}); eye1.position.set(x-.42,1.38,z+1.08); levelGroup.add(eye1); premiumVisuals.push(eye1);
+      const eye2=eye1.clone(); eye2.position.x=x+.42; levelGroup.add(eye2); premiumVisuals.push(eye2);
+      const spikes = i%2===0 ? 3 : 2;
+      for(let s=0;s<spikes;s++){ const sp=v442Box(.45,.45,.45,cfg.accent,{emissive:cfg.accent,emissiveIntensity:.25,outlineOpacity:.08}); sp.position.set(x-0.7+s*.7,2.05,z); sp.rotation.set(.4,.7,.2); levelGroup.add(sp); premiumVisuals.push(sp); }
+    });
   }
 
   function createHub(){
@@ -1124,7 +1288,7 @@
     p.vz += (targetVz - p.vz) * blend;
     if (noInput && Math.abs(p.vx) < GAME_FEEL.stopThreshold) p.vx = 0;
     if (noInput && Math.abs(p.vz) < GAME_FEEL.stopThreshold) p.vz = 0;
-    if (realBg && AR_SAFE.freezeWhenIdle && noInput) { p.vx = 0; p.vz = 0; }
+    if (realBg && AR_SAFE.freezeWhenIdle && noInput) { p.vx = 0; p.vz = 0; input.x = 0; input.z = 0; inputTarget.x = 0; inputTarget.z = 0; }
 
     p.x += p.vx * dt;
     p.z += p.vz * dt;
@@ -1366,14 +1530,14 @@
     camera.updateProjectionMatrix();
 
     const desiredPos = new THREE.Vector3(
-      p.x * .46 + (landscape ? 2.15 : 0),
-      p.y + (landscape ? 4.55 : 5.05) + speedForward * .45,
-      p.z + (landscape ? 14.0 : 16.2)
+      p.x * .40 + (landscape ? 1.55 : 0),
+      p.y + (landscape ? 5.25 : 6.05) + speedForward * .72,
+      p.z + (landscape ? 16.4 : 18.4)
     );
     const desiredLook = new THREE.Vector3(
-      p.x * .74 + lateral * .35,
-      p.y + 1.35,
-      p.z - (landscape ? 17.0 : 18.8) - speedForward * 2.2
+      p.x * .64 + lateral * .22,
+      p.y + 1.55,
+      p.z - (landscape ? 19.0 : 22.0) - speedForward * 2.8
     );
     if (!cameraRig.initialized || !cameraRig.pos || !cameraRig.look) {
       cameraRig.initialized = true;
@@ -1699,7 +1863,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=441-minecraft-clean').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=442-minecraft-adventure').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1726,7 +1890,8 @@
     getGameFeel: () => ({ ...GAME_FEEL }),
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: realBg && now() < arSafeUntil, label: AR_SAFE.label }),
-    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V44.1_MINECRAFT_CLEAN', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
+    getV442Render: () => ({ label: V442_RENDER.label, target: V442_RENDER.target, enabled: V442_RENDER.enabled, sideIslands: V442_RENDER.maxSideIslands, clouds: V442_RENDER.clouds }),
+    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, cleanUi:'V44.2_MINECRAFT_MARIO_ADVENTURE', enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };
