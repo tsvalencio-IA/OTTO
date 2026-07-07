@@ -1,3 +1,4 @@
+/* V47_4_RENDER_SHADER_LIGHT_SAFE_CONTROLES */
 /* FILE: assets/render-v47/v47-render-premium.css
    ATHOS V47 — Render Premium Fiel, CSS seguro.
    Escopo: visual e espaçamento. Não remove IDs, não esconde Real, não mexe em lógica. */
@@ -342,7 +343,7 @@ body.v47-premium-active .game.active.compact-hud .objective-card{opacity:.16!imp
 }
 
 /* =====================================================================
-   V47.3 — HOTFIX REAL: shader seguro + controles jogáveis no celular.
+   V47.4 — HOTFIX REAL: shader seguro + controles jogáveis no celular.
    Evita sobreposição entre joystick, faixa de mundos e botões.
    ===================================================================== */
 body.v47-premium-active .game.active .game-controls{

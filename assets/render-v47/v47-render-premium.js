@@ -4,7 +4,7 @@
 (function(){
   'use strict';
 
-  const VERSION = 'V47_3_RENDER_ALVO_SHADER_SAFE_CONTROLES_10_10';
+  const VERSION = 'V47_4_RENDER_SHADER_LIGHT_SAFE_10_10';
   let installed = false;
   let group = null;
   let THREE_REF = null;
@@ -13,6 +13,7 @@
   let geos = {};
   let updatables = [];
   let stats = { objects:0, decorative:0, attached:0, updatables:0 };
+  let lightBudget = { point:0, dir:0, hemi:0 };
 
   const WORLD_MAP = {
     field:'campo', training:'campo', hub:'campo', free:'campo', campo:'campo',
@@ -88,13 +89,16 @@
       opacity: opt.opacity ?? 1,
       depthWrite: opt.depthWrite ?? true
     });
-    const basic = (color,opt={}) => new THREE.MeshBasicMaterial({
-      color,
-      transparent: !!opt.transparent,
-      opacity: opt.opacity ?? 1,
-      side: opt.side ?? THREE.FrontSide,
-      blending: opt.blending
-    });
+    const basic = (color,opt={}) => {
+      const cfg = {
+        color,
+        transparent: !!opt.transparent,
+        opacity: opt.opacity ?? 1,
+        side: opt.side ?? THREE.FrontSide
+      };
+      if (opt.blending !== undefined && opt.blending !== null) cfg.blending = opt.blending;
+      return new THREE.MeshBasicMaterial(cfg);
+    };
 
     mats.grass = mat(pal.top, {roughness:.92});
     mats.dirt = mat(pal.side, {roughness:.96});
@@ -118,12 +122,29 @@
     const m = new THREE.Mesh(geos.box, mat); m.position.set(x,y,z); m.scale.set(sx,sy,sz); m.castShadow = true; m.receiveShadow = true; group.add(m); stats.objects++; return m;
   }
   function addLight(THREE, type, color, intensity, dist, x,y,z){
-    const l = type==='point' ? new THREE.PointLight(color,intensity,dist) : new THREE.DirectionalLight(color,intensity);
-    l.position.set(x,y,z); if(l.castShadow!==undefined) l.castShadow = true; group.add(l); stats.objects++; return l;
+    // V47.4: shader/light safe. Muitos PointLights faziam o Chrome/celular estourar
+    // MAX_TEXTURE_IMAGE_UNITS no shader. Mantemos o brilho visual via materiais emissive
+    // e limitamos luzes reais a pouquíssimas fontes globais.
+    if(type === 'point') {
+      if(lightBudget.point >= 2) return null;
+      lightBudget.point++;
+      const l = new THREE.PointLight(color, intensity, dist);
+      l.position.set(x,y,z);
+      l.castShadow = false;
+      group.add(l); stats.objects++;
+      return l;
+    }
+    if(lightBudget.dir >= 1) return null;
+    lightBudget.dir++;
+    const l = new THREE.DirectionalLight(color,intensity);
+    l.position.set(x,y,z);
+    l.castShadow = false;
+    group.add(l); stats.objects++;
+    return l;
   }
   function crystal(THREE,x,y,z, purple=false){
     const c = new THREE.Mesh(geos.crystal, purple?mats.crystalPurple:mats.crystalBlue); c.position.set(x,y,z); c.scale.set(.9,1.75,.9); c.castShadow = true; group.add(c); stats.objects++;
-    addLight(THREE,'point', purple?0xc026ff:0x23d6ff, .85, 7, x,y,z);
+    // brilho do cristal fica por material emissive; sem PointLight por cristal para evitar shader pesado.
     updatables.push(dt=>{ c.rotation.y += dt*1.4; c.position.y = y + Math.sin(performance.now()*.002 + x)*.16; });
     return c;
   }
@@ -185,7 +206,7 @@
     updatables.push(dt=>{ if(fall.material.map) fall.material.map.offset.y -= dt*.7; }); stats.decorative++;
   }
   function lavaSet(THREE,x,z){
-    const lava = block(THREE,mats.lava,x,.04,z,7,.16,10); addLight(THREE,'point',0xff4d00,1.2,10,x,1.4,z); stats.decorative++;
+    const lava = block(THREE,mats.lava,x,.04,z,7,.16,10); // sem luz por lava: emissive já comunica perigo sem pesar shader; stats.decorative++;
     updatables.push(dt=>{ if(lava.material.map) lava.material.map.offset.x += dt*.15; });
   }
   function buildWorld(THREE, ctx, pal, world){
@@ -294,8 +315,9 @@
       init(THREE,pal);
       group = new THREE.Group(); group.name = 'V47_RENDER_PREMIUM_GROUP'; ctx.scene.add(group);
       stats = {objects:0, decorative:0, attached:0, updatables:0};
+      lightBudget = { point:0, dir:0, hemi:0 };
       try { if(ctx.scene) { ctx.scene.background = new THREE.Color(pal.sky); ctx.scene.fog = new THREE.FogExp2(pal.fog, currentWorld==='espaco'?.0012:currentWorld==='vulcao'?.0030:.0009); } } catch{}
-      try { if(ctx.renderer && ctx.renderer.shadowMap){ ctx.renderer.shadowMap.enabled = true; ctx.renderer.shadowMap.type = THREE.PCFSoftShadowMap; } if(ctx.renderer && ctx.renderer.toneMapping !== undefined){ ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping; ctx.renderer.toneMappingExposure = currentWorld==='vulcao'?1.12:1.02; } } catch{}
+      try { if(ctx.renderer && ctx.renderer.shadowMap){ ctx.renderer.shadowMap.enabled = false; } if(ctx.renderer && ctx.renderer.toneMapping !== undefined){ ctx.renderer.toneMapping = THREE.ACESFilmicToneMapping; ctx.renderer.toneMappingExposure = currentWorld==='vulcao'?1.12:1.02; } } catch{}
       addLight(THREE,'point',pal.glow,.8,22,-8,8,-30);
       addLight(THREE,'point',pal.magic,1.5,30,8,8,-110);
       const hemi = new THREE.HemisphereLight(0xffffff, pal.side, currentWorld==='espaco'?.48:.72); group.add(hemi); stats.objects++;
@@ -315,7 +337,7 @@
       group = null; updatables = [];
     }),
     dispose: safe(function(){ API.disposeVisualOnly(); installed = false; document.body.classList.remove('v47-premium-active'); }),
-    getStatus: function(){ return { installed, version:VERSION, world:currentWorld, hasGroup:!!group, objects:stats.objects||0, decorative:stats.decorative||0, attached:stats.attached||0, updatablesCount:updatables.length, worldNormalizer:true, arTouched:false, renderFixed:true }; }
+    getStatus: function(){ return { installed, version:VERSION, world:currentWorld, hasGroup:!!group, objects:stats.objects||0, decorative:stats.decorative||0, attached:stats.attached||0, updatablesCount:updatables.length, worldNormalizer:true, arTouched:false, renderFixed:true, shaderSafe:true, lightBudget }; }
   };
 
   window.ATHOS_V47_RENDER_PREMIUM = API;

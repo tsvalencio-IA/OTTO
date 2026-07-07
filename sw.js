@@ -1,6 +1,6 @@
-// Athos V473 FINAL — Service Worker leve para GitHub Pages.
+// Athos V474 FINAL — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v473-render-controls-shader-safe';
+const CACHE_VERSION = 'athos-v474-render-shader-light-safe';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

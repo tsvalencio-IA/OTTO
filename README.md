@@ -1,25 +1,23 @@
-# Athos Adventure 3D+ — V47.3 Render Alvo + Controles Jogáveis
+# Athos Adventure 3D+ — V47.4 Render Shader/Light Safe + Controles Jogáveis
 
-ZIP completo e limpo para subir direto no GitHub Pages.
+ZIP completo para subir direto no GitHub.
 
-Arquivos de teste mantidos:
+## O que esta versão corrige
 
-- `F12_TESTE_ATHOS_V472_RENDER_CONTROLES.js`
+- remove o estouro `MAX_TEXTURE_IMAGE_UNITS(16)` que apareceu na V47.3;
+- limita luzes reais no Three.js para não quebrar shader em celular;
+- mantém o visual voxel por geometria, materiais emissivos, portal, cristais e cenário;
+- mantém joystick, B Poder, Real, Quiz/Falar, model-viewer e athos.glb;
+- mantém o motor Gameplay Engine 10;
+- mantém controles reorganizados para celular.
+
+## Testes incluídos
+
+- `F12_TESTE_ATHOS_V474_RENDER_CONTROLES.js`
 - `F12_TESTE_ATHOS_GAMEPLAY_ENGINE_10.js`
 
-Abrir depois do deploy com:
+Abra com:
 
-`?v=473-render-alvo-controles`
-
-Correções desta versão:
-
-- canvas do jogo volta a ocupar a tela inteira por trás dos controles;
-- remove a sensação de painel preto embaixo;
-- joystick fica clicável e separado da faixa de mundos;
-- botões principais ficam no padrão do alvo: poder, ação/espada e pulo;
-- botões auxiliares continuam existentes, mas menores;
-- render V47.3 aproxima mais do alvo visual com caminho, ilhas, cristais, portal e decoração mais perto da câmera;
-- câmera de gameplay fica mais próxima/cinematográfica;
-- motor Codex e AR/model-viewer preservados.
+`?v=474-render-shader-light-safe`
 
 Powered by thIAguinho Soluções Digitais.
