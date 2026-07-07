@@ -306,3 +306,211 @@ html, body, #app, .app, .game { touch-action: none; }
   .game.active .left-zone{left:7px!important;}
   .game.active .right-zone{right:7px!important;}
 }
+
+/* =====================================================================
+   V38 LAYOUT MOBILE JOGÁVEL — CORREÇÃO CIRÚRGICA FINAL
+   Motivo: prints mostraram mundo/joystick/botões sobrepostos no celular.
+   Regra: não mexe em render, AR, 3D, fase, quiz ou física. Só layout/input dock.
+   ===================================================================== */
+:root{
+  --v38-safe-top: env(safe-area-inset-top, 0px);
+  --v38-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --v38-dock-portrait: 286px;
+  --v38-dock-landscape: 138px;
+  --v38-gap: 6px;
+}
+
+html,body,.app{height:100%;height:100dvh;overflow:hidden!important;}
+.game.active{height:100dvh!important;overflow:hidden!important;background:#020617!important;}
+.game.active .camera-feed{bottom:var(--v38-dock-portrait)!important;}
+.game.active .three-stage{
+  position:absolute!important;
+  left:0!important;right:0!important;top:0!important;
+  bottom:calc(var(--v38-dock-portrait) + var(--v38-safe-bottom))!important;
+  z-index:1!important;
+  overflow:hidden!important;
+}
+.game.active #three-canvas{width:100%!important;height:100%!important;display:block!important;touch-action:none!important;}
+
+/* Topo: HUD e objetivo deixam de roubar metade da tela. */
+.game.active .top-hud{
+  position:fixed!important;left:8px!important;right:8px!important;top:calc(7px + var(--v38-safe-top))!important;
+  display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:5px!important;
+  z-index:62!important;pointer-events:none!important;
+}
+.game.active .hud-box{
+  min-width:0!important;min-height:44px!important;padding:4px 3px!important;border-width:3px!important;
+  background:rgba(8,13,25,.78)!important;backdrop-filter:blur(5px)!important;
+}
+.game.active .hud-box small{font-size:10px!important;line-height:1!important;white-space:nowrap!important;}
+.game.active .hud-box b{font-size:18px!important;line-height:1.05!important;}
+.game.active .objective-card{
+  position:fixed!important;left:8px!important;right:8px!important;top:calc(60px + var(--v38-safe-top))!important;
+  max-height:66px!important;padding:6px 9px!important;border-width:3px!important;z-index:62!important;
+  overflow:hidden!important;pointer-events:none!important;background:rgba(15,23,42,.80)!important;
+}
+.game.active .objective-card small{font-size:10px!important;line-height:1!important;}
+.game.active .objective-card strong{
+  display:-webkit-box!important;-webkit-line-clamp:2!important;-webkit-box-orient:vertical!important;
+  overflow:hidden!important;font-size:14px!important;line-height:1.12!important;
+}
+.game.active .objective-progress{height:5px!important;margin-top:5px!important;}
+.game.active.compact-hud .objective-card{opacity:.38!important;transform:scale(.82)!important;transform-origin:top left!important;}
+.game.active .tutorial-box{display:none!important;}
+.game.active .minimap{display:none!important;}
+
+/* Dock real: agora os controles têm casa própria, sem flutuar por cima um do outro. */
+.game.active .game-controls{
+  position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;inset:auto 0 0 0!important;
+  height:calc(var(--v38-dock-portrait) + var(--v38-safe-bottom))!important;
+  display:grid!important;
+  grid-template-columns:minmax(124px,38%) minmax(170px,1fr)!important;
+  grid-template-rows:38px 1fr!important;
+  gap:var(--v38-gap)!important;
+  padding:6px 8px calc(7px + var(--v38-safe-bottom))!important;
+  background:linear-gradient(180deg,rgba(2,6,23,0),rgba(2,6,23,.42) 12%,rgba(2,6,23,.76) 100%)!important;
+  border:0!important;z-index:80!important;pointer-events:none!important;
+  align-items:end!important;box-sizing:border-box!important;
+}
+.game.active .game-controls > .world-strip{
+  grid-column:1 / -1!important;grid-row:1!important;align-self:stretch!important;justify-self:stretch!important;
+  position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  max-width:none!important;width:100%!important;height:36px!important;
+  display:flex!important;gap:5px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  padding:3px 4px!important;margin:0!important;border-radius:10px!important;
+  background:rgba(2,6,23,.58)!important;opacity:1!important;pointer-events:auto!important;
+  scrollbar-width:none!important;z-index:83!important;
+}
+.game.active .game-controls > .world-strip::-webkit-scrollbar{display:none!important;}
+.game.active .world-chip{
+  flex:0 0 auto!important;min-height:28px!important;height:28px!important;padding:3px 8px!important;
+  font-size:11px!important;line-height:1!important;border-width:2px!important;border-radius:8px!important;white-space:nowrap!important;
+}
+.game.active .left-zone{
+  grid-column:1!important;grid-row:2!important;position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  width:100%!important;height:100%!important;min-width:0!important;display:flex!important;flex-direction:column!important;
+  align-items:center!important;justify-content:flex-end!important;gap:4px!important;pointer-events:auto!important;z-index:84!important;
+}
+.game.active .right-zone{
+  grid-column:2!important;grid-row:2!important;position:relative!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  width:100%!important;height:100%!important;min-width:0!important;display:flex!important;flex-direction:column!important;
+  align-items:flex-end!important;justify-content:flex-end!important;gap:0!important;pointer-events:auto!important;z-index:84!important;
+}
+.game.active .right-zone > .world-strip{display:none!important;}
+
+.game.active .joystick{width:112px!important;max-width:100%!important;display:grid!important;place-items:center!important;gap:2px!important;}
+.game.active .joy-ring{width:106px!important;height:106px!important;border-width:5px!important;}
+.game.active .joy-knob{width:46px!important;height:46px!important;margin:-23px 0 0 -23px!important;}
+.game.active .joystick small{font-size:12px!important;line-height:1!important;text-align:center!important;}
+.game.active .direction-buttons{
+  display:grid!important;grid-template-columns:repeat(3,36px)!important;grid-template-rows:repeat(3,29px)!important;
+  gap:3px!important;margin:0!important;justify-content:center!important;align-items:center!important;
+}
+.game.active .move-btn{width:36px!important;height:29px!important;font-size:12px!important;border-width:3px!important;border-radius:6px!important;}
+.game.active .move-btn span{font-size:7px!important;}
+
+.game.active .action-grid{
+  display:grid!important;grid-template-columns:repeat(3,52px)!important;grid-auto-rows:45px!important;
+  gap:5px!important;width:auto!important;max-width:100%!important;margin:0!important;align-self:flex-end!important;
+}
+.game.active .action-btn{
+  width:52px!important;height:45px!important;font-size:15px!important;border-width:3px!important;border-radius:8px!important;margin:0!important;padding:0!important;
+  box-shadow:0 4px 0 rgba(0,0,0,.42)!important;
+}
+.game.active .action-btn span{font-size:8px!important;line-height:1!important;margin-top:2px!important;}
+
+/* Paisagem: controles embaixo, área central livre. Nada no topo direito tampando jogo. */
+@media (orientation:landscape){
+  :root{--v38-dock-landscape:136px;}
+  .game.active .three-stage{bottom:calc(var(--v38-dock-landscape) + var(--v38-safe-bottom))!important;}
+  .game.active .camera-feed{bottom:calc(var(--v38-dock-landscape) + var(--v38-safe-bottom))!important;}
+  .game.active .top-hud{
+    left:8px!important;right:auto!important;top:calc(6px + var(--v38-safe-top))!important;
+    width:min(520px,54vw)!important;grid-template-columns:repeat(5,1fr)!important;gap:4px!important;
+  }
+  .game.active .hud-box{min-height:34px!important;padding:3px 4px!important;border-width:2px!important;}
+  .game.active .hud-box small{font-size:8px!important;}
+  .game.active .hud-box b{font-size:14px!important;}
+  .game.active .objective-card{
+    left:8px!important;right:auto!important;top:calc(45px + var(--v38-safe-top))!important;
+    width:min(465px,48vw)!important;max-height:50px!important;padding:5px 8px!important;border-width:2px!important;opacity:.84!important;
+  }
+  .game.active .objective-card small{font-size:9px!important;}
+  .game.active .objective-card strong{-webkit-line-clamp:1!important;font-size:12px!important;line-height:1.05!important;}
+  .game.active .objective-progress{height:3px!important;margin-top:3px!important;}
+  .game.active .game-controls{
+    height:calc(var(--v38-dock-landscape) + var(--v38-safe-bottom))!important;
+    grid-template-columns:188px minmax(140px,1fr) 238px!important;
+    grid-template-rows:1fr!important;gap:7px!important;padding:6px 8px calc(6px + var(--v38-safe-bottom))!important;
+    background:linear-gradient(180deg,rgba(2,6,23,0),rgba(2,6,23,.58) 28%,rgba(2,6,23,.82) 100%)!important;
+  }
+  .game.active .game-controls > .world-strip{
+    grid-column:2!important;grid-row:1!important;align-self:end!important;justify-self:stretch!important;height:34px!important;
+    margin-bottom:2px!important;justify-content:flex-start!important;
+  }
+  .game.active .left-zone{grid-column:1!important;grid-row:1!important;flex-direction:row!important;justify-content:flex-start!important;align-items:flex-end!important;gap:6px!important;}
+  .game.active .right-zone{grid-column:3!important;grid-row:1!important;justify-content:flex-end!important;align-items:flex-end!important;}
+  .game.active .joystick{width:92px!important;}
+  .game.active .joy-ring{width:88px!important;height:88px!important;border-width:4px!important;}
+  .game.active .joy-knob{width:38px!important;height:38px!important;margin:-19px 0 0 -19px!important;}
+  .game.active .joystick small{display:none!important;}
+  .game.active .direction-buttons{grid-template-columns:repeat(3,30px)!important;grid-template-rows:repeat(3,24px)!important;gap:2px!important;margin-bottom:2px!important;}
+  .game.active .move-btn{width:30px!important;height:24px!important;font-size:11px!important;}
+  .game.active .move-btn span{display:none!important;}
+  .game.active .action-grid{grid-template-columns:repeat(4,52px)!important;grid-auto-rows:38px!important;gap:5px!important;}
+  .game.active .action-btn{width:52px!important;height:38px!important;font-size:14px!important;}
+  .game.active .action-btn span{font-size:7px!important;}
+  .game.active .world-chip{height:27px!important;min-height:27px!important;font-size:10px!important;padding:3px 7px!important;}
+}
+
+@media (orientation:portrait) and (max-width:390px){
+  :root{--v38-dock-portrait:276px;}
+  .game.active .game-controls{grid-template-columns:minmax(112px,36%) minmax(164px,1fr)!important;padding-left:6px!important;padding-right:6px!important;}
+  .game.active .joy-ring{width:96px!important;height:96px!important;}
+  .game.active .joy-knob{width:42px!important;height:42px!important;margin:-21px 0 0 -21px!important;}
+  .game.active .direction-buttons{grid-template-columns:repeat(3,32px)!important;grid-template-rows:repeat(3,26px)!important;}
+  .game.active .move-btn{width:32px!important;height:26px!important;font-size:11px!important;}
+  .game.active .action-grid{grid-template-columns:repeat(3,48px)!important;grid-auto-rows:42px!important;gap:4px!important;}
+  .game.active .action-btn{width:48px!important;height:42px!important;font-size:14px!important;}
+  .game.active .world-chip{font-size:10px!important;padding:3px 6px!important;}
+}
+
+@media (orientation:portrait) and (max-height:700px){
+  :root{--v38-dock-portrait:250px;}
+  .game.active .objective-card{max-height:52px!important;}
+  .game.active .objective-card strong{-webkit-line-clamp:1!important;}
+  .game.active .joy-ring{width:88px!important;height:88px!important;}
+  .game.active .joy-knob{width:38px!important;height:38px!important;margin:-19px 0 0 -19px!important;}
+  .game.active .joystick small{display:none!important;}
+  .game.active .direction-buttons{grid-template-columns:repeat(3,30px)!important;grid-template-rows:repeat(3,24px)!important;}
+  .game.active .move-btn{width:30px!important;height:24px!important;}
+  .game.active .move-btn span{display:none!important;}
+  .game.active .action-grid{grid-template-columns:repeat(3,46px)!important;grid-auto-rows:39px!important;}
+  .game.active .action-btn{width:46px!important;height:39px!important;}
+}
+
+/* Modal aberto: o jogador não aperta controle sem querer atrás do quiz/fala. */
+.app.modal-active .game-controls{display:none!important;}
+.app.modal-active .objective-card{opacity:.18!important;}
+
+/* V39 — regra absoluta: Quiz e Falar não aparecem no controle durante o jogo.
+   Eles ficam apenas no lobby/tela inicial. */
+.game .action-grid [data-action="quiz"],
+.game .action-grid [data-action="ask"],
+.game #quizActionBtn,
+.game #askActionBtn{
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+
+/* Com 9 botões no jogo, a grade fica fixa e limpa: A/B/Y, X/N/R, I/Pausa/Sair. */
+.game.active .action-grid{
+  grid-template-columns:repeat(3,50px)!important;
+}
+@media (orientation:landscape) and (max-height:720px){
+  .game.active .action-grid{grid-template-columns:repeat(3,50px)!important;}
+}
+@media (max-width:740px) and (orientation:portrait){
+  .game.active .action-grid{grid-template-columns:repeat(3,52px)!important;}
+}

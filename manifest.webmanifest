@@ -1,15 +1,25 @@
 {
-  "name": "Athos: Guardião dos Portais V37 Auditoria Total",
-  "short_name": "Athos V37",
+  "name": "Athos: Guardião dos Portais V39 Controles Limpos",
+  "short_name": "Athos V39",
   "start_url": "./index.html?v=37-auditoria-total",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Jogo 3D voxel/AR do Athos com auditoria total de telas, botões, joystick, AR, portais, quiz, medalhas e controles mobile.",
+  "description": "Athos: Guardião dos Portais V39 — layout mobile jogável, AR, 3D e controles separados.",
   "icons": [
-    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

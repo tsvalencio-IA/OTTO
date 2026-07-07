@@ -465,6 +465,7 @@
     resize();
     requestAnimationFrame(resize);
     window.setTimeout(resize, 80);
+    window.setTimeout(resize, 220);
     buildLevel(currentLevel);
     requestFullscreenLandscape();
     toast(currentLevel.title, 'good');
@@ -1052,7 +1053,7 @@
     window.addEventListener('keydown',(e)=>{ if(e.repeat) return; if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=true; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=true; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=true; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=true; if(e.key===' ') jump(); if(['b','B'].includes(e.key)) power(); if(['y','Y'].includes(e.key)) input.crouch=true; });
     window.addEventListener('keyup',(e)=>{ if(['ArrowLeft','a','A'].includes(e.key)) keyboard.left=false; if(['ArrowRight','d','D'].includes(e.key)) keyboard.right=false; if(['ArrowUp','w','W'].includes(e.key)) keyboard.forward=false; if(['ArrowDown','s','S'].includes(e.key)) keyboard.back=false; if(['y','Y'].includes(e.key)) input.crouch=false; });
   }
-  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz') openQuiz(true); else if(a==='ask') openAsk(); else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
+  function handleAction(a){ if(a==='jump') jump(); else if(a==='power') power(); else if(['forward','back','left','right'].includes(a)) return; else if(a==='crouch') { toggleCrouch(true); setTimeout(()=>toggleCrouch(false), 420); } else if(a==='spin') spin(); else if(a==='size') cycleSize(); else if(a==='normal') { p.scaleMode='normal'; toast('Normal!', 'good'); } else if(a==='interact') interact(); else if(a==='quiz' || a==='ask') return; else if(a==='pause') togglePause(); else if(a==='exit') exitGame(); }
   function setupUI(){
     const bindStart = (el, target) => { if (!el) return; el.onclick = () => { closeModal(); start(target || el.dataset.play || 'missions'); }; };
     [els.playBtn, els.heroPlayBtn].forEach(el => bindStart(el, 'missions'));
@@ -1075,7 +1076,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=37').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=38').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 

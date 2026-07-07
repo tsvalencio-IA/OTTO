@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
   <meta name="theme-color" content="#0b1020" />
   <meta name="description" content="Athos: Guardião dos Portais — jogo 3D voxel/AR para celular." />
-  <title>Athos: Guardião dos Portais V37 AUDITORIA TOTAL</title>
+  <title>Athos: Guardião dos Portais V39 CONTROLES LIMPOS</title>
 
   <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="icon" type="image/png" href="./icons/favicon.png" />
   <link rel="apple-touch-icon" href="./icons/icon-192.png" />
-  <link rel="stylesheet" href="./style.css?v=37-auditoria-total" />
+  <link rel="stylesheet" href="./style.css?v=39-controles-limpos" />
 
 </head>
 <body>
@@ -22,9 +22,9 @@
             <i class="eye l"></i><i class="eye r"></i><i class="flame f1"></i><i class="flame f2"></i>
           </div>
           <div>
-            <p class="eyebrow">V37 AUDITORIA TOTAL • Guardião dos Portais</p>
+            <p class="eyebrow">V39 CONTROLES LIMPOS • Guardião dos Portais</p>
             <h1>Athos Adventure 3D+</h1>
-            <p class="subtitle">Jogo 3D voxel/AR com controles reposicionados, câmera limpa, render premium e jogabilidade focada para criança inteligente.</p>
+            <p class="subtitle">Jogo 3D voxel/AR com layout mobile jogável: controles separados, área livre de jogo e visual premium mantido.</p>
             <div class="hero-actions">
               <button id="heroPlayBtn" class="pixel-btn primary huge play-alias" data-play="missions" data-test="play-missions" aria-label="Jogar Fases 3D iniciar missões" type="button">🎮 JOGAR FASES 3D</button>
               <button id="heroFreeBtn" class="pixel-btn huge" data-play="free" data-test="play-free" aria-label="Brincar Livre AR por câmera" type="button">📷 BRINCAR LIVRE AR</button>
@@ -92,7 +92,7 @@
           </aside>
         </div>
       </div>
-      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V37 Auditoria Total</footer>
+      <footer class="footer">Powered by thIAguinho Soluções Digitais — Athos V39 Controles Limpos</footer>
     </section>
 
     <section id="game" class="screen game" aria-label="Jogo 3D">
@@ -126,6 +126,16 @@
       </div>
 
       <div class="game-controls" aria-label="Controles do jogo">
+        <div class="world-strip" aria-label="Mundos do jogo">
+          <button class="world-chip active" data-world="field" type="button">🌱 Campo</button>
+          <button class="world-chip" data-world="fire" type="button">🔥 Vulcão</button>
+          <button class="world-chip" data-world="forest" type="button">🌳 Floresta</button>
+          <button class="world-chip" data-world="castle" type="button">🏰 Castelo</button>
+          <button class="world-chip" data-world="space" type="button">🚀 Espaço</button>
+          <button class="world-chip" data-world="arena" type="button">🌀 Arena</button>
+          <button class="world-chip" data-world="real" type="button">📷 Real</button>
+        </div>
+
         <div class="left-zone">
           <div id="joystick" class="joystick" aria-label="Joystick virtual">
             <div class="joy-ring"><span id="joyKnob" class="joy-knob"></span></div>
@@ -140,16 +150,6 @@
         </div>
 
         <div class="right-zone">
-          <div class="world-strip">
-            <button class="world-chip active" data-world="field" type="button">🌱 Campo</button>
-            <button class="world-chip" data-world="fire" type="button">🔥 Vulcão</button>
-            <button class="world-chip" data-world="forest" type="button">🌳 Floresta</button>
-            <button class="world-chip" data-world="castle" type="button">🏰 Castelo</button>
-            <button class="world-chip" data-world="space" type="button">🚀 Espaço</button>
-            <button class="world-chip" data-world="arena" type="button">🌀 Arena</button>
-            <button class="world-chip" data-world="real" type="button">📷 Real</button>
-          </div>
-
           <div class="action-grid">
             <button id="jumpBtn" class="action-btn a" data-action="jump" aria-label="A Pular" type="button">A<span>Pular</span></button>
             <button id="powerBtn" class="action-btn b" data-action="power" aria-label="B Poder" type="button">B<span>Poder</span></button>
@@ -157,9 +157,7 @@
             <button id="sizeBtn" class="action-btn x" data-action="size" aria-label="X Tamanho/Girar" type="button">X<span>Tamanho</span></button>
             <button id="normalBtn" class="action-btn" data-action="normal" aria-label="N Normal" type="button">N<span>Normal</span></button>
             <button class="action-btn" data-action="spin" type="button">R<span>Girar</span></button>
-            <button class="action-btn" data-action="interact" type="button">I<span>Interagir</span></button>
-            <button class="action-btn" data-action="quiz" type="button">🧠<span>Quiz</span></button>
-            <button class="action-btn" data-action="ask" type="button">💬<span>Falar</span></button>
+            <button class="action-btn" data-action="interact" type="button">I<span>Ação</span></button>
             <button id="pauseBtn" class="action-btn warn" data-action="pause" aria-label="Pausa" type="button">⏸<span>Pausa</span></button>
             <button id="exitBtn" class="action-btn danger" data-action="exit" aria-label="Sair" type="button">⏹<span>Sair</span></button>
           </div>
@@ -178,6 +176,6 @@
     </div>
   </div>
 
-  <script src="./app.js?v=37-auditoria-total"></script>
+  <script src="./app.js?v=39-controles-limpos"></script>
 </body>
 </html>
