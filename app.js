@@ -45,7 +45,7 @@
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
   };
 
-  // V43.1: volta à base V42 estável e corrige só Quiz + controles simples do 3D, sem quebrar AR.
+  // V44: base V43.1 estável; camada cirúrgica de INIMIGOS/BOSS + Real visível no mobile. Não altera controles, AR nativo, model-viewer, Quiz/Falar ou localStorage.
   const GAME_FEEL = {
     joystickDeadzone: .17,
     joystickCurve: 1.22,
@@ -70,7 +70,23 @@
   const AR_SAFE = {
     lockMs: 1350,
     freezeWhenIdle: true,
-    label: 'V431_AR_SAFE_NO_DRIFT'
+    label: 'V44_AR_SAFE_NO_DRIFT'
+  };
+
+
+  const V44_ENEMY_AI = {
+    label: 'V44_ROUTE_ENEMIES_BOSS_ONLY',
+    enabled: true,
+    vision: 13,
+    projectileSpeed: 7.0,
+    projectileLife: 2.1,
+    easyAttackMs: 2350,
+    mediumAttackMs: 1850,
+    hardAttackMs: 1450,
+    bossHp: 10,
+    golemHp: 4,
+    flyerHp: 2,
+    spikyHp: 2
   };
 
 
@@ -256,7 +272,7 @@
   let cameraRig = { initialized:false, pos:null, look:null }; // V40: câmera cinematográfica suave sem mexer nos controles
   let initialized = false, animReq = 0, playing = false, paused = false, mode = 'lobby', currentLevelIndex = 0, currentLevel = null;
   let runtime = null, realBg = false, cameraStream = null, arSafeUntil = 0;
-  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [], v42Markers = [];
+  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], enemyProjectiles = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [], v42Markers = [], v44EnemyMarkers = [];
   let input = { x:0, z:0, crouch:false };
   let inputTarget = { x:0, z:0 };
   let keyboard = { left:false, right:false, forward:false, back:false };
@@ -620,7 +636,7 @@
   function clearLevel(){
     if (!levelGroup) return;
     while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
-    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; v42Markers=[]; portalMesh=null;
+    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; enemyProjectiles=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; v42Markers=[]; v44EnemyMarkers=[]; portalMesh=null;
   }
 
   function buildLevel(level, worldOverride){
@@ -818,6 +834,7 @@
     [-42,-132,-222,-312].filter(z => Math.abs(z)<len-24).forEach((z,i)=>{ addPlatform(i%2?-7:7,2.6,z-6,2.4,.8,2.4,0x0ea5e9); addCrystal(i%2?-7:7,3.7,z-6); });
     [-88,-178,-268].filter(z => Math.abs(z)<len-34).forEach((z,i)=> addEnemy(i%2?'flyer':'walker', i%2?7:-7, z));
     applyV42LevelDesign(level, len, lanes);
+    applyV44EnemyBossLayer(level, len, lanes);
     if (level.quizGate) addQuizAltar(0, -Math.min(len-56, 210));
   }
 
@@ -927,6 +944,45 @@
     v42Markers.push({ type:'portalRunway', z:start });
   }
 
+
+  function applyV44EnemyBossLayer(level, len, lanes){
+    const cfg = WORLD[level.world] || WORLD.field;
+    // Camada V44 do roteiro: somente leitura de adversário, arenas curtas e boss. Sem mexer em controle/AR/Quiz.
+    addV44EnemyDangerZones(level, len, lanes, cfg);
+    addV44BossArenaIfNeeded(level, len, cfg);
+    v44EnemyMarkers.push({ type:'route', label:V44_ENEMY_AI.label, level:level.id, enemies:level.enemies || 0, boss:!!level.boss });
+  }
+
+  function addV44EnemyDangerZones(level, len, lanes, cfg){
+    const total = Math.min(level.enemies || 4, 9);
+    for (let i=0;i<total;i++) {
+      const z = -34 - i * ((len-70) / Math.max(1,(level.enemies||4)-1));
+      if (Math.abs(z) > len-18) continue;
+      const x = lanes[(i+2)%lanes.length];
+      const color = i%3===0 ? 0xef4444 : i%3===1 ? 0xfacc15 : cfg.accent;
+      const pad = box(2.9,.075,2.0,color,{ emissive:color, emissiveIntensity:.13, outline:true, outlineColor:0xffffff, outlineOpacity:.10 });
+      pad.position.set(x,.155,z+1.2); levelGroup.add(pad); premiumVisuals.push(pad);
+      if (i%2===0) {
+        const side = x < 0 ? -1 : 1;
+        const post = box(.28,1.15,.28,color,{ emissive:color, emissiveIntensity:.35, outline:true, outlineOpacity:.10 });
+        post.position.set(x + side*1.75,.7,z+1.2); levelGroup.add(post); premiumVisuals.push(post);
+      }
+    }
+    v44EnemyMarkers.push({ type:'enemyDangerZones', count:total });
+  }
+
+  function addV44BossArenaIfNeeded(level, len, cfg){
+    if (!level.boss) return;
+    const z = -Math.min(len-70, 320);
+    const floor = box(10.2,.10,7.2,0x2e1065,{ emissive:cfg.accent, emissiveIntensity:.12, outline:true, outlineColor:0xff2e63, outlineOpacity:.25 });
+    floor.position.set(0,.16,z); levelGroup.add(floor); premiumVisuals.push(floor);
+    [-5.4,5.4].forEach(x=>{
+      const obelisk = box(.55,3.4,.55,0xff2e63,{ emissive:0xff2e63, emissiveIntensity:.42, outline:true, outlineOpacity:.18 });
+      obelisk.position.set(x,1.75,z); obelisk.userData.float={baseY:1.75, amp:.18, speed:.9}; levelGroup.add(obelisk); premiumVisuals.push(obelisk); addGlowSprite(x,2.35,z,0xff2e63,3.8,.14);
+    });
+    v44EnemyMarkers.push({ type:'bossArena', z });
+  }
+
   function addPlatform(x,y,z,w,h,d,color){
     const m=box(w,h,d,color,{ outline:true, outlineColor:shadeColor(color, 35), outlineOpacity:.20, roughness:.58 });
     addTopHighlight(m,w,h,d,color);
@@ -966,7 +1022,22 @@
     const color = { walker:0x84cc16, jumper:0xf97316, flyer:0xa855f7, spiky:0xef4444, golem:0x64748b, boss:0x111827 }[type] || 0x84cc16;
     const size = type==='boss'?2.05:type==='golem'?1.55:1.08;
     const m=makeEnemyModel(type,size,color); m.position.set(x,size/2,z); levelGroup.add(m);
-    enemies.push({mesh:m,type,x,z,baseX:x,baseZ:z,y:size/2,hp:type==='boss'?7:type==='golem'?3:type==='spiky'?2:1,dead:false,t:Math.random()*9,size});
+    const maxHp = type==='boss'?V44_ENEMY_AI.bossHp:type==='golem'?V44_ENEMY_AI.golemHp:type==='spiky'?V44_ENEMY_AI.spikyHp:type==='flyer'?V44_ENEMY_AI.flyerHp:1;
+    attachV44EnemyReadability(m, size, color, maxHp, type);
+    enemies.push({mesh:m,type,x,z,baseX:x,baseZ:z,y:size/2,hp:maxHp,maxHp,dead:false,t:Math.random()*9,size,nextAttackAt:now()+900+Math.random()*1200,alert:0,phase:Math.random()*6.28});
+  }
+
+  function attachV44EnemyReadability(group, size, color, maxHp, type){
+    const groundShadow = new THREE.Mesh(new THREE.CircleGeometry(size*.68,22), new THREE.MeshBasicMaterial({ color:0x000000, transparent:true, opacity:.22, depthWrite:false }));
+    groundShadow.rotation.x = -Math.PI/2; groundShadow.position.y = -size/2 + .026; group.add(groundShadow);
+    const dangerRing = new THREE.Mesh(new THREE.RingGeometry(size*.72,size*.86,24), new THREE.MeshBasicMaterial({ color:type==='boss'?0xff2e63:color, transparent:true, opacity:.13, side:THREE.DoubleSide, depthWrite:false }));
+    dangerRing.rotation.x = -Math.PI/2; dangerRing.position.y = -size/2 + .035; group.add(dangerRing); group.userData.dangerRing = dangerRing;
+    if (maxHp > 1) {
+      const bg = box(size*1.25,.11,.08,0x111827,{ outline:false });
+      const fill = box(size*1.18,.13,.09,0x22c55e,{ emissive:0x22c55e, emissiveIntensity:.35 });
+      bg.position.set(0,size*.90,size*.60); fill.position.set(0,size*.90,size*.66);
+      group.add(bg,fill); group.userData.hpFill = fill;
+    }
   }
 
   function makeEnemyModel(type,size,color){
@@ -1009,7 +1080,7 @@
   }
 
   function update(dt){
-    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
+    updateInput(dt); updateTimer(dt); updatePlayer(dt); updateEnemies(dt); updateV44EnemyProjectiles(dt); updateFireballs(dt); updateParticles(dt); updatePremiumVisuals(dt); checkCrystals(); checkHazards(); checkCheckpoints(); checkGates(); checkPortal(); updateCamera(dt); updateHud();
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
   function updateInput(dt=1/60){
@@ -1117,22 +1188,74 @@
     return best;
   }
 
+
+  function updateV44EnemyHpBar(e){
+    if (!e || !e.mesh || !e.mesh.userData.hpFill || !e.maxHp) return;
+    const pct = clamp(e.hp / e.maxHp, 0, 1);
+    e.mesh.userData.hpFill.scale.x = Math.max(.06, pct);
+    const color = pct > .55 ? 0x22c55e : pct > .25 ? 0xfacc15 : 0xef4444;
+    e.mesh.userData.hpFill.material.color.setHex(color);
+    if (e.mesh.userData.hpFill.material.emissive) e.mesh.userData.hpFill.material.emissive.setHex(color);
+  }
+
+  function v44EnemyDelay(){
+    return progress.difficulty === 'hard' ? V44_ENEMY_AI.hardAttackMs : progress.difficulty === 'medium' ? V44_ENEMY_AI.mediumAttackMs : V44_ENEMY_AI.easyAttackMs;
+  }
+
+  function v44EnemyCanAttack(e){
+    if (!V44_ENEMY_AI.enabled || realBg || !playing || paused || !e || e.dead || !p) return false;
+    if (e.type === 'walker') return false;
+    const d = Math.hypot(e.x-p.x, e.z-p.z);
+    return d < V44_ENEMY_AI.vision && now() > e.nextAttackAt;
+  }
+
+  function v44EnemyAttack(e){
+    e.nextAttackAt = now() + v44EnemyDelay() + Math.random()*650;
+    e.alert = .38;
+    if (e.mesh && e.mesh.userData.dangerRing) e.mesh.userData.dangerRing.material.opacity = .38;
+    if (e.type === 'spiky') return;
+    const dx = p.x - e.x, dz = p.z - e.z;
+    const mag = Math.max(.001, Math.hypot(dx,dz));
+    addV44EnemyProjectile(e.x, Math.max(1.15, e.y + e.size*.45), e.z, dx/mag, dz/mag, e.type);
+  }
+
+  function addV44EnemyProjectile(x,y,z,dx,dz,type){
+    const color = type==='boss'?0xff2e63:type==='flyer'?0xa855f7:type==='golem'?0xfacc15:0xef4444;
+    const m = box(.34,.34,.34,color,{ emissive:color, emissiveIntensity:.80, outline:true, outlineColor:0xffffff, outlineOpacity:.14 });
+    m.position.set(x,y,z); levelGroup.add(m); addGlowSprite(x,y,z,color,1.55,.10);
+    enemyProjectiles.push({ mesh:m, x,y,z, vx:dx*V44_ENEMY_AI.projectileSpeed, vz:dz*V44_ENEMY_AI.projectileSpeed, life:V44_ENEMY_AI.projectileLife, type });
+  }
+
+  function updateV44EnemyProjectiles(dt){
+    for (let i=enemyProjectiles.length-1;i>=0;i--) {
+      const s = enemyProjectiles[i];
+      s.life -= dt; s.x += s.vx*dt; s.z += s.vz*dt; s.mesh.position.set(s.x,s.y,s.z); s.mesh.rotation.y += dt*8;
+      if (Math.abs(p.x-s.x) < .82*p.scale + .36 && Math.abs(p.z-s.z) < .82*p.scale + .36 && p.y < s.y + .7) {
+        damagePlayer(1, s.type==='boss' ? 'Ataque do boss!' : 'Projétil inimigo!');
+        levelGroup.remove(s.mesh); enemyProjectiles.splice(i,1); continue;
+      }
+      if (s.life <= 0) { levelGroup.remove(s.mesh); enemyProjectiles.splice(i,1); }
+    }
+  }
+
   function updateEnemies(dt){
     for (const e of enemies) {
       if (e.dead) continue; e.t += dt;
-      if (e.type==='walker') e.x = e.baseX + Math.sin(e.t*1.5)*2.3;
-      if (e.type==='jumper') { e.x = e.baseX + Math.sin(e.t*1.15)*1.7; e.y = e.size/2 + Math.abs(Math.sin(e.t*3.1))*1.35; }
-      if (e.type==='flyer') { e.x = e.baseX + Math.sin(e.t*2.0)*2.8; e.y = 2.7 + Math.sin(e.t*2.3)*.75; }
-      if (e.type==='spiky') e.x = e.baseX + Math.sin(e.t*1.2)*1.8;
-      if (e.type==='golem') e.x = e.baseX + Math.sin(e.t*.75)*1.2;
-      if (e.type==='boss') { e.x = Math.sin(e.t*.9)*3.8; e.y = e.size/2 + Math.abs(Math.sin(e.t*1.8))*.4; }
-      e.mesh.position.set(e.x,e.y,e.z); e.mesh.rotation.y += dt*(e.type==='boss'?2.0:1.1);
+      if (e.type==='walker') { e.x = e.baseX + Math.sin(e.t*1.35)*2.15; e.y = e.size/2; }
+      if (e.type==='jumper') { const phase = (e.t*0.5 + e.phase) % 1; const jumpArc = phase < .50 ? Math.sin(phase*Math.PI/.50) : 0; e.x = e.baseX + Math.sin(e.t*.9)*1.45; e.y = e.size/2 + jumpArc*1.75; }
+      if (e.type==='flyer') { e.x = e.baseX + Math.sin(e.t*1.45)*3.45; e.z = e.baseZ + Math.cos(e.t*.75)*1.05; e.y = 3.05 + Math.sin(e.t*2.1)*.58; }
+      if (e.type==='spiky') { e.x = e.baseX + Math.sin(e.t*.75)*1.15; e.y = e.size/2; }
+      if (e.type==='golem') { e.x = e.baseX + Math.sin(e.t*.52)*.95; e.z = e.baseZ + Math.sin(e.t*.38)*.55; e.y = e.size/2; }
+      if (e.type==='boss') { e.x = Math.sin(e.t*.65)*4.15; e.z = e.baseZ + Math.sin(e.t*.44)*1.25; e.y = e.size/2 + Math.abs(Math.sin(e.t*1.25))*.36; }
+      e.mesh.position.set(e.x,e.y,e.z); e.mesh.rotation.y += dt*(e.type==='boss'?1.45:e.type==='flyer'?1.7:.9);
+      if (v44EnemyCanAttack(e)) v44EnemyAttack(e);
+      if (e.alert > 0) { e.alert -= dt; if (e.mesh.userData.dangerRing) e.mesh.userData.dangerRing.material.opacity = .13 + Math.max(0,e.alert)*.58; }
       if (touchEnemy(e)) resolveEnemy(e);
     }
   }
   function touchEnemy(e){ const r = p.radius*p.scale + e.size*.58; return Math.abs(p.x-e.x)<r && Math.abs(p.z-e.z)<r && p.y < e.y+e.size*1.05 && p.y+p.height*p.scale > e.y-e.size*.55; }
   function resolveEnemy(e){ const stomp = p.vy < -1 && p.y > e.y + e.size*.18 && e.type !== 'spiky' && e.type !== 'flyer'; if (stomp) { damageEnemy(e, e.type==='boss'?1:99); p.vy=8.5; toast('Pisou no inimigo!', 'good'); beep(640,80); } else damagePlayer(DIFFICULTY[progress.difficulty].damage, e.type==='spiky'?'Espinho! Use B Poder.':'Inimigo acertou!'); }
-  function damageEnemy(e,dmg){ e.hp -= dmg; addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; progress.totalEnemies=(progress.totalEnemies||0)+1; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); saveProgress(); toast(e.type==='boss'?`Guardião derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); } }
+  function damageEnemy(e,dmg){ e.hp -= dmg; updateV44EnemyHpBar(e); addParticles(e.x,e.y,e.z,0xff8a00,16); if (e.hp<=0) { e.dead=true; e.mesh.visible=false; runtime.defeated++; progress.totalEnemies=(progress.totalEnemies||0)+1; p.combo=(p.combo||0)+1; addXP((e.type==='boss'?55:e.type==='golem'?22:14) + Math.min(20,p.combo*2)); saveProgress(); toast(e.type==='boss'?`Boss derrotado! Combo x${p.combo}`:`Inimigo derrotado! Combo x${p.combo}`, 'good'); beep(760,100); if(p.combo>=5)addMedal('Sequência Perfeita'); } }
 
   function power(){
     if (!playing || paused) return;
@@ -1401,7 +1524,7 @@
   function stopCamera(){ if(cameraStream){ cameraStream.getTracks().forEach(t=>t.stop()); cameraStream=null; } els.cameraFeed.srcObject=null; }
   function requestFullscreenLandscape(){ /* V37: não força fullscreen nem trava orientação. O fullscreen quebrava layout/inputs em alguns Androids. */ }
 
-  function updateWorldButtons(world){ $$('.world-chip').forEach(b=>b.classList.toggle('active', b.dataset.world===world)); }
+  function updateWorldButtons(world){ $$('.world-chip').forEach(b=>{ const active = b.dataset.world===world; b.classList.toggle('active', active); if(active && b.scrollIntoView) setTimeout(()=>b.scrollIntoView({block:'nearest',inline:'nearest'}),50); }); }
   function setupJoystick(){
     const ring = els.joystick.querySelector('.joy-ring');
     if (!ring) return;
@@ -1576,7 +1699,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=431-stable-quiz-3d').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=44-inimigos-boss-real').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1603,6 +1726,7 @@
     getGameFeel: () => ({ ...GAME_FEEL }),
     getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
     getARSafety: () => ({ realBg, arSafeUntil, locked: realBg && now() < arSafeUntil, label: AR_SAFE.label }),
+    getV44Enemies: () => ({ label: V44_ENEMY_AI.label, enemies: enemies.length, alive: enemies.filter(e=>!e.dead).length, enemyProjectiles: enemyProjectiles.length, markers: v44EnemyMarkers.length, boss: enemies.some(e=>e.type==='boss'), realButtonVisible: (()=>{ const b=document.querySelector('.game.active .world-chip[data-world="real"]'); return !!b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).visibility !== 'hidden' && b.getBoundingClientRect().width > 0; })() }),
     getViewer3DState: () => ({ ...VIEWER_3D, hasViewer: !!els.nativeViewer, src: els.nativeViewer ? els.nativeViewer.getAttribute('src') : null }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };

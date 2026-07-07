@@ -1,13 +1,13 @@
 {
-  "name": "Athos V43.1 Estável",
-  "short_name": "Athos V43.1",
-  "start_url": "./index.html?v=42-level-design-ar-safe",
+  "name": "Athos V44 Inimigos e Boss",
+  "short_name": "Athos V44",
+  "start_url": "./index.html?v=44-inimigos-boss-real",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Athos Adventure 3D+ estável com Quiz em rodada e 3D/AR preservados.",
+  "description": "Athos Adventure 3D+ com Real visível no celular, inimigos com comportamento e boss preservando a base estável.",
   "icons": [
     {
       "src": "./icons/icon-192.png",

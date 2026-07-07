@@ -1,6 +1,6 @@
-// Athos V42 FASES + AR SEGURO — Service Worker leve para GitHub Pages.
+// Athos V44 INIMIGOS E BOSS — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v431-stable-quiz-3d';
+const CACHE_VERSION = 'athos-v44-inimigos-boss-real';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

@@ -1,14 +1,14 @@
-# Athos V43.1 — Estável
+# Athos V44 — Roteiro correto: Inimigos e Boss
 
-Base: V42 aprovada.
+Base: V43.1 estável.
 
-Correções:
-- V43 anterior descartada por quebrar 3D/AR e poluir a tela.
-- Quiz agora roda 5 perguntas sem fechar ao responder.
-- Ver em 3D volta a usar o model-viewer estável, com controles simples de girar, zoom, subir/descer, tela maior, reset e AR.
-- AR seguro preservado.
-- Controles do jogo preservados.
-- Render/fases/game feel preservados da linha V42/V41.1.
+Escopo seguido:
+- hotfix do botão 📷 Real visível no celular;
+- camada V44 somente de inimigos/boss;
+- preserva HTML estrutural dos controles, IDs, data-action, data-move, data-world, AR nativo, model-viewer, athos.glb, Quiz/Falar no lobby, B Poder, joystick, dock mobile, localStorage e fluxo entrada/sair.
 
-Subir todos os arquivos na raiz do GitHub Pages.
-Abrir com: ?v=431-stable-quiz-3d
+Abrir no GitHub Pages com:
+`?v=44-inimigos-boss-real`
+
+Teste F12:
+`F12_TESTE_ATHOS_V44_ROTEIRO_INIMIGOS_BOSS.js`
