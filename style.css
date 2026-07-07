@@ -517,3 +517,26 @@ html,body,.app{height:100%;height:100dvh;overflow:hidden!important;}
 
 
 /* V40 RENDER E CÂMERA — sem mexer em layout/controles. Ajustes visuais no app.js: câmera, atmosfera, iluminação, portal e leitura dos mundos. */
+
+/* V42 — fases desenhadas + AR seguro */
+.game.ar-safe-mode::after{
+  content:'AR seguro: Athos parado';
+  position:fixed;
+  left:50%;
+  top:calc(env(safe-area-inset-top,0px) + 76px);
+  transform:translateX(-50%);
+  z-index:60;
+  pointer-events:none;
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(2,6,23,.72);
+  color:#fff;
+  font-weight:900;
+  font-size:12px;
+  letter-spacing:.3px;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+}
+.native-viewer::part(default-ar-button){
+  transform:scale(1.04);
+}

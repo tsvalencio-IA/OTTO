@@ -1,6 +1,6 @@
-// Athos V41.1 GAME FEEL HOTFIX — Service Worker leve para GitHub Pages.
+// Athos V42 FASES + AR SEGURO — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v411-pointer-hotfix-no-cache';
+const CACHE_VERSION = 'athos-v42-level-design-ar-safe-no-cache';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

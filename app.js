@@ -21,8 +21,8 @@
     modal: $('#modal'), modalTitle: $('#modalTitle'), modalBody: $('#modalBody'), modalClose: $('#modalClose')
   };
 
-  const STORAGE_KEY = 'athos_guardiao_v411_pointer_capture_progress';
-  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v37_auditoria_total_progress','athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
+  const STORAGE_KEY = 'athos_guardiao_v42_level_design_ar_safe_progress';
+  const LEGACY_STORAGE_KEYS = ['athos_guardiao_v411_pointer_capture_progress','athos_guardiao_v41_game_feel_progress','athos_guardiao_v37_auditoria_total_progress','athos_guardiao_v36_jogavel_progress','athos_guardiao_v35_premium_render_progress','athos_guardiao_v34_progress','athos_guardiao_v32_progress','athos_guardiao_v31_progress','athos_guardiao_v30_progress','athos_guardiao_v25_progress'];
   const WORLD = {
     hub: { name:'Hub dos Portais', sky:0x101827, fog:0x172033, ground:0x334155, grid:0x38bdf8, accent:0xfacc15, light:0xffffff },
     field: { name:'Campo dos Blocos', sky:0x88c7ff, fog:0x8fd0ff, ground:0x3a8f34, grid:0x2e6f24, accent:0xfacc15, light:0xfff3c4 },
@@ -45,7 +45,7 @@
     hard: { name:'Difícil', hearts:4, speed:9.7, jump:11.8, gravity:26, timer:165, damage:1, bonus:1.55, forgiveness:.78 }
   };
 
-  // V41.1 HOTFIX: mantém game feel V41 e corrige captura de ponteiro para não gerar NotFoundError em toque/teste.
+  // V42: mantém V41.1 estável e adiciona fases desenhadas + AR seguro sem drift.
   const GAME_FEEL = {
     joystickDeadzone: .17,
     joystickCurve: 1.22,
@@ -66,40 +66,57 @@
     landingHorizontalDamp: .86
   };
 
+
+  const AR_SAFE = {
+    lockMs: 1350,
+    freezeWhenIdle: true,
+    label: 'V42_AR_SAFE_NO_DRIFT'
+  };
+
+  const V42_LEVEL_GUIDES = {
+    training: ['Ande para o fundo', 'Pule na caixa', 'Pegue cristal', 'Use B Poder', 'Entre no portal'],
+    field: ['Rota das caixas', 'Cristal alto', 'Desvie do buraco', 'Quebre bloco escuro', 'Portal do campo'],
+    volcano: ['Lava machuca', 'Pule com direção', 'Espinho usa B', 'Checkpoint seguro', 'Portal do vulcão'],
+    forest: ['Y abaixa', 'Mini passa no túnel', 'Cristal escondido', 'Voador usa B', 'Portal da floresta'],
+    castle: ['Portão pesado', 'Gigante ajuda', 'Golem aguenta', 'Checkpoint do castelo', 'Portal de pedra'],
+    space: ['Plataforma flutuante', 'Pulo com impulso', 'Voador espacial', 'Quiz do portal', 'Portal do espaço'],
+    arena: ['Misture tudo', 'Cuidado com espinhos', 'Use B e X', 'Boss guardião', 'Portal final']
+  };
+
   const LEVELS = [
     {
-      id:'training', world:'field', title:'Fase 1 — Treinamento dos Portais', length:210, crystals:5, enemies:3, medal:'Primeiro Pulo',
-      objective:'Aprenda a usar profundidade: suba nas caixas, colete 5 cristais, vença 3 inimigos e entre no portal.',
+      id:'training', world:'field', title:'Fase 1 — Treinamento dos Portais V42', length:210, crystals:5, enemies:3, medal:'Primeiro Pulo',
+      objective:'Ritmo guiado: ande, pule na caixa, pegue cristais, use B Poder e entre no portal sem se perder.',
       tutorial:['Use o joystick para ir para o fundo da tela.','Aperte A para pular em cima das caixas.','B lança poder nos blocos escuros e inimigos.']
     },
     {
       id:'field', world:'field', title:'Fase 2 — Campo dos Blocos', length:245, crystals:6, enemies:4, medal:'Guardião do Campo',
-      objective:'Colete cristais, pule caixas sólidas, vença cubos simples e abra o portal do campo.',
+      objective:'Siga a rota do campo: caixas em sequência, buraco com desvio, bloco escuro e portal liberado no fim.',
       tutorial:['Caixas são caminho, não decoração.','Pule em cima de inimigos comuns para vencer.','Complete cristais e inimigos para liberar o portal.']
     },
     {
       id:'volcano', world:'fire', title:'Fase 3 — Vulcão Pixel', length:265, crystals:6, enemies:5, medal:'Mestre do Vulcão',
-      objective:'Desvie da lava, pule os buracos, use B nos espinhos e libere o portal do vulcão.',
+      objective:'Leia o chão vermelho: desvie da lava, pule buracos, use B nos espinhos e conquiste o portal do vulcão.',
       tutorial:['Lava e buracos tiram vida.','Pule segurando o joystick para dar impulso.','Espinhos não podem ser pisados: use poder.']
     },
     {
       id:'forest', world:'forest', title:'Fase 4 — Floresta Voxel', length:295, crystals:7, enemies:6, medal:'Explorador da Floresta',
-      objective:'Passe por túneis baixos com Y, suba plataformas e colete o cristal escondido.',
+      objective:'A floresta ensina tamanho: Y abaixa, mini passa nos túneis, B acerta voadores e o portal aparece no fim.',
       tutorial:['Segure Y para abaixar.','X alterna mini, normal e gigante.','Mini passa melhor por túneis.']
     },
     {
       id:'castle', world:'castle', title:'Fase 5 — Castelo de Pedra', length:325, crystals:7, enemies:7, medal:'Cavaleiro do Castelo',
-      objective:'Abra portões, derrote o golem e encontre o portal no fim do castelo.',
+      objective:'O castelo testa força: use gigante nos portões, B contra golems e checkpoints antes do portal.',
       tutorial:['Use X para virar gigante nos portões.','Golems têm mais vida.','Checkpoints salvam seu retorno.']
     },
     {
       id:'space', world:'space', title:'Fase 6 — Espaço Cubo', length:350, crystals:8, enemies:7, medal:'Viajante do Espaço', quizGate:true,
-      objective:'Pule em plataformas espaciais, acerte o quiz do portal e derrote os voadores.',
+      objective:'No espaço, pule com impulso, mire nos voadores e responda o quiz para energizar o portal.',
       tutorial:['Plataformas flutuantes exigem pulo com direção.','O quiz libera a energia do portal.','Observe o minimapa para saber a distância.']
     },
     {
       id:'arena', world:'arena', title:'Fase 7 — Arena dos Portais', length:390, crystals:10, enemies:9, medal:'Mestre dos Portais', boss:true, quizGate:true,
-      objective:'Use tudo: profundidade, caixas, pulo, poder, tamanho e estratégia para fechar o portal final.',
+      objective:'Arena final desenhada: use profundidade, pulo, B Poder, tamanho, checkpoint e estratégia para fechar o portal mestre.',
       tutorial:['A arena mistura todos os desafios.','O Guardião do Portal precisa de vários poderes.','Completar a arena libera medalha final.']
     }
   ];
@@ -227,8 +244,8 @@
   let scene, camera, renderer, clock, root, levelGroup, player, playerModel, mixer, ambientLight, sunLight, portalMesh, skyMesh;
   let cameraRig = { initialized:false, pos:null, look:null }; // V40: câmera cinematográfica suave sem mexer nos controles
   let initialized = false, animReq = 0, playing = false, paused = false, mode = 'lobby', currentLevelIndex = 0, currentLevel = null;
-  let runtime = null, realBg = false, cameraStream = null;
-  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [];
+  let runtime = null, realBg = false, cameraStream = null, arSafeUntil = 0;
+  let platforms = [], hazards = [], crystals = [], enemies = [], fireballs = [], particles = [], solids = [], gates = [], checkpoints = [], premiumVisuals = [], v42Markers = [];
   let input = { x:0, z:0, crouch:false };
   let inputTarget = { x:0, z:0 };
   let keyboard = { left:false, right:false, forward:false, back:false };
@@ -563,7 +580,7 @@
     hardStopAllInput('start');
     els.game.classList.remove('compact-hud');
     if (mode === 'hub') currentLevel = { id:'hub', title:'Hub dos Portais', world:'hub', length:190, crystals:0, enemies:0, objective:'Explore o hub e escolha uma fase pelos portais. Para aventura real, toque em JOGAR FASES.' };
-    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'Brinque livremente: use câmera real, pule nas caixas, derrote inimigos e teste poderes.' };
+    else if (mode === 'free') currentLevel = { ...LEVELS[0], id:'free', title:'Brincar Livre / AR por câmera', world:'real', length:300, crystals:10, enemies:7, objective:'AR seguro: câmera real com Athos parado ao abrir. Toque no joystick só quando quiser mover.' };
     else { currentLevelIndex = Math.min(progress.level || 0, LEVELS.length - 1); currentLevel = LEVELS[currentLevelIndex]; }
     showScreen('game');
     if (!await initThree()) { showScreen('lobby'); playing = false; return; }
@@ -592,7 +609,7 @@
   function clearLevel(){
     if (!levelGroup) return;
     while(levelGroup.children.length) levelGroup.remove(levelGroup.children[0]);
-    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; portalMesh=null;
+    platforms=[]; hazards=[]; crystals=[]; enemies=[]; fireballs=[]; particles=[]; solids=[]; gates=[]; checkpoints=[]; premiumVisuals=[]; v42Markers=[]; portalMesh=null;
   }
 
   function buildLevel(level, worldOverride){
@@ -618,7 +635,7 @@
     sunLight.color.setHex(cfg.light); sunLight.intensity = realBg ? 1.35 : world === 'fire' ? 1.42 : world === 'space' ? .95 : 1.25;
     sunLight.position.set(world === 'space' ? -12 : 10, world === 'fire' ? 18 : 22, world === 'castle' ? 4 : 12);
     renderer.toneMappingExposure = world === 'fire' ? 1.20 : world === 'space' ? 1.28 : world === 'castle' ? 1.10 : 1.14;
-    if (realBg) startCamera(); else stopCamera();
+    if (realBg) { enterARSafeMode('world-real'); startCamera(); } else { arSafeUntil = 0; stopCamera(); }
   }
 
   function createPremiumAtmosphere(world,length){
@@ -789,7 +806,114 @@
     // Plataformas bônus e cristais secretos para deixar a fase menos beta/demo
     [-42,-132,-222,-312].filter(z => Math.abs(z)<len-24).forEach((z,i)=>{ addPlatform(i%2?-7:7,2.6,z-6,2.4,.8,2.4,0x0ea5e9); addCrystal(i%2?-7:7,3.7,z-6); });
     [-88,-178,-268].filter(z => Math.abs(z)<len-34).forEach((z,i)=> addEnemy(i%2?'flyer':'walker', i%2?7:-7, z));
+    applyV42LevelDesign(level, len, lanes);
     if (level.quizGate) addQuizAltar(0, -Math.min(len-56, 210));
+  }
+
+
+  function applyV42LevelDesign(level, len, lanes){
+    const cfg = WORLD[level.world] || WORLD.field;
+    const guides = V42_LEVEL_GUIDES[level.id] || ['Começo seguro', 'Primeiro desafio', 'Checkpoint', 'Último desafio', 'Portal'];
+    const positions = [ -12, -48, -Math.max(86, Math.floor(len*.38)), -Math.max(132, Math.floor(len*.64)), -Math.max(172, Math.floor(len*.84)) ];
+    guides.forEach((text, i) => {
+      const z = Math.max(-len + 24, positions[i] || (-18 - i*44));
+      const x = i % 2 ? -7.35 : 7.35;
+      addV42GuideBoard(text, x, z, cfg.accent, i);
+      addV42LaneCue(lanes[i % lanes.length], z + 4, cfg.accent, i);
+    });
+
+    // Plataformas de intenção: começo fácil, meio com recompensa, final com pista clara.
+    if (level.id === 'training') {
+      addV42SafePad(0, -10, 0x4ade80, 'começo');
+      addV42SafePad(-5, -36, 0x22c55e, 'pulo');
+      addV42SafePad(5, -72, 0xfacc15, 'recompensa');
+    } else if (level.id === 'volcano') {
+      [-38,-74,-112,-162].filter(z => Math.abs(z) < len-22).forEach((z,i)=> addV42WarningStrip(lanes[(i+1)%3], z+4, 0xffd000, 'perigo'));
+    } else if (level.id === 'forest') {
+      [-92,-194].filter(z => Math.abs(z) < len-25).forEach((z,i)=> addV42GuideBoard('Y / MINI', lanes[i%3], z+6, 0x22c55e, i+6));
+    } else if (level.id === 'castle') {
+      addV42GuideBoard('X GIGANTE', 0, -Math.min(len-42, 138)+6, 0xf59e0b, 8);
+      addV42WarningStrip(0, -Math.min(len-42, 138)+2, 0xf59e0b, 'portão');
+    } else if (level.id === 'space') {
+      [-42,-132,-222].filter(z => Math.abs(z)<len-24).forEach((z,i)=> addV42LandingLights(i%2?-7:7, z-6, 0x38bdf8));
+    } else if (level.id === 'arena') {
+      addV42GuideBoard('BOSS FINAL', 0, -Math.min(len-70, 320), 0xff2e63, 10);
+      addV42WarningStrip(0, -Math.min(len-70, 320)+8, 0xff2e63, 'boss');
+    }
+
+    addV42PortalRunway(len, cfg);
+  }
+
+  function addV42GuideBoard(text, x, z, color, order=0){
+    const post = box(.34,2.15,.34,0x111827,{ outline:true, outlineColor:color, outlineOpacity:.25 });
+    post.position.set(x,1.08,z); levelGroup.add(post);
+    const board = box(3.7,1.0,.25,color,{ emissive:color, emissiveIntensity:.18, outline:true, outlineColor:0xffffff, outlineOpacity:.16 });
+    board.position.set(x,2.45,z); levelGroup.add(board);
+    const sprite = makeV42TextSprite(text, color);
+    sprite.position.set(x,2.55,z + (x < 0 ? .34 : -.34));
+    sprite.material.depthTest = false;
+    levelGroup.add(sprite);
+    v42Markers.push({ type:'guide', text, x, z, order });
+  }
+
+  function makeV42TextSprite(text, color){
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 144;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,512,144);
+    ctx.fillStyle = 'rgba(3,7,18,.78)';
+    ctx.fillRect(0,0,512,144);
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 8; ctx.strokeRect(6,6,500,132);
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 44px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const label = String(text || '').toUpperCase().slice(0,22);
+    ctx.fillText(label,256,76);
+    const tex = new THREE.CanvasTexture(canvas); tex.needsUpdate = true;
+    const matSprite = new THREE.SpriteMaterial({ map:tex, transparent:true, opacity:.92, depthWrite:false });
+    const sprite = new THREE.Sprite(matSprite);
+    sprite.scale.set(4.8,1.35,1);
+    premiumVisuals.push(sprite);
+    return sprite;
+  }
+
+  function addV42LaneCue(x,z,color,order=0){
+    const base = box(2.2,.10,1.35,color,{ emissive:color, emissiveIntensity:.22, outline:true, outlineColor:0xffffff, outlineOpacity:.13 });
+    base.position.set(x,.18,z); levelGroup.add(base);
+    const tip = box(.55,.12,.55,0xffffff,{ emissive:color, emissiveIntensity:.14 });
+    tip.position.set(x,.26,z-.82); tip.rotation.y = Math.PI/4; levelGroup.add(tip);
+    v42Markers.push({ type:'cue', x, z, order });
+  }
+
+  function addV42SafePad(x,z,color,label){
+    const pad = box(5.2,.16,4.2,color,{ emissive:color, emissiveIntensity:.08, outline:true, outlineColor:0xffffff, outlineOpacity:.12, roughness:.55 });
+    pad.position.set(x,.12,z); levelGroup.add(pad);
+    v42Markers.push({ type:'safePad', label, x, z });
+  }
+
+  function addV42WarningStrip(x,z,color,label){
+    const stripA = box(4.6,.14,.30,color,{ emissive:color, emissiveIntensity:.45, outline:true, outlineColor:0x111827, outlineOpacity:.2 });
+    stripA.position.set(x,.22,z); levelGroup.add(stripA);
+    const stripB = box(4.6,.14,.30,color,{ emissive:color, emissiveIntensity:.22, outline:true, outlineColor:0x111827, outlineOpacity:.2 });
+    stripB.position.set(x,.22,z-2.2); levelGroup.add(stripB);
+    v42Markers.push({ type:'warning', label, x, z });
+  }
+
+  function addV42LandingLights(x,z,color){
+    [-1.1,1.1].forEach(dx=>{
+      const lightPad = box(.55,.16,.55,color,{ emissive:color, emissiveIntensity:.5, outline:true, outlineColor:0xffffff, outlineOpacity:.16 });
+      lightPad.position.set(x+dx,.32,z); levelGroup.add(lightPad); premiumVisuals.push(lightPad);
+    });
+    v42Markers.push({ type:'landingLights', x, z });
+  }
+
+  function addV42PortalRunway(len,cfg){
+    const start = -len + 26;
+    for (let i=0;i<5;i++) {
+      const z = start - i*5;
+      const w = 6.6 - i*.8;
+      const r = box(w,.12,.32,cfg.accent,{ emissive:cfg.accent, emissiveIntensity:.25, outline:true, outlineColor:0xffffff, outlineOpacity:.12 });
+      r.position.set(0,.18,z); levelGroup.add(r);
+    }
+    v42Markers.push({ type:'portalRunway', z:start });
   }
 
   function addPlatform(x,y,z,w,h,d,color){
@@ -878,6 +1002,11 @@
   }
   function updateTimer(dt){ if (runtime && runtime.timer) { runtime.timer -= dt; if (runtime.timer <= 0) damagePlayer(999,'Tempo esgotado!'); } }
   function updateInput(dt=1/60){
+    if (realBg && now() < arSafeUntil) {
+      clearMovementState();
+      if (p) { p.vx = 0; p.vz = 0; }
+      return;
+    }
     const kx = (keyboard.right?1:0) - (keyboard.left?1:0) + (moveHold.right?1:0) - (moveHold.left?1:0);
     const kz = (keyboard.forward?1:0) - (keyboard.back?1:0) + (moveHold.forward?1:0) - (moveHold.back?1:0);
     let rawX = clamp(joy.x + kx, -1, 1);
@@ -913,6 +1042,7 @@
     p.vz += (targetVz - p.vz) * blend;
     if (noInput && Math.abs(p.vx) < GAME_FEEL.stopThreshold) p.vx = 0;
     if (noInput && Math.abs(p.vz) < GAME_FEEL.stopThreshold) p.vz = 0;
+    if (realBg && AR_SAFE.freezeWhenIdle && noInput) { p.vx = 0; p.vz = 0; }
 
     p.x += p.vx * dt;
     p.z += p.vz * dt;
@@ -1248,6 +1378,15 @@
     }
   }
 
+  function enterARSafeMode(reason='ar'){
+    hardStopAllInput(reason);
+    arSafeUntil = now() + AR_SAFE.lockMs;
+    if (p) { p.vx = 0; p.vz = 0; p.vy = Math.min(p.vy || 0, 0); }
+    if (els.game) els.game.classList.add('ar-safe-mode');
+    window.setTimeout(() => { if (now() >= arSafeUntil && els.game) els.game.classList.remove('ar-safe-mode'); }, AR_SAFE.lockMs + 60);
+    toast('AR seguro: Athos parado. Toque no controle para mover.', 'warn');
+  }
+
 
   function safePointerCapture(el, event){
     if (!el || !event || typeof event.pointerId !== 'number') return false;
@@ -1299,6 +1438,8 @@
     if (els.modal) els.modal.addEventListener('click',(e)=>{ if(e.target===els.modal) closeModal(); });
     if (els.difficultySelect) els.difficultySelect.onchange=()=>{ progress.difficulty=els.difficultySelect.value; saveProgress(); toast(`Dificuldade: ${DIFFICULTY[progress.difficulty].name}`,'good'); };
     const openNativeAR = () => {
+      hardStopAllInput('native-ar');
+      arSafeUntil = now() + AR_SAFE.lockMs;
       if (!els.nativeViewer || typeof els.nativeViewer.activateAR !== 'function') { toast('AR nativo indisponível neste navegador. Use Brincar Livre AR.', 'warn'); return; }
       try { const r = els.nativeViewer.activateAR(); if (r && typeof r.catch === 'function') r.catch(()=>toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn')); } catch { toast('AR nativo não abriu. Use Brincar Livre AR.', 'warn'); }
     };
@@ -1306,7 +1447,7 @@
     if(els.nativeViewer){ els.nativeViewer.addEventListener('load',()=>els.modelStatus.textContent='athos.glb carregado.'); els.nativeViewer.addEventListener('error',()=>els.modelStatus.textContent='Erro: athos.glb não encontrado.'); }
   }
   function refreshServiceWorker(){
-    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=41-game-feel').then(reg => reg.update()).catch(()=>{});
+    if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js?v=42-level-design-ar-safe').then(reg => reg.update()).catch(()=>{});
     if('caches' in window) caches.keys().then(keys=>keys.filter(k=>/athos|otto/i.test(k)).forEach(k=>caches.delete(k).catch(()=>{}))).catch(()=>{});
   }
 
@@ -1331,6 +1472,8 @@
     }),
     getPlayerState: () => p ? ({ x:p.x, y:p.y, z:p.z, vx:p.vx, vy:p.vy, vz:p.vz, grounded:p.grounded, scaleMode:p.scaleMode, lastLandAt }) : null,
     getGameFeel: () => ({ ...GAME_FEEL }),
+    getV42Design: () => ({ markers:v42Markers.length, guides:v42Markers.filter(m=>m.type==='guide').map(m=>m.text), currentLevel: currentLevel ? currentLevel.id : null }),
+    getARSafety: () => ({ realBg, arSafeUntil, locked: realBg && now() < arSafeUntil, label: AR_SAFE.label }),
     hardStopAllInput: () => hardStopAllInput('test-api')
   };
 

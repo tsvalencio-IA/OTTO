@@ -1,13 +1,13 @@
 {
-  "name": "Athos: Guardião dos Portais V41.1 Game Feel Hotfix",
-  "short_name": "Athos V41.1",
-  "start_url": "./index.html?v=411-pointer-hotfix",
+  "name": "Athos: Guardião dos Portais V42 Fases e AR Seguro",
+  "short_name": "Athos V42",
+  "start_url": "./index.html?v=42-level-design-ar-safe",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Athos: Guardião dos Portais V41.1 — hotfix de captura de ponteiro sobre a V41, sem alterar layout, AR ou Quiz/Falar do lobby.",
+  "description": "Athos: Guardião dos Portais V42 — fases mais desenhadas e AR seguro para impedir Athos de andar sozinho ao abrir câmera/realidade aumentada.",
   "icons": [
     {
       "src": "./icons/icon-192.png",
