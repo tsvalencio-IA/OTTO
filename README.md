@@ -1,14 +1,12 @@
-# ATHOS V50 RECUPERADO
+# ATHOS V54 - Render Premium
 
-Base profissional de recuperação:
-- base estável: V39 controles limpos;
-- render 3D real novo por objetos Three.js;
-- sem V46/V47/V48/V49 experimentais;
-- sem backplate/fundo falso como jogo;
-- preserva athos.glb, model-viewer, AR nativo, joystick, B Poder, Quiz/Falar no lobby e data-*.
+Base preservada: V53.3 controles dentro da tela.
 
-Abra no GitHub Pages com:
-?v=50-recuperado
+Entrega:
+- camada visual nova em `assets/render-v54/`;
+- lobby limpo para crianca;
+- render procedural Three.js, sem imagem de fundo;
+- controles, joystick, AR nativo, model-viewer, Quiz/Falar e `athos.glb` preservados.
 
-Teste F12:
-F12_TESTE_ATHOS_V50_RECUPERADO.js
+Teste principal:
+`F12_TESTE_ATHOS_V54_RENDER_PREMIUM.js`

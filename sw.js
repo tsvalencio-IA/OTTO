@@ -1,6 +1,6 @@
-// Athos V39 CONTROLES LIMPOS — Service Worker leve para GitHub Pages.
+// Athos V53 — Service Worker leve para GitHub Pages.
 // Network-first para impedir cache fantasma durante correções e testes.
-const CACHE_VERSION = 'athos-v39-layout-mobile-no-cache';
+const CACHE_VERSION = 'athos-v53-codex-visual';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -22,7 +22,7 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  const isCore = /\/(index\.html|app\.js|style\.css|manifest\.webmanifest|sw\.js)$/.test(url.pathname);
+  const isCore = /\/(index\.html|app\.js|style\.css|manifest\.webmanifest|sw\.js)$/.test(url.pathname) || /\/assets\/render-v48\//.test(url.pathname) || /\/assets\/render-v54\//.test(url.pathname);
   if (isCore) {
     event.respondWith(fetch(req, { cache: 'no-store' }).catch(() => caches.match(req)));
   }

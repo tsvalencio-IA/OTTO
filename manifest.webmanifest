@@ -1,25 +1,15 @@
 {
-  "name": "Athos: Guardião dos Portais V39 Controles Limpos",
-  "short_name": "Athos V39",
-  "start_url": "./index.html?v=37-auditoria-total",
+  "name": "Athos V48 Render Alvo 10",
+  "short_name": "Athos V48",
+  "start_url": "./index.html?v=471-render-fix-gameplay",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#080b16",
   "theme_color": "#0b1020",
-  "description": "Athos: Guardião dos Portais V39 — layout mobile jogável, AR, 3D e controles separados.",
+  "description": "Athos Adventure 3D+ V48 com render-alvo fiel, motor de gameplay Codex, AR nativo preservado e controles mobile reorganizados.",
   "icons": [
-    {
-      "src": "./icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "./icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    {"src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
   ]
 }
